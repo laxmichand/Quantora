@@ -8,23 +8,23 @@
 
 ```
 Authentication
-├── [ ] JWT token validated
-├── [ ] Token expiry checked
-├── [ ] Refresh token flow works
-└── [ ] Invalid token returns 401
+├── [x] JWT token validated
+├── [x] Token expiry checked
+├── [x] Refresh token flow works
+└── [x] Invalid token returns 401
 
 Authorization
-├── [ ] Role-based access checked
+├── [x] Role-based access checked
 ├── [ ] Resource ownership verified
-├── [ ] Admin-only endpoints protected
-└── [ ] Insufficient permissions returns 403
+├── [x] Admin-only endpoints protected
+└── [x] Insufficient permissions returns 403
 
 Rate Limiting
-├── [ ] Global rate limit set
+├── [x] Global rate limit set
 ├── [ ] Per-user rate limit set
 ├── [ ] Per-endpoint rate limit set
 ├── [ ] Rate limit headers included
-└── [ ] Exceeding limit returns 429
+└── [x] Exceeding limit returns 429
 
 Caching
 ├── [ ] Cache-Control header set
@@ -60,11 +60,11 @@ Resilience
 └── [ ] Graceful degradation
 
 Validation
-├── [ ] Input validation (Zod/class-validator)
+├── [x] Input validation (class-validator)
 ├── [ ] Sanitization (XSS prevention)
-├── [ ] Type checking
-├── [ ] Required fields enforced
-└── [ ] Format validation (email, phone, etc.)
+├── [x] Type checking
+├── [x] Required fields enforced
+└── [x] Format validation (email, phone, etc.)
 
 Versioning
 ├── [ ] API version in URL (/v1/)
@@ -74,8 +74,8 @@ Versioning
 
 Observability
 ├── [ ] Request ID propagated
-├── [ ] Timing logged
-├── [ ] Error details logged
+├── [x] Timing logged
+├── [x] Error details logged
 ├── [ ] Metrics emitted
 └── [ ] Tracing spans created
 ```
@@ -146,31 +146,31 @@ Security
 
 ```
 Unit Tests
-├── [ ] Service methods tested
+├── [x] Service methods tested
 ├── [ ] Controller methods tested
 ├── [ ] Utility functions tested
-├── [ ] Edge cases covered
-├── [ ] Error cases covered
-├── [ ] Mocks/stubs defined
+├── [x] Edge cases covered
+├── [x] Error cases covered
+├── [x] Mocks/stubs defined
 ├── [ ] Coverage >90%
-└── [ ] No flaky tests
+└── [x] No flaky tests
 
 Integration Tests
-├── [ ] Database operations tested
-├── [ ] External service mocks
-├── [ ] Authentication flow tested
-├── [ ] Authorization flow tested
-├── [ ] Error propagation tested
-└── [ ] Cleanup after tests
+├── [x] Database operations tested
+├── [x] External service mocks
+├── [x] Authentication flow tested
+├── [x] Authorization flow tested
+├── [x] Error propagation tested
+└── [x] Cleanup after tests
 
 API Tests
-├── [ ] All endpoints tested
-├── [ ] Request validation tested
+├── [x] All endpoints tested
+├── [x] Request validation tested
 ├── [ ] Response format verified
-├── [ ] Status codes correct
+├── [x] Status codes correct
 ├── [ ] Headers correct
 ├── [ ] Content-Type correct
-└── [ ] Error responses tested
+└── [x] Error responses tested
 
 Contract Tests
 ├── [ ] OpenAPI schema valid
@@ -180,12 +180,12 @@ Contract Tests
 └── [ ] Consumer/provider aligned
 
 E2E Tests
-├── [ ] Critical user flows tested
+├── [x] Critical user flows tested
 ├── [ ] Cross-browser tested
 ├── [ ] Responsive design tested
 ├── [ ] Accessibility tested
 ├── [ ] Performance budgets met
-└── [ ] Error states handled
+└── [x] Error states handled
 
 Load Tests
 ├── [ ] Normal load baseline
@@ -361,59 +361,59 @@ Day 1 (100 Users)
 
 ```
 Authentication
-├── [ ] JWT with short expiry (15min)
-├── [ ] Refresh token rotation
+├── [x] JWT with short expiry (15min)
+├── [x] Refresh token rotation
 ├── [ ] Secure token storage (httpOnly cookie)
-├── [ ] Password hashing (bcrypt/argon2)
+├── [x] Password hashing (bcrypt/argon2)
 ├── [ ] MFA support (future)
 ├── [ ] Account lockout after failures
 └── [ ] Session management
 
 Authorization
-├── [ ] RBAC implemented
+├── [x] RBAC implemented
 ├── [ ] Resource-level permissions
-├── [ ] API-level permissions
-├── [ ] Admin role separated
+├── [x] API-level permissions
+├── [x] Admin role separated
 └── [ ] Permission inheritance
 
 Input Validation
-├── [ ] Server-side validation
-├── [ ] Client-side validation (UX only)
-├── [ ] SQL injection prevention (Prisma)
+├── [x] Server-side validation
+├── [x] Client-side validation (UX only)
+├── [x] SQL injection prevention (Prisma)
 ├── [ ] XSS prevention (sanitization)
 ├── [ ] File upload validation
 └── [ ] Request size limits
 
 Transport Security
-├── [ ] HTTPS enforced
+├── [x] HTTPS enforced (Vercel + Render)
 ├── [ ] HSTS header
 ├── [ ] TLS 1.3
 └── [ ] Certificate rotation
 
 Headers Security
-├── [ ] Content-Security-Policy
-├── [ ] X-Frame-Options: DENY
-├── [ ] X-Content-Type-Options: nosniff
-├── [ ] X-XSS-Protection
-├── [ ] Referrer-Policy
-└── [ ] Permissions-Policy
+├── [x] Content-Security-Policy (nginx)
+├── [x] X-Frame-Options: DENY (nginx)
+├── [x] X-Content-Type-Options: nosniff (nginx)
+├── [x] X-XSS-Protection (nginx)
+├── [x] Referrer-Policy (nginx)
+└── [x] Permissions-Policy (nginx)
 
 Secrets Management
-├── [ ] No secrets in code
-├── [ ] .env files gitignored
+├── [x] No secrets in code
+├── [x] .env files gitignored
 ├── [ ] Secrets in vault (production)
 ├── [ ] Secret rotation schedule
-└── [ ] Access audit trail
+└── [x] Access audit trail
 
 Dependencies
-├── [ ] Dependencies scanned (npm audit)
-├── [ ] No known vulnerabilities
-├── [ ] Dependencies pinned
+├── [x] Dependencies scanned (npm audit)
+├── [ ] No known vulnerabilities (47 vulns exist)
+├── [x] Dependencies pinned
 └── [ ] Regular updates scheduled
 
 Audit Logging
-├── [ ] Auth events logged
-├── [ ] Data mutations logged
+├── [x] Auth events logged
+├── [x] Data mutations logged
 ├── [ ] Admin actions logged
 ├── [ ] Log retention defined
 └── [ ] Log integrity protected
@@ -463,5 +463,58 @@ Infrastructure
 
 ---
 
-*Checklists Version: 1.0*
-*Last Updated: 2026-07-26*
+## CI/CD Checklist (Pipeline Stages)
+
+```
+Code Quality
+├── [ ] Prettier formatting check (ts, html, scss)
+├── [ ] ESLint with max-warnings=0
+├── [ ] TypeScript type check (tsc --noEmit)
+├── [ ] Concurrency: cancel in-progress runs on same branch
+
+Unit Tests
+├── [ ] NestJS API: Jest with coverage
+├── [ ] Angular Web: Karma headless (ChromeHeadlessNoSandbox)
+├── [ ] FastAPI AI: pytest with coverage
+├── [ ] Coverage artifacts uploaded (retention: 7 days)
+
+Build
+├── [ ] NestJS: npm run build
+├── [ ] Angular: ng build --configuration production
+├── [ ] FastAPI: pip install + verify imports
+├── [ ] Docker: Build images (API + AI)
+
+Integration / E2E
+├── [ ] E2E tests via supertest
+├── [ ] Redis service container for integration tests
+
+Security Scanning
+├── [ ] npm audit --audit-level=critical
+├── [ ] Gitleaks secret scan
+├── [ ] CodeQL security analysis (javascript-typescript)
+├── [ ] Hardcoded secrets regex scan (MongoDB/PostgreSQL/API keys)
+├── [ ] .env not committed check
+├── [ ] render.yaml secrets check
+
+Docker Build Verification
+├── [ ] Docker Buildx setup
+├── [ ] API Docker image builds
+├── [ ] AI Docker image builds
+
+CI Gate (Summary)
+├── [ ] All parallel jobs checked
+├── [ ] Any failure/cancellation blocks merge
+├── [ ] Results printed in summary step
+└── [ ] Gate passes only if all stages green
+
+Environment
+├── [ ] Node.js: 22
+├── [ ] Python: 3.11
+├── [ ] OS: ubuntu-latest
+└── [ ] Services: Redis 7-alpine for integration tests
+```
+
+---
+
+*Checklists Version: 2.0*
+*Last Updated: 2026-07-27*

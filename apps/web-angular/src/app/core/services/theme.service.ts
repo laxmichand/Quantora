@@ -11,14 +11,14 @@ export interface Theme {
 })
 export class ThemeService {
   readonly themes: Theme[] = [
-    { name: 'slate', label: 'Slate', icon: 'looks_one' },
-    { name: 'indigo', label: 'Indigo', icon: 'looks_two' },
-    { name: 'emerald', label: 'Emerald', icon: 'looks_3' },
-    { name: 'rose', label: 'Rose', icon: 'looks_4' },
+    { name: 'default', label: 'Auto', icon: 'brightness_auto' },
+    { name: 'light', label: 'Light', icon: 'light_mode' },
+    { name: 'dark', label: 'Dark', icon: 'dark_mode' },
   ];
 
-  private currentTheme = 'slate';
+  private currentTheme = 'default';
   private storageKey = 'quantora-theme';
+  private mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
   constructor() {
     const saved = localStorage.getItem(this.storageKey);
@@ -26,10 +26,21 @@ export class ThemeService {
       this.currentTheme = saved;
     }
     this.applyTheme(this.currentTheme);
+
+    // Re-apply when system preference changes (only matters for "default")
+    this.mediaQuery.addEventListener('change', () => {
+      if (this.currentTheme === 'default') {
+        this.applyTheme('default');
+      }
+    });
   }
 
   getCurrentTheme(): string {
     return this.currentTheme;
+  }
+
+  isSystemDark(): boolean {
+    return this.mediaQuery.matches;
   }
 
   setTheme(name: string): void {
@@ -40,6 +51,12 @@ export class ThemeService {
   }
 
   private applyTheme(name: string): void {
-    document.body.setAttribute('data-theme', name);
+    if (name === 'default') {
+      // Follow system: dark mode → slate, light mode → light
+      const isDark = this.mediaQuery.matches;
+      document.body.setAttribute('data-theme', isDark ? 'slate' : 'light');
+    } else {
+      document.body.setAttribute('data-theme', name);
+    }
   }
 }

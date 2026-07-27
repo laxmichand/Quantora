@@ -21,8 +21,9 @@ model User {
   name          String
   phone         String?
   role          String    @default("user") // user, pro, admin
-  language      String    @default("en")   // en, hi, hi-en
   isActive      Boolean   @default(true) @map("is_active")
+  isEmailVerified Boolean @default(false) @map("is_email_verified")
+  emailVerifyToken String? @map("email_verify_token")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   createdBy     String?   @map("created_by")
@@ -36,7 +37,9 @@ model User {
   alerts        Alert[]
   watchlists    Watchlist[]
   auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
   subscription  Subscription?
+  preferences   UserPreference?
 
   @@index([email])
   @@index([role])
@@ -203,6 +206,26 @@ model Watchlist {
 }
 
 // ============================================
+// REFRESH TOKENS
+// ============================================
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  token       String   @unique
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  isRevoked   Boolean  @default(false) @map("is_revoked")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================
 // AUDIT LOGS
 // ============================================
 
@@ -225,4 +248,53 @@ model AuditLog {
   @@index([createdAt(sort: Desc)])
   @@index([action])
   @@map("audit_logs")
+}
+
+// ============================================
+// USER PREFERENCES
+// ============================================
+
+model UserPreference {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+
+  // Language & Display
+  language            String   @default("en")            // en, hi
+  theme               String   @default("slate")         // slate, indigo, emerald, rose
+  dateFormat          String   @default("DD/MM/YYYY") @map("date_format")    // DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
+  numberFormat        String   @default("indian") @map("number_format")        // indian (1,23,456), international (123,456)
+  timezone            String   @default("Asia/Kolkata")  // IANA timezone
+
+  // Notifications
+  notificationsEmail  Boolean  @default(true) @map("notifications_email")
+  notificationsPush   Boolean  @default(true) @map("notifications_push")
+  notificationsSms    Boolean  @default(false) @map("notifications_sms")
+  notifyPriceAlerts   Boolean  @default(true) @map("notify_price_alerts")
+  notifyPortfolio     Boolean  @default(true) @map("notify_portfolio")
+  notifyNews          Boolean  @default(false) @map("notify_news")
+  notifyAiInsights    Boolean  @default(true) @map("notify_ai_insights")
+
+  // Trading Preferences
+  defaultExchange     String   @default("NSE") @map("default_exchange")          // NSE, BSE, BOTH
+  riskTolerance       String   @default("moderate") @map("risk_tolerance")     // conservative, moderate, aggressive
+  investmentStyle     String   @default("long_term") @map("investment_style")    // intraday, swing, long_term, value
+
+  // UI Preferences
+  sidebarCollapsed    Boolean  @default(false) @map("sidebar_collapsed")
+  defaultView         String   @default("dashboard") @map("default_view")    // dashboard, portfolio, stocks
+  stockListColumns    Json?    @map("stock_list_columns")
+  dashboardLayout     Json?    @map("dashboard_layout")
+
+  // Privacy
+  profilePublic       Boolean  @default(false) @map("profile_public")
+  showPortfolio       Boolean  @default(false) @map("show_portfolio")
+
+  // Audit
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }

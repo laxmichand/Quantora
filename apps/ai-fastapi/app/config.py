@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
-    # Database
-    MONGODB_URL: str = "mongodb+srv://[USERNAME]:[PASSWORD]@[CLUSTER].mongodb.net/quantora"
-    POSTGRES_URL: str = "postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+    # Database — values come from .env, not hardcoded
+    MONGODB_URL: str = ""
+    POSTGRES_URL: str = ""
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379"

@@ -1,0 +1,138 @@
+{
+  "APP_NAME": "Quantora",
+  "TAGLINE": "Intelligent Investing. Simplified.",
+
+  "NAV": {
+    "DASHBOARD": "Dashboard",
+    "STOCKS": "Stocks",
+    "PORTFOLIO": "Portfolio",
+    "AI_CHAT": "Ask Quantora",
+    "SETTINGS": "Settings",
+    "EXPAND": "Expand",
+    "COLLAPSE": "Collapse"
+  },
+
+  "DASHBOARD": {
+    "TITLE": "Dashboard",
+    "WELCOME": "Welcome to Quantora — Intelligent Investing. Simplified.",
+    "PORTFOLIO_VALUE": "Portfolio Value",
+    "TODAY_PNL": "Today's P&L",
+    "AI_SCORE_AVG": "AI Score (Avg)",
+    "RISK_LEVEL": "Risk Level",
+    "TOP_STOCKS": "Top Stocks",
+    "SYMBOL": "Symbol",
+    "PRICE": "Price (₹)",
+    "CHANGE": "Change",
+    "AI_SCORE": "AI Score"
+  },
+
+  "STOCKS": {
+    "TITLE": "Stocks",
+    "SEARCH": "Search stocks...",
+    "FILTER": "Filter",
+    "ALL": "All",
+    "NSE": "NSE",
+    "BSE": "BSE",
+    "ADD_TO_WATCHLIST": "Add to Watchlist",
+    "VIEW_DETAILS": "View Details",
+    "NO_STOCKS": "No stocks found"
+  },
+
+  "PORTFOLIO": {
+    "TITLE": "Portfolio",
+    "OVERVIEW": "Overview",
+    "HOLDINGS": "Holdings",
+    "ADD_HOLDING": "Add Holding",
+    "TOTAL_VALUE": "Total Value",
+    "TOTAL_PNL": "Total P&L",
+    "TODAY_PNL": "Today's P&L",
+    "HEALTH_SCORE": "Health Score",
+    "NO_HOLDINGS": "No holdings yet. Add your first stock!"
+  },
+
+  "AI_CHAT": {
+    "TITLE": "Ask Quantora",
+    "PLACEHOLDER": "Ask me anything about stocks, portfolio, or market...",
+    "SEND": "Send",
+    "SUGGESTED": "Suggested Questions",
+    "Q1": "Should I buy ITC?",
+    "Q2": "How is my portfolio performing?",
+    "Q3": "Best dividend stocks?",
+    "Q4": "Explain P/E ratio",
+    "TYPING": "Quantora is thinking...",
+    "DISCLAIMER": "AI-generated. Not financial advice."
+  },
+
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "SUBTITLE": "Manage your preferences and account",
+    "PROFILE": "Profile",
+    "SUBSCRIPTION": "Subscription",
+    "LANGUAGE": "Language",
+    "LANGUAGE_DESC": "Choose your preferred language",
+    "THEME": "Theme",
+    "THEME_DESC": "Customize the look and feel",
+    "APPEARANCE": "Appearance",
+    "APPEARANCE_DESC": "Auto follows your system setting. Light for day, dark for night.",
+    "NOTIFICATIONS": "Notifications",
+    "NOTIFICATIONS_DESC": "Control how you receive updates",
+    "SECURITY": "Security",
+    "SECURITY_DESC": "Password, 2FA, and session management",
+    "SAVE": "Save Changes",
+    "NAME": "Name",
+    "EMAIL": "Email",
+    "PHONE": "Phone"
+  },
+
+  "AUTH": {
+    "LOGIN": "Login",
+    "REGISTER": "Register",
+    "LOGOUT": "Logout",
+    "EMAIL": "Email",
+    "PASSWORD": "Password",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "NAME": "Full Name",
+    "PHONE": "Phone (Optional)",
+    "FORGOT_PASSWORD": "Forgot Password?",
+    "NO_ACCOUNT": "Don't have an account?",
+    "HAS_ACCOUNT": "Already have an account?",
+    "SIGN_IN_GOOGLE": "Sign in with Google",
+    "OR": "or",
+    "VERIFY_EMAIL": "Verify your email",
+    "VERIFY_SENT": "Verification link sent to your email",
+    "WELCOME_BACK": "Welcome back!"
+  },
+
+  "COMMON": {
+    "LOADING": "Loading...",
+    "ERROR": "Something went wrong",
+    "RETRY": "Retry",
+    "CANCEL": "Cancel",
+    "CONFIRM": "Confirm",
+    "DELETE": "Delete",
+    "EDIT": "Edit",
+    "SAVE": "Save",
+    "BACK": "Back",
+    "NEXT": "Next",
+    "SEARCH": "Search",
+    "NO_DATA": "No data available",
+    "SUCCESS": "Success",
+    "FAILED": "Failed"
+  },
+
+  "PASSIVE_INCOME": {
+    "TITLE": "Passive Income",
+    "DIVIDEND_STOCKS": "Dividend Stocks",
+    "COVERED_CALLS": "Covered Calls",
+    "INCOME_CALCULATOR": "Income Calculator",
+    "DAILY_REPORTS": "Daily Reports",
+    "ESTIMATED_INCOME": "Estimated Monthly Income",
+    "YIELD": "Yield",
+    "ANNUAL_INCOME": "Annual Income"
+  },
+
+  "FOOTER": {
+    "DISCLAIMER": "Investments are subject to market risks. Read all documents carefully.",
+    "NOT_FINANCIAL_ADVICE": "AI-generated content is not financial advice."
+  }
+}

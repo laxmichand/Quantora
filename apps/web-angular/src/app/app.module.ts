@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,14 +13,29 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ThemeSwitcherComponent } from './core/components/theme-switcher/theme-switcher.component';
+import { LanguageSwitcherComponent } from './core/components/language-switcher/language-switcher.component';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { APP_INIT_PROVIDER } from './core/app-initializer';
+
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
 
 @NgModule({
-  declarations: [AppComponent, ThemeSwitcherComponent],
+  declarations: [AppComponent, ThemeSwitcherComponent, LanguageSwitcherComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
     AppRoutingModule,
+    TranslateModule.forRoot({
+      defaultLanguage: 'en',
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient],
+      },
+    }),
     MatToolbarModule,
     MatIconModule,
     MatButtonModule,
@@ -26,7 +43,10 @@ import { ThemeSwitcherComponent } from './core/components/theme-switcher/theme-s
     MatSelectModule,
     MatTooltipModule,
   ],
-  providers: [],
+  providers: [
+    APP_INIT_PROVIDER,
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

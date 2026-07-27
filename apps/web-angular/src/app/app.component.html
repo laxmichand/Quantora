@@ -1,56 +1,136 @@
-<div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+<div class="app-layout">
+  <!-- STOCK TICKER STRIP -->
+  <div class="ticker-strip">
+    <div class="ticker-track">
+      <div class="ticker-item" *ngFor="let s of stockTicker">
+        <span class="ticker-symbol">{{ s.symbol }}</span>
+        <span class="ticker-price">₹{{ s.price }}</span>
+        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+          <mat-icon>{{
+            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+          }}</mat-icon>
+          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+        </span>
+      </div>
+      <div class="ticker-item" *ngFor="let s of stockTicker">
+        <span class="ticker-symbol">{{ s.symbol }}</span>
+        <span class="ticker-price">₹{{ s.price }}</span>
+        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+          <mat-icon>{{
+            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+          }}</mat-icon>
+          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+        </span>
+      </div>
+    </div>
+  </div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
+  <!-- SINGLE HEADER BAR -->
+  <mat-toolbar class="app-toolbar">
+    <!-- Logo -->
+    <a class="toolbar-logo" [routerLink]="isLoggedIn ? '/home' : '/'">
       <div class="logo-icon-wrap">
         <mat-icon>account_balance</mat-icon>
       </div>
-      <span class="logo-text" *ngIf="!sidebarCollapsed">Quantora</span>
+      <span class="toolbar-title">Quantora</span>
+    </a>
+
+    <!-- Search -->
+    <div class="toolbar-search">
+      <mat-icon>search</mat-icon>
+      <input type="text" placeholder="Search for stocks, MFs, ETFs..." />
     </div>
 
-    <nav class="sidebar-nav">
-      <a *ngFor="let item of navItems"
-         class="nav-item"
-         [routerLink]="item.route"
-         routerLinkActive="active"
-         [matTooltip]="sidebarCollapsed ? item.label : ''"
-         matTooltipPosition="right">
-        <mat-icon>{{ item.icon }}</mat-icon>
-        <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
-      </a>
+    <!-- Nav Links -->
+    <nav class="toolbar-nav">
+      <a class="nav-item" routerLink="/stocks" routerLinkActive="active">IN Stocks</a>
+      <a class="nav-item" routerLink="/etf" routerLinkActive="active">US Stocks &amp; ETFs</a>
+      <a class="nav-item" routerLink="/mutual-funds" routerLinkActive="active">Mutual Funds</a>
+      <a class="nav-item" routerLink="/indices" routerLinkActive="active">ETFs</a>
+      <a class="nav-item" routerLink="/indices" routerLinkActive="active">Indices</a>
+
+      <!-- More dropdown -->
+      <div
+        class="more-dropdown"
+        (mouseenter)="productsOpen = true"
+        (mouseleave)="productsOpen = false"
+      >
+        <button class="nav-item more-trigger" [class.active]="productsOpen">
+          More
+          <mat-icon class="chevron" [class.open]="productsOpen">expand_more</mat-icon>
+        </button>
+        <div class="more-panel" *ngIf="productsOpen">
+          <div class="more-col">
+            <div class="more-heading">Invest</div>
+            <a class="more-item" routerLink="/gold"><mat-icon>monetization_on</mat-icon>Gold</a>
+            <a class="more-item" routerLink="/bonds"><mat-icon>request_quote</mat-icon>Bonds</a>
+            <a class="more-item" routerLink="/ipo"><mat-icon>new_releases</mat-icon>IPO</a>
+          </div>
+          <div class="more-col">
+            <div class="more-heading">Tools</div>
+            <a class="more-item" routerLink="/screener"><mat-icon>filter_list</mat-icon>Screener</a>
+            <a class="more-item" routerLink="/compare"
+              ><mat-icon>compare_arrows</mat-icon>Compare</a
+            >
+            <a class="more-item" routerLink="/backtest"><mat-icon>history</mat-icon>Backtest</a>
+            <a class="more-item" routerLink="/calendar"
+              ><mat-icon>calendar_month</mat-icon>Calendar</a
+            >
+          </div>
+          <div class="more-col">
+            <div class="more-heading">Learn</div>
+            <a class="more-item" routerLink="/blog"><mat-icon>article</mat-icon>Blog</a>
+            <a class="more-item" routerLink="/research"><mat-icon>science</mat-icon>Research</a>
+            <a class="more-item" routerLink="/learn"><mat-icon>school</mat-icon>Courses</a>
+            <a class="more-item" routerLink="/news"><mat-icon>newspaper</mat-icon>News</a>
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="isLoggedIn">
+        <a class="nav-item" routerLink="/portfolio" routerLinkActive="active">Portfolio</a>
+        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a class="nav-item" routerLink="/ai-chat" routerLinkActive="active">AI Chat</a>
+      </ng-container>
     </nav>
 
-    <div class="sidebar-footer">
-      <button class="collapse-btn"
-              (click)="toggleSidebar()"
-              [matTooltip]="sidebarCollapsed ? 'Expand' : 'Collapse'"
-              matTooltipPosition="right">
-        <mat-icon>{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-      </button>
+    <!-- Right side -->
+    <div class="toolbar-right">
+      <ng-container *ngIf="isLoggedIn">
+        <button mat-icon-button class="toolbar-icon-btn">
+          <mat-icon>notifications</mat-icon>
+        </button>
+        <div
+          class="profile-dropdown"
+          (mouseenter)="profileOpen = true"
+          (mouseleave)="profileOpen = false"
+        >
+          <button class="profile-btn">
+            <div class="profile-avatar"><mat-icon>person</mat-icon></div>
+          </button>
+          <div class="profile-panel" *ngIf="profileOpen">
+            <a class="profile-item" routerLink="/settings"
+              ><mat-icon>settings</mat-icon><span>Settings</span></a
+            >
+            <a class="profile-item" routerLink="/settings" [queryParams]="{ tab: 'security' }"
+              ><mat-icon>security</mat-icon><span>Security</span></a
+            >
+            <div class="profile-divider"></div>
+            <button class="profile-item danger">
+              <mat-icon>logout</mat-icon><span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!isLoggedIn">
+        <a routerLink="/auth/register" class="btn-signup">Sign Up</a>
+        <a routerLink="/auth/login" class="btn-login">Login</a>
+      </ng-container>
     </div>
-  </aside>
+  </mat-toolbar>
 
-  <!-- MAIN -->
-  <div class="main-area">
-    <mat-toolbar class="app-toolbar">
-      <button mat-icon-button (click)="toggleSidebar()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="toolbar-title">Quantora</span>
-      <span class="toolbar-spacer"></span>
-      <span class="toolbar-subtitle">Intelligent Investing. Simplified.</span>
-      <app-theme-switcher></app-theme-switcher>
-      <button mat-icon-button>
-        <mat-icon>notifications</mat-icon>
-      </button>
-      <button mat-icon-button>
-        <mat-icon>account_circle</mat-icon>
-      </button>
-    </mat-toolbar>
-
-    <main class="main-content">
-      <router-outlet></router-outlet>
-    </main>
-  </div>
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
 </div>

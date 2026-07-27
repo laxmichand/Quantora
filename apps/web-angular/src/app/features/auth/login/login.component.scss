@@ -1,0 +1,818 @@
+// ─── QUANTORA AUTH — Full-page split layout ───
+.qauth-page {
+  display: flex;
+  min-height: 100vh;
+  max-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: var(--content-bg);
+}
+
+// ─── Background effects ───
+.qauth-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--border-light) 1px, transparent 0);
+  background-size: 40px 40px;
+  opacity: 0.4;
+  animation: gridPulse 8s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.qauth-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.015;
+}
+
+.qauth-orb-1 {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -200px;
+  background: var(--accent);
+  animation: orbFloat 14s ease-in-out infinite;
+}
+
+.qauth-orb-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  background: var(--positive);
+  animation: orbFloat 10s ease-in-out infinite reverse;
+}
+
+@keyframes orbFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.95);
+  }
+}
+
+// ─── Inner flex container ───
+.qauth-inner {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+// ════════════════════════════════════════════════════════════
+// LEFT PANEL — Product Details
+// ════════════════════════════════════════════════════════════
+.qauth-left {
+  flex: 1;
+  background: linear-gradient(135deg, #0c1222 0%, #1a2a4a 50%, #0f172a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 48px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -15%;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.06);
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -10%;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.04);
+  }
+}
+
+.qauth-left-content {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  width: 100%;
+}
+
+// Brand in left panel
+.qauth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: white;
+    }
+  }
+
+  .brand-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.3px;
+  }
+
+  .brand-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Tagline
+.qauth-tagline {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+
+  span {
+    background: linear-gradient(135deg, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+.qauth-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+// Features list
+.qauth-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.qfeat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  cursor: default;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+.qfeat-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &.ai {
+    background: rgba(59, 130, 246, 0.15);
+    mat-icon {
+      color: #60a5fa;
+    }
+  }
+  &.portfolio {
+    background: rgba(16, 185, 129, 0.15);
+    mat-icon {
+      color: #34d399;
+    }
+  }
+  &.risk {
+    background: rgba(245, 158, 11, 0.15);
+    mat-icon {
+      color: #fbbf24;
+    }
+  }
+  &.forecast {
+    background: rgba(139, 92, 246, 0.15);
+    mat-icon {
+      color: #a78bfa;
+    }
+  }
+  &.screener {
+    background: rgba(236, 72, 153, 0.15);
+    mat-icon {
+      color: #f472b6;
+    }
+  }
+  &.goals {
+    background: rgba(6, 182, 212, 0.15);
+    mat-icon {
+      color: #22d3ee;
+    }
+  }
+}
+
+.qfeat-text {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  span {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.3;
+    margin-top: 1px;
+  }
+}
+
+// Market chips in left panel
+.qauth-market {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mchip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11.5px;
+  font-weight: 500;
+  animation: chipPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  &:nth-child(2) {
+    animation-delay: 0.05s;
+  }
+  &:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes chipPop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mchip-label {
+  color: rgba(255, 255, 255, 0.4);
+}
+.mchip-value {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.mchip-change {
+  font-weight: 600;
+  &.up {
+    color: #4ade80;
+  }
+  &.down {
+    color: #f87171;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// RIGHT PANEL — Auth Form
+// ════════════════════════════════════════════════════════════
+.qauth-right {
+  width: 480px;
+  min-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 40px;
+  background: var(--card-bg);
+  border-left: 1px solid var(--card-border);
+  overflow-y: auto;
+}
+
+// Right panel brand header
+.qauth-right-header {
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.qr-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.qr-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px var(--logo-shadow, rgba(59, 130, 246, 0.25));
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: white;
+  }
+}
+
+.qr-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--heading);
+  letter-spacing: -0.5px;
+}
+
+.qr-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--accent-light), rgba(99, 102, 241, 0.15));
+  color: var(--accent);
+  letter-spacing: 0.8px;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+// Card
+.qauth-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: cardSlideUp 0.4s ease-out;
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Tabs
+.qauth-tabs {
+  display: flex;
+  background: var(--content-bg);
+  border-radius: 10px;
+  padding: 3px;
+  animation: fadeIn 0.4s ease-out 0.05s both;
+
+  .tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--subtext);
+    text-decoration: none;
+    transition: all 0.2s;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s;
+    }
+
+    &.active {
+      background: var(--card-bg);
+      color: var(--heading);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    &:hover:not(.active) {
+      color: var(--heading);
+      mat-icon {
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Form
+.qauth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.qauth-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--content-bg);
+  transition: all 0.2s;
+
+  &:nth-child(1) {
+    animation: fieldSlide 0.4s ease-out 0.1s both;
+  }
+  &:nth-child(2) {
+    animation: fieldSlide 0.4s ease-out 0.15s both;
+  }
+
+  &:focus-within {
+    border-color: var(--accent);
+    background: var(--card-bg);
+    box-shadow: 0 0 0 3px var(--accent-light);
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes fieldSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.field-icon mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--subtext);
+}
+
+.field-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--subtext);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input {
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--heading);
+    padding: 2px 0;
+    font-family: inherit;
+
+    &::placeholder {
+      color: var(--subtext);
+      opacity: 0.4;
+    }
+  }
+}
+
+// Row
+.qauth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qauth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--subtext);
+
+  input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+
+    &:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    &:checked::after {
+      content: '';
+      position: absolute;
+      left: 4.5px;
+      top: 1.5px;
+      width: 5px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.qauth-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// Error
+.error-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--negative-bg);
+  color: var(--negative);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Button
+.qauth-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out 0.3s both;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+    &::after {
+      transform: translateX(100%);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.loading-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Divider
+.qauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-lighter);
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--subtext);
+    white-space: nowrap;
+  }
+}
+
+// Social
+.qauth-social {
+  display: flex;
+  gap: 8px;
+}
+
+.sbtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: var(--card-bg);
+  color: var(--subtext);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: fadeIn 0.4s ease-out 0.35s both;
+
+  &:nth-child(2) {
+    animation-delay: 0.4s;
+  }
+
+  svg {
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  &:hover {
+    background: var(--content-bg);
+    color: var(--heading);
+    transform: translateY(-1px);
+
+    svg {
+      transform: scale(1.1);
+    }
+
+    &.google {
+      border-color: #4285f4;
+    }
+    &.apple {
+      border-color: #000;
+    }
+  }
+}
+
+// Footer
+.qauth-footer {
+  text-align: center;
+  padding-top: 4px;
+
+  span {
+    font-size: 13px;
+    color: var(--subtext);
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ════════════════════════════════════════════════════════════
+@media (max-width: 900px) {
+  .qauth-inner {
+    flex-direction: column;
+  }
+  .qauth-left {
+    padding: 32px 24px;
+    min-height: auto;
+  }
+  .qauth-left-content h1 {
+    font-size: 28px;
+  }
+  .qauth-features {
+    gap: 10px;
+  }
+  .qfeat {
+    padding: 8px 10px;
+  }
+  .qfeat-text strong {
+    font-size: 13px;
+  }
+  .qfeat-text span {
+    font-size: 11px;
+  }
+  .qauth-right {
+    width: 100%;
+    min-width: unset;
+    border-left: none;
+    border-top: 1px solid var(--card-border);
+    padding: 32px 24px;
+  }
+}

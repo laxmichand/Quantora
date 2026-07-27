@@ -1,15 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AppValidationPipe } from './common/pipes/validation.pipe';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Global prefix for all routes
   app.setGlobalPrefix('api');
 
-  // Enable CORS
+  app.useGlobalPipes(AppValidationPipe);
+
   app.enableCors({
     origin: [
       'http://localhost:4200',
@@ -22,10 +23,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global interceptors
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Quantora API')
     .setDescription('Quantora - Intelligent Investing. Simplified.')

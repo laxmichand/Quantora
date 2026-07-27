@@ -1,0 +1,290 @@
+<div class="landing-page">
+  <!-- HERO -->
+  <section class="tt-hero">
+    <div class="tt-hero-inner">
+      <div class="tt-hero-left">
+        <div class="market-status-badge">
+          <span class="status-dot"></span>
+          {{ marketStatus }}
+        </div>
+        <h1 class="hero-title">
+          India's AI-Powered<br /><span class="accent">Investment Platform</span>
+        </h1>
+        <p class="hero-desc">
+          Real-time market data, AI-driven insights, and powerful tools — all in one place.
+        </p>
+        <div class="hero-cta">
+          <a routerLink="/auth/register" class="btn-primary-lg">
+            <mat-icon>rocket_launch</mat-icon>
+            Get Started Free
+          </a>
+          <a routerLink="/auth/login" class="btn-outline-lg"> Sign In </a>
+        </div>
+        <div class="hero-trust">
+          <mat-icon>verified</mat-icon>
+          No credit card required &bull; Free forever
+        </div>
+      </div>
+      <div class="tt-hero-right">
+        <div class="mmi-card">
+          <div class="mmi-header">
+            <span class="mmi-title">MarketsMojo Indicator</span>
+            <span class="mmi-badge good">Bullish</span>
+          </div>
+          <div class="mmi-score">
+            <div class="score-ring">
+              <span class="score-val">7.8</span>
+              <span class="score-max">/10</span>
+            </div>
+          </div>
+          <div class="mmi-bars">
+            <div class="mmi-bar-row">
+              <span>Technicals</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 78%"></div></div>
+              <span class="bar-val green">7.8</span>
+            </div>
+            <div class="mmi-bar-row">
+              <span>Fundamentals</span>
+              <div class="bar-track"><div class="bar-fill" style="width: 82%"></div></div>
+              <span class="bar-val green">8.2</span>
+            </div>
+            <div class="mmi-bar-row">
+              <span>Sentiment</span>
+              <div class="bar-track"><div class="bar-fill orange" style="width: 65%"></div></div>
+              <span class="bar-val orange">6.5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TODAY'S STOCKS -->
+  <section class="tt-stocks">
+    <div class="tt-section-inner">
+      <h2 class="section-title">Today's Stocks</h2>
+      <div class="stock-tabs">
+        <button
+          *ngFor="let tab of stockTabs; let i = index"
+          class="tab-btn"
+          [class.active]="activeStockTab === i"
+          (click)="setActiveStockTab(i)"
+        >
+          {{ tab }}
+        </button>
+      </div>
+      <div class="stock-table-wrap">
+        <table class="stock-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Symbol</th>
+              <th>LTP (₹)</th>
+              <th>Change</th>
+              <th>% Change</th>
+              <th>Volume</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of stockData[stockTabs[activeStockTab]]; let i = index">
+              <td class="row-num">{{ i + 1 }}</td>
+              <td class="stock-symbol">
+                <span class="sym">{{ s.symbol }}</span>
+              </td>
+              <td class="ltp">{{ s.ltp }}</td>
+              <td [class.green]="s.change > 0" [class.red]="s.change < 0">
+                {{ s.change > 0 ? '+' : '' }}{{ s.change }}
+              </td>
+              <td>
+                <span class="pct-badge" [class.green]="s.pct > 0" [class.red]="s.pct < 0">
+                  {{ s.pct > 0 ? '+' : '' }}{{ s.pct }}%
+                </span>
+              </td>
+              <td class="volume">{{ s.volume }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- MUTUAL FUNDS & ETFs -->
+  <section class="tt-mf">
+    <div class="tt-section-inner">
+      <h2 class="section-title">Mutual Funds &amp; ETFs</h2>
+      <div class="stock-tabs">
+        <button
+          *ngFor="let tab of mfTabs; let i = index"
+          class="tab-btn"
+          [class.active]="activeMfTab === i"
+          (click)="setActiveMfTab(i)"
+        >
+          {{ tab }}
+        </button>
+      </div>
+      <div class="stock-table-wrap">
+        <table class="stock-table mf-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fund Name</th>
+              <th>Category</th>
+              <th>1Y Return</th>
+              <th>3Y Return</th>
+              <th>5Y Return</th>
+              <th>Risk</th>
+              <th>Min SIP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of mfData[mfTabs[activeMfTab]]; let i = index">
+              <td class="row-num">{{ i + 1 }}</td>
+              <td class="fund-name">{{ f.name }}</td>
+              <td>
+                <span class="cat-badge">{{ f.category }}</span>
+              </td>
+              <td class="green">{{ f.returns1y }}</td>
+              <td class="green">{{ f.returns3y }}</td>
+              <td [class.green]="f.returns5y.startsWith('+')">{{ f.returns5y }}</td>
+              <td>
+                <span
+                  class="risk-badge"
+                  [class.risk-low]="f.risk === 'Low'"
+                  [class.risk-mod]="f.risk === 'Moderate'"
+                  [class.risk-high]="f.risk === 'High' || f.risk === 'Very High'"
+                >
+                  {{ f.risk }}
+                </span>
+              </td>
+              <td class="sip-val">{{ f.sip }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CURATED SCREENS -->
+  <section class="tt-screens">
+    <div class="tt-section-inner">
+      <h2 class="section-title">Curated Screens</h2>
+      <div class="screens-grid">
+        <div class="screen-card" *ngFor="let s of curatedScreens">
+          <mat-icon>{{ s.icon }}</mat-icon>
+          <div class="screen-info">
+            <span class="screen-name">{{ s.name }}</span>
+            <span class="screen-count">{{ s.count }} stocks</span>
+          </div>
+          <mat-icon class="arrow">chevron_right</mat-icon>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWS -->
+  <section class="tt-news">
+    <div class="tt-section-inner">
+      <h2 class="section-title">Latest News</h2>
+      <div class="news-grid">
+        <div class="news-card" *ngFor="let n of news">
+          <div class="news-icon-wrap">
+            <mat-icon>{{ n.icon }}</mat-icon>
+          </div>
+          <div class="news-body">
+            <span class="news-cat">{{ n.category }}</span>
+            <h4 class="news-title">{{ n.title }}</h4>
+            <span class="news-time">{{ n.time }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPULAR STOCKS -->
+  <section class="tt-popular">
+    <div class="tt-section-inner">
+      <h2 class="section-title">Popular Stocks</h2>
+      <div class="popular-grid">
+        <div class="popular-card" *ngFor="let s of popularStocks">
+          <div class="pop-sym">{{ s.symbol }}</div>
+          <div class="pop-name">{{ s.name }}</div>
+          <div class="pop-price">₹{{ s.price }}</div>
+          <div class="pop-change" [class.green]="s.change > 0" [class.red]="s.change < 0">
+            {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="tt-cta">
+    <div class="tt-section-inner cta-inner">
+      <h2>Start Investing Smarter Today</h2>
+      <p>Join thousands of Indians making better financial decisions with AI</p>
+      <a routerLink="/auth/register" class="btn-primary-lg">
+        <mat-icon>rocket_launch</mat-icon>
+        Create Free Account
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="tt-footer">
+    <div class="tt-footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <mat-icon>account_balance</mat-icon>
+            <span>Quantora</span>
+          </div>
+          <p>Intelligent Investing. Simplified. India's smartest AI-powered investment platform.</p>
+          <div class="footer-social">
+            <mat-icon>language</mat-icon>
+            <mat-icon>smart_display</mat-icon>
+            <mat-icon>chat</mat-icon>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Products</h4>
+          <a routerLink="/stocks">Stocks</a>
+          <a routerLink="/etf">ETFs</a>
+          <a routerLink="/indices">Indices</a>
+          <a routerLink="/mutual-funds">Mutual Funds</a>
+          <a routerLink="/gold">Gold</a>
+          <a routerLink="/bonds">Bonds</a>
+        </div>
+        <div class="footer-col">
+          <h4>Tools</h4>
+          <a routerLink="/screener">Screener</a>
+          <a routerLink="/compare">Compare</a>
+          <a routerLink="/backtest">Backtest</a>
+          <a routerLink="/calendar">Calendar</a>
+          <a routerLink="/watchlist">Watchlist</a>
+        </div>
+        <div class="footer-col">
+          <h4>Learn</h4>
+          <a routerLink="/blog">Blog</a>
+          <a routerLink="/research">Research</a>
+          <a routerLink="/learn">Courses</a>
+          <a routerLink="/glossary">Glossary</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a routerLink="/about">About Us</a>
+          <a routerLink="/careers">Careers</a>
+          <a routerLink="/contact">Contact</a>
+          <a routerLink="/privacy">Privacy Policy</a>
+          <a routerLink="/terms">Terms</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Quantora. All rights reserved.</span>
+        <span
+          >Investments in securities market are subject to market risks. Read all related documents
+          carefully before investing.</span
+        >
+      </div>
+    </div>
+  </footer>
+</div>

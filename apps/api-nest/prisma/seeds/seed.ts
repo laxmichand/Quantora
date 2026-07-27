@@ -7,7 +7,7 @@ async function main() {
   console.log('Seeding database...');
 
   // Create admin user
-  const adminPassword = await bcrypt.hash('admin123', 12);
+  const adminPassword = await bcrypt.hash('admin123' + (process.env.BCRYPT_PEPPER || ''), 12);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@quantora.com' },
     update: {},
@@ -16,13 +16,16 @@ async function main() {
       passwordHash: adminPassword,
       name: 'Admin User',
       role: 'admin',
-      language: 'en',
+      isEmailVerified: true,
+      preferences: {
+        create: { language: 'en', theme: 'slate' },
+      },
     },
   });
   console.log('Created admin user:', admin.email);
 
   // Create demo user
-  const demoPassword = await bcrypt.hash('demo123', 12);
+  const demoPassword = await bcrypt.hash('demo123' + (process.env.BCRYPT_PEPPER || ''), 12);
   const demo = await prisma.user.upsert({
     where: { email: 'demo@quantora.com' },
     update: {},
@@ -31,7 +34,10 @@ async function main() {
       passwordHash: demoPassword,
       name: 'Demo User',
       role: 'user',
-      language: 'en',
+      isEmailVerified: true,
+      preferences: {
+        create: { language: 'en', theme: 'slate' },
+      },
     },
   });
   console.log('Created demo user:', demo.email);

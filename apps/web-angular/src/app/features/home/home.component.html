@@ -1,0 +1,19 @@
+<div class="home-page">
+  <div class="welcome-section">
+    <h1>Welcome back, {{ userName }} 👋</h1>
+    <p>What would you like to explore today?</p>
+  </div>
+
+  <div class="quick-grid">
+    <a class="quick-card" *ngFor="let a of quickActions" [routerLink]="a.route">
+      <div class="quick-icon">
+        <mat-icon>{{ a.icon }}</mat-icon>
+      </div>
+      <div class="quick-info">
+        <span class="quick-label">{{ a.label }}</span>
+        <span class="quick-desc">{{ a.desc }}</span>
+      </div>
+      <mat-icon class="quick-arrow">chevron_right</mat-icon>
+    </a>
+  </div>
+</div>

@@ -1,4 +1,5 @@
 import { Controller, Get, Injectable } from '@nestjs/common';
+import { Public } from '../common/decorators/public.decorator';
 import {
   HealthCheck,
   HealthCheckService,
@@ -32,6 +33,7 @@ export class HealthController {
   ) {}
 
   @Get()
+  @Public()
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([() => this.db.isHealthy('database')]);

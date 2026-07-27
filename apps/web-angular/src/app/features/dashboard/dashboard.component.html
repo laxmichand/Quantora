@@ -1,6 +1,6 @@
 <div class="page-header">
-  <h1>Dashboard</h1>
-  <p>Welcome to Quantora — Intelligent Investing. Simplified.</p>
+  <h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
+  <p>{{ 'DASHBOARD.WELCOME' | translate }}</p>
 </div>
 
 <!-- Stats Cards -->
@@ -11,9 +11,13 @@
         <mat-icon>{{ stat.icon }}</mat-icon>
       </div>
       <div class="stat-info">
-        <span class="stat-label">{{ stat.label }}</span>
+        <span class="stat-label">{{ stat.labelKey | translate }}</span>
         <span class="stat-value">{{ stat.value }}</span>
-        <span class="stat-change" [class.positive]="stat.positive" [class.negative]="!stat.positive">
+        <span
+          class="stat-change"
+          [class.positive]="stat.positive"
+          [class.negative]="!stat.positive"
+        >
           {{ stat.change }}
         </span>
       </div>
@@ -22,30 +26,35 @@
 </div>
 
 <!-- Top Stocks -->
-<div class="card" style="margin-top: 16px;">
+<div class="card" style="margin-top: 16px">
   <h2 class="stock-section-title">
-    <mat-icon style="vertical-align: middle; margin-right: 8px;">trending_up</mat-icon>
-    Top Stocks
+    <mat-icon style="vertical-align: middle; margin-right: 8px">trending_up</mat-icon>
+    {{ 'DASHBOARD.TOP_STOCKS' | translate }}
   </h2>
 
   <table class="stock-table">
     <thead>
       <tr>
-        <th>Symbol</th>
-        <th>Price (₹)</th>
-        <th>Change</th>
-        <th>AI Score</th>
+        <th>{{ 'DASHBOARD.SYMBOL' | translate }}</th>
+        <th>{{ 'DASHBOARD.PRICE' | translate }}</th>
+        <th>{{ 'DASHBOARD.CHANGE' | translate }}</th>
+        <th>{{ 'DASHBOARD.AI_SCORE' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let stock of topStocks">
         <td class="symbol-cell">{{ stock.symbol }}</td>
-        <td>₹{{ stock.price | number:'1.2-2' }}</td>
+        <td>₹{{ stock.price | number: '1.2-2' }}</td>
         <td [class.positive]="stock.change >= 0" [class.negative]="stock.change < 0">
           {{ stock.change >= 0 ? '+' : '' }}{{ stock.change }}%
         </td>
         <td>
-          <span class="ai-score-badge" [class.high]="stock.aiScore >= 70" [class.medium]="stock.aiScore >= 50 && stock.aiScore < 70" [class.low]="stock.aiScore < 50">
+          <span
+            class="ai-score-badge"
+            [class.high]="stock.aiScore >= 70"
+            [class.medium]="stock.aiScore >= 50 && stock.aiScore < 70"
+            [class.low]="stock.aiScore < 50"
+          >
             {{ stock.aiScore }}
           </span>
         </td>

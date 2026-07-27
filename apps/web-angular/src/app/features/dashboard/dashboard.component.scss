@@ -41,8 +41,12 @@
   .stat-change {
     font-size: 12px;
     font-weight: 500;
-    &.positive { color: var(--positive); }
-    &.negative { color: var(--negative); }
+    &.positive {
+      color: var(--positive);
+    }
+    &.negative {
+      color: var(--negative);
+    }
   }
 }
 
@@ -94,7 +98,16 @@
   font-weight: 700;
   font-size: 13px;
 
-  &.high { background: var(--positive-bg); color: var(--positive); }
-  &.medium { background: var(--warning-bg); color: var(--warning); }
-  &.low { background: var(--negative-bg); color: var(--negative); }
+  &.high {
+    background: var(--positive-bg);
+    color: var(--positive);
+  }
+  &.medium {
+    background: var(--warning-bg);
+    color: var(--warning);
+  }
+  &.low {
+    background: var(--negative-bg);
+    color: var(--negative);
+  }
 }

@@ -24,13 +24,28 @@ out/
 *.key
 
 # IDE
-.vscode/settings.json
+.vscode/
 .idea/
 *.swp
 *.swo
 *~
 .DS_Store
 Thumbs.db
+
+# IDE extensions — antigravity / gravity / local history / workspace files
+.antigravity-ide/
+.antigravity/
+.antgravity/
+.gravity/
+*.antg
+*.antg
+.vscode/extensions.json
+.history/
+.localhistory/
+*.code-workspace
+
+# Command Code (AI coding assistant)
+.commandcode/
 
 # Logs
 logs/

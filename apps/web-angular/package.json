@@ -8,7 +8,10 @@
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:ci": "ng test --watch=false --code-coverage --browsers=ChromeHeadlessNoSandbox",
+    "test:e2e": "playwright test",
+    "e2e": "playwright test"
   },
   "private": true,
   "dependencies": {
@@ -22,6 +25,8 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@ngx-translate/core": "^15.0.0",
+    "@ngx-translate/http-loader": "^8.0.0",
     "chart.js": "^4.4.0",
     "ng2-charts": "^6.0.0",
     "rxjs": "~7.8.0",
@@ -37,8 +42,10 @@
     "@angular/cli": "^19.2.0",
     "@angular/compiler-cli": "^19.2.0",
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.62.0",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^22.0.0",
+    "ajv": "^8.20.0",
     "angular-eslint": "^19.8.1",
     "eslint": "^9.39.5",
     "jasmine-core": "~5.1.0",
