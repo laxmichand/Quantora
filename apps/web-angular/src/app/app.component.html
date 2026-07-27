@@ -1,0 +1,56 @@
+<div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="logo-text" *ngIf="!sidebarCollapsed">Quantora</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a *ngFor="let item of navItems"
+         class="nav-item"
+         [routerLink]="item.route"
+         routerLinkActive="active"
+         [matTooltip]="sidebarCollapsed ? item.label : ''"
+         matTooltipPosition="right">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="collapse-btn"
+              (click)="toggleSidebar()"
+              [matTooltip]="sidebarCollapsed ? 'Expand' : 'Collapse'"
+              matTooltipPosition="right">
+        <mat-icon>{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <mat-toolbar class="app-toolbar">
+      <button mat-icon-button (click)="toggleSidebar()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="toolbar-title">Quantora</span>
+      <span class="toolbar-spacer"></span>
+      <span class="toolbar-subtitle">Intelligent Investing. Simplified.</span>
+      <app-theme-switcher></app-theme-switcher>
+      <button mat-icon-button>
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon>account_circle</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

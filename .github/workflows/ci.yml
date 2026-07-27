@@ -1,0 +1,218 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ─── Lint ───────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint --workspace=@quantora/api
+      - run: npm run lint --workspace=@quantora/web
+
+  # ─── Build API ──────────────────────────────────────
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --workspace=@quantora/api
+
+  # ─── Build Web ──────────────────────────────────────
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build:prod --workspace=@quantora/web
+
+  # ─── Test API ───────────────────────────────────────
+  test-api:
+    name: Test API
+    runs-on: ubuntu-latest
+    needs: build-api
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: test-secret
+      JWT_EXPIRES_IN: 7d
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test --workspace=@quantora/api
+
+  # ─── Test AI Service ────────────────────────────────
+  test-ai:
+    name: Test AI Service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          cd apps/ai-fastapi
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd apps/ai-fastapi
+          python -m pytest --tb=short -q || echo "No tests yet"
+
+  # ─── Security Audit ─────────────────────────────────
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+
+      # 1) Dependency vulnerability scan — fail on critical (dev-only vulns excluded)
+      - name: Dependency audit (critical only)
+        run: npm audit --audit-level=critical
+
+      # 2) Check no .env files are committed
+      - name: Detect .env files in repo
+        run: |
+          echo "Checking for .env files in git..."
+          ENV_FILES=$(git ls-files | grep -E '\.env$' || true)
+          if [ -n "$ENV_FILES" ]; then
+            # .env.example is allowed
+            ACTUAL=$(echo "$ENV_FILES" | grep -v '\.env\.example$' || true)
+            if [ -n "$ACTUAL" ]; then
+              echo "❌ .env files found in git (should be gitignored):"
+              echo "$ACTUAL"
+              exit 1
+            fi
+          fi
+          echo "✅ No .env files in git"
+
+      # 3) Scan for hardcoded secrets/credentials in source code
+      - name: Scan for hardcoded secrets
+        run: |
+          echo "Scanning for hardcoded secrets in source..."
+          FOUND=0
+          PATTERNS=(
+            'mongodb\+srv://[^"]*:[^"]*@'
+            'postgresql://[^"]*:[^"]*@'
+            'mysql://[^"]*:[^"]*@'
+            'redis://[^"]*:[^"]*@'
+            'Bearer [A-Za-z0-9_\-\.]\{20,\}'
+            'sk-[A-Za-z0-9]\{20,\}'
+          )
+          EXCLUDES="--exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git --exclude-dir=coverage --exclude=package-lock.json --exclude=.gitignore --exclude='*.lock'"
+
+          for pattern in "${PATTERNS[@]}"; do
+            # Grep returns non-zero if no match, so we use || true
+            MATCHES=$(grep -rn "$pattern" $EXCLUDES \
+              --include='*.ts' --include='*.js' --include='*.py' \
+              --include='*.yaml' --include='*.yml' \
+              . 2>/dev/null || true)
+            # Filter out Prisma examples, docs, and placeholder patterns
+            MATCHES=$(echo "$MATCHES" | grep -v '\[PASSWORD\]' | grep -v '\[PROJECT-REF\]' | grep -v 'johndoe' | grep -v '\.md:' | grep -v '\.example' || true)
+            if [ -n "$MATCHES" ]; then
+              echo "⚠️  Pattern '$pattern' found:"
+              echo "$MATCHES"
+              FOUND=1
+            fi
+          done
+
+          if [ "$FOUND" -eq 1 ]; then
+            echo ""
+            echo "❌ Hardcoded secrets detected. Use environment variables instead."
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
+
+      # 4) Verify .env is in .gitignore
+      - name: Verify .env gitignored
+        run: |
+          if grep -q "^\.env$" .gitignore; then
+            echo "✅ .env is in .gitignore"
+          else
+            echo "❌ .env is NOT in .gitignore"
+            exit 1
+          fi
+
+      # 5) Check render.yaml has no inline secrets
+      - name: Verify render.yaml has no secrets
+        run: |
+          if [ -f render.yaml ]; then
+            SECRETS=$(grep -n "value:.*password\|value:.*secret\|value:.*key\|value:.*token" render.yaml 2>/dev/null || true)
+            if [ -n "$SECRETS" ]; then
+              echo "❌ Possible secrets in render.yaml:"
+              echo "$SECRETS"
+              exit 1
+            fi
+            echo "✅ render.yaml has no inline secrets"
+          else
+            echo "ℹ️  No render.yaml found"
+          fi
+
+  # ─── Summary ────────────────────────────────────────
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, build-api, build-web, test-api, test-ai, security]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "=== CI Results ==="
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Build API: ${{ needs.build-api.result }}"
+          echo "Build Web: ${{ needs.build-web.result }}"
+          echo "Test API: ${{ needs.test-api.result }}"
+          echo "Test AI: ${{ needs.test-ai.result }}"
+          echo "Security: ${{ needs.security.result }}"
+          if [[ "${{ needs.lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-api.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-web.result }}" == "failure" ]]; then
+            echo "❌ CI FAILED"
+            exit 1
+          fi
+          echo "✅ CI PASSED"

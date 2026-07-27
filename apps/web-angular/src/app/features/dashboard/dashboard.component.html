@@ -1,0 +1,55 @@
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <p>Welcome to Quantora — Intelligent Investing. Simplified.</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-4">
+  <mat-card *ngFor="let stat of stats" class="stat-card">
+    <mat-card-content>
+      <div class="stat-icon">
+        <mat-icon>{{ stat.icon }}</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">{{ stat.label }}</span>
+        <span class="stat-value">{{ stat.value }}</span>
+        <span class="stat-change" [class.positive]="stat.positive" [class.negative]="!stat.positive">
+          {{ stat.change }}
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Top Stocks -->
+<div class="card" style="margin-top: 16px;">
+  <h2 class="stock-section-title">
+    <mat-icon style="vertical-align: middle; margin-right: 8px;">trending_up</mat-icon>
+    Top Stocks
+  </h2>
+
+  <table class="stock-table">
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th>Price (₹)</th>
+        <th>Change</th>
+        <th>AI Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let stock of topStocks">
+        <td class="symbol-cell">{{ stock.symbol }}</td>
+        <td>₹{{ stock.price | number:'1.2-2' }}</td>
+        <td [class.positive]="stock.change >= 0" [class.negative]="stock.change < 0">
+          {{ stock.change >= 0 ? '+' : '' }}{{ stock.change }}%
+        </td>
+        <td>
+          <span class="ai-score-badge" [class.high]="stock.aiScore >= 70" [class.medium]="stock.aiScore >= 50 && stock.aiScore < 70" [class.low]="stock.aiScore < 50">
+            {{ stock.aiScore }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
