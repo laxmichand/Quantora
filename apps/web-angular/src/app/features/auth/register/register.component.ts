@@ -59,6 +59,10 @@ export class RegisterComponent {
     });
   }
 
+  googleLogin(): void {
+    this.authService.googleLogin();
+  }
+
   goToLogin(): void {
     this.router.navigate(['/auth/login']);
   }
