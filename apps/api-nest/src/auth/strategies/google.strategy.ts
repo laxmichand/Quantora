@@ -5,16 +5,24 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   private readonly logger = new Logger(GoogleStrategy.name);
+  private readonly configured: boolean;
 
   constructor() {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const callbackUrl = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback';
+
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID || 'disabled',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'disabled',
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback',
+      clientID: clientId || 'placeholder',
+      clientSecret: clientSecret || 'placeholder',
+      callbackURL: callbackUrl,
       scope: ['email', 'profile'],
     });
-    if (!process.env.GOOGLE_CLIENT_ID) {
-      this.logger.warn('Google OAuth not configured — set GOOGLE_CLIENT_ID to enable');
+
+    this.configured = !!(clientId && clientSecret);
+
+    if (!this.configured) {
+      this.logger.warn('Google OAuth not configured — set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET');
     }
   }
 
@@ -24,13 +32,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ): Promise<any> {
-    if (!process.env.GOOGLE_CLIENT_ID) {
-      return done(new Error('Google OAuth not configured'), undefined);
+    if (!this.configured) {
+      return done(new Error('Google OAuth not configured on this server'), undefined);
     }
     const { name, emails, photos } = profile;
     const user = {
       email: emails?.[0]?.value,
-      name: name?.givenName + ' ' + (name?.familyName || ''),
+      name: (name?.givenName || '') + ' ' + (name?.familyName || ''),
       picture: photos?.[0]?.value,
       accessToken,
       provider: 'google',
