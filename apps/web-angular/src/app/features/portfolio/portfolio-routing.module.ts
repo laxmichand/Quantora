@@ -1,10 +1,13 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
+import { PortfolioOverviewComponent } from './portfolio-overview/portfolio-overview.component';
 
-const routes: Routes = [{ path: '', redirectTo: 'overview', pathMatch: 'full' }];
+const routes: Routes = [
+  { path: '', component: PortfolioOverviewComponent },
+];
 
 @NgModule({
-  imports: [CommonModule, RouterModule.forChild(routes)],
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
 })
 export class PortfolioRoutingModule {}

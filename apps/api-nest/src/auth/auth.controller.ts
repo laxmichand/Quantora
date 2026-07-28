@@ -8,8 +8,12 @@ import {
   HttpCode,
   HttpStatus,
   Patch,
+  Res,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -100,5 +104,45 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   async resetPassword(@Body('token') token: string, @Body('password') password: string) {
     return this.authService.resetPassword(token, password);
+  }
+
+  // ─── Google OAuth ─────────────────────────────────────────
+
+  @Get('google')
+  @Public()
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Login with Google' })
+  googleAuth() {
+    // Redirects to Google consent screen
+  }
+
+  @Get('google/callback')
+  @Public()
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  async googleCallback(@Request() req: any, @Res() res: Response) {
+    const result = await this.authService.googleLogin(
+      req.user,
+      req.ip,
+      req.headers['user-agent'],
+    );
+    // Redirect to frontend with tokens
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    res.redirect(
+      `${frontendUrl}/auth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`,
+    );
+  }
+
+  // ─── Login History ───────────────────────────────────────
+
+  @Get('login-history')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get login history' })
+  async getLoginHistory(
+    @CurrentUser() user: UserPayload,
+    @Query('limit') limit?: string,
+  ) {
+    return this.authService.getLoginHistory(user.sub, limit ? parseInt(limit, 10) : 10);
   }
 }

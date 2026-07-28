@@ -384,7 +384,7 @@ body {
 .app-toolbar {
   background: var(--toolbar-bg) !important;
   color: var(--toolbar-text) !important;
-  height: 54px !important;
+  height: 56px !important;
   padding: 0 24px !important;
   border-bottom: 1px solid var(--toolbar-border);
   box-shadow: none;
@@ -392,6 +392,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0;
+  z-index: 100;
 }
 
 // Logo
@@ -403,7 +404,7 @@ body {
   color: inherit;
   cursor: pointer;
   flex-shrink: 0;
-  margin-right: 20px;
+  margin-right: 24px;
 }
 
 .logo-icon-wrap {
@@ -440,10 +441,10 @@ body {
   background: var(--ticker-search-bg, #f1f3f6);
   border-radius: 8px;
   padding: 0 12px;
-  height: 34px;
-  min-width: 260px;
-  max-width: 320px;
-  margin-right: 16px;
+  height: 36px;
+  min-width: 240px;
+  max-width: 300px;
+  margin-right: 12px;
   transition:
     background 0.15s,
     box-shadow 0.15s;
@@ -480,13 +481,13 @@ body {
 .toolbar-nav {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 2px;
   margin-right: auto;
 
   .nav-item {
     display: flex;
     align-items: center;
-    padding: 6px 11px;
+    padding: 6px 12px;
     height: 34px;
     border-radius: 6px;
     color: var(--subtext);
@@ -518,15 +519,15 @@ body {
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: auto;
+  gap: 8px;
+  margin-left: 16px;
   flex-shrink: 0;
 }
 
 .btn-signup {
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 6px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #fff;
   text-decoration: none;
@@ -539,9 +540,9 @@ body {
 }
 
 .btn-login {
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 6px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--toolbar-text);
   text-decoration: none;

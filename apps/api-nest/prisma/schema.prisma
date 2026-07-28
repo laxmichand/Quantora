@@ -15,21 +15,33 @@ datasource db {
 // ============================================
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String    @map("password_hash")
-  name          String
-  phone         String?
-  role          String    @default("user") // user, pro, admin
-  isActive      Boolean   @default(true) @map("is_active")
-  isEmailVerified Boolean @default(false) @map("is_email_verified")
+  id               String  @id @default(uuid())
+  email            String  @unique
+  passwordHash     String? @map("password_hash")
+  name             String
+  phone            String?
+  role             String  @default("user") // user, pro, admin
+  isActive         Boolean @default(true) @map("is_active")
+  isEmailVerified  Boolean @default(false) @map("is_email_verified")
   emailVerifyToken String? @map("email_verify_token")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  createdBy     String?   @map("created_by")
-  updatedBy     String?   @map("updated_by")
-  version       Int       @default(1)
-  isDeleted     Boolean   @default(false) @map("is_deleted")
+
+  // OAuth fields
+  provider   String? // "google", "local"
+  providerId String? @map("provider_id")
+
+  // Account lockout
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+  version   Int      @default(1)
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  // IAM fields
+  lastLoginAt DateTime? @map("last_login_at")
 
   // Relations
   portfolios    Portfolio[]
@@ -38,11 +50,14 @@ model User {
   watchlists    Watchlist[]
   auditLogs     AuditLog[]
   refreshTokens RefreshToken[]
+  loginHistories LoginHistory[]
+  oauthAccounts  OAuthAccount[]
   subscription  Subscription?
   preferences   UserPreference?
 
   @@index([email])
   @@index([role])
+  @@index([provider, providerId])
   @@index([isDeleted])
   @@map("users")
 }
@@ -52,20 +67,20 @@ model User {
 // ============================================
 
 model Portfolio {
-  id          String    @id @default(uuid())
-  userId      String    @map("user_id")
-  name        String    @default("My Portfolio")
-  benchmark   String    @default("NIFTY_50")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  createdBy   String?   @map("created_by")
-  updatedBy   String?   @map("updated_by")
-  version     Int       @default(1)
-  isDeleted   Boolean   @default(false) @map("is_deleted")
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String   @default("My Portfolio")
+  benchmark String   @default("NIFTY_50")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+  version   Int      @default(1)
+  isDeleted Boolean  @default(false) @map("is_deleted")
 
   // Relations
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  holdings    Holding[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holdings Holding[]
 
   @@index([userId])
   @@index([isDeleted])
@@ -73,20 +88,20 @@ model Portfolio {
 }
 
 model Holding {
-  id            String    @id @default(uuid())
-  portfolioId   String    @map("portfolio_id")
-  stockSymbol   String    @map("stock_symbol")
-  quantity      Int
-  avgBuyPrice   Decimal   @map("avg_buy_price") @db.Decimal(10, 2)
-  addedAt       DateTime  @default(now()) @map("added_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  createdBy     String?   @map("created_by")
-  updatedBy     String?   @map("updated_by")
-  version       Int       @default(1)
-  isDeleted     Boolean   @default(false) @map("is_deleted")
+  id          String   @id @default(uuid())
+  portfolioId String   @map("portfolio_id")
+  stockSymbol String   @map("stock_symbol")
+  quantity    Int
+  avgBuyPrice Decimal  @map("avg_buy_price") @db.Decimal(10, 2)
+  addedAt     DateTime @default(now()) @map("added_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String?  @map("created_by")
+  updatedBy   String?  @map("updated_by")
+  version     Int      @default(1)
+  isDeleted   Boolean  @default(false) @map("is_deleted")
 
   // Relations
-  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 
   @@index([portfolioId])
   @@index([stockSymbol])
@@ -99,25 +114,25 @@ model Holding {
 // ============================================
 
 model Goal {
-  id              String    @id @default(uuid())
-  userId          String    @map("user_id")
-  name            String
-  targetAmount    Decimal   @map("target_amount") @db.Decimal(15, 2)
-  currentAmount   Decimal   @default(0) @map("current_amount") @db.Decimal(15, 2)
-  deadline        DateTime  @db.Date
-  type            String    // retirement, education, house, emergency, etc.
-  sipAmount       Decimal?  @map("sip_amount") @db.Decimal(10, 2)
-  riskTolerance   String    @default("moderate") @map("risk_tolerance") // conservative, moderate, aggressive
-  status          String    @default("active") // active, completed, paused
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  createdBy       String?   @map("created_by")
-  updatedBy       String?   @map("updated_by")
-  version         Int       @default(1)
-  isDeleted       Boolean   @default(false) @map("is_deleted")
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  name          String
+  targetAmount  Decimal  @map("target_amount") @db.Decimal(15, 2)
+  currentAmount Decimal  @default(0) @map("current_amount") @db.Decimal(15, 2)
+  deadline      DateTime @db.Date
+  type          String // retirement, education, house, emergency, etc.
+  sipAmount     Decimal? @map("sip_amount") @db.Decimal(10, 2)
+  riskTolerance String   @default("moderate") @map("risk_tolerance") // conservative, moderate, aggressive
+  status        String   @default("active") // active, completed, paused
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdBy     String?  @map("created_by")
+  updatedBy     String?  @map("updated_by")
+  version       Int      @default(1)
+  isDeleted     Boolean  @default(false) @map("is_deleted")
 
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -130,24 +145,24 @@ model Goal {
 // ============================================
 
 model Subscription {
-  id              String    @id @default(uuid())
-  userId          String    @unique @map("user_id")
-  plan            String    @default("free") // free, pro, enterprise
-  status          String    @default("active")
-  startDate       DateTime  @default(now()) @map("start_date")
-  endDate         DateTime? @map("end_date")
-  paymentMethod   String?   @map("payment_method")
-  amount          Decimal?  @db.Decimal(10, 2)
-  currency        String    @default("INR")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  createdBy       String?   @map("created_by")
-  updatedBy       String?   @map("updated_by")
-  version         Int       @default(1)
-  isDeleted       Boolean   @default(false) @map("is_deleted")
+  id            String    @id @default(uuid())
+  userId        String    @unique @map("user_id")
+  plan          String    @default("free") // free, pro, enterprise
+  status        String    @default("active")
+  startDate     DateTime  @default(now()) @map("start_date")
+  endDate       DateTime? @map("end_date")
+  paymentMethod String?   @map("payment_method")
+  amount        Decimal?  @db.Decimal(10, 2)
+  currency      String    @default("INR")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdBy     String?   @map("created_by")
+  updatedBy     String?   @map("updated_by")
+  version       Int       @default(1)
+  isDeleted     Boolean   @default(false) @map("is_deleted")
 
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([plan])
@@ -162,9 +177,9 @@ model Subscription {
 model Alert {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
-  type            String    // price_target, volume, news, portfolio, goal
+  type            String // price_target, volume, news, portfolio, goal
   stockSymbol     String?   @map("stock_symbol")
-  condition       String    // above, below, percent_change
+  condition       String // above, below, percent_change
   threshold       Decimal?  @db.Decimal(10, 2)
   isActive        Boolean   @default(true) @map("is_active")
   lastTriggeredAt DateTime? @map("last_triggered_at")
@@ -176,7 +191,7 @@ model Alert {
   isDeleted       Boolean   @default(false) @map("is_deleted")
 
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([stockSymbol])
@@ -186,19 +201,19 @@ model Alert {
 }
 
 model Watchlist {
-  id              String    @id @default(uuid())
-  userId          String    @map("user_id")
-  name            String    @default("My Watchlist")
-  stockSymbols    String[]  @map("stock_symbols")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  createdBy       String?   @map("created_by")
-  updatedBy       String?   @map("updated_by")
-  version         Int       @default(1)
-  isDeleted       Boolean   @default(false) @map("is_deleted")
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  name         String   @default("My Watchlist")
+  stockSymbols String[] @map("stock_symbols")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdBy    String?  @map("created_by")
+  updatedBy    String?  @map("updated_by")
+  version      Int      @default(1)
+  isDeleted    Boolean  @default(false) @map("is_deleted")
 
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isDeleted])
@@ -210,14 +225,14 @@ model Watchlist {
 // ============================================
 
 model RefreshToken {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  token       String   @unique
-  expiresAt   DateTime @map("expires_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  isRevoked   Boolean  @default(false) @map("is_revoked")
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -226,22 +241,45 @@ model RefreshToken {
 }
 
 // ============================================
+// LOGIN HISTORY
+// ============================================
+
+model LoginHistory {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  email         String
+  success       Boolean
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  provider      String   @default("local") // local, google
+  failureReason String?  @map("failure_reason")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt(sort: Desc)])
+  @@map("login_history")
+}
+
+// ============================================
 // AUDIT LOGS
 // ============================================
 
 model AuditLog {
-  id          String    @id @default(uuid())
-  userId      String?   @map("user_id")
-  action      String
-  entity      String
-  entityId    String?   @map("entity_id")
-  details     Json?
-  ipAddress   String?   @map("ip_address")
-  userAgent   String?   @map("user_agent")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([entity])
@@ -255,46 +293,72 @@ model AuditLog {
 // ============================================
 
 model UserPreference {
-  id                  String   @id @default(uuid())
-  userId              String   @unique @map("user_id")
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
 
   // Language & Display
-  language            String   @default("en")            // en, hi
-  theme               String   @default("slate")         // slate, indigo, emerald, rose
-  dateFormat          String   @default("DD/MM/YYYY") @map("date_format")    // DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
-  numberFormat        String   @default("indian") @map("number_format")        // indian (1,23,456), international (123,456)
-  timezone            String   @default("Asia/Kolkata")  // IANA timezone
+  language     String @default("en") // en, hi
+  theme        String @default("slate") // slate, indigo, emerald, rose
+  dateFormat   String @default("DD/MM/YYYY") @map("date_format") // DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
+  numberFormat String @default("indian") @map("number_format") // indian (1,23,456), international (123,456)
+  timezone     String @default("Asia/Kolkata") // IANA timezone
 
   // Notifications
-  notificationsEmail  Boolean  @default(true) @map("notifications_email")
-  notificationsPush   Boolean  @default(true) @map("notifications_push")
-  notificationsSms    Boolean  @default(false) @map("notifications_sms")
-  notifyPriceAlerts   Boolean  @default(true) @map("notify_price_alerts")
-  notifyPortfolio     Boolean  @default(true) @map("notify_portfolio")
-  notifyNews          Boolean  @default(false) @map("notify_news")
-  notifyAiInsights    Boolean  @default(true) @map("notify_ai_insights")
+  notificationsEmail Boolean @default(true) @map("notifications_email")
+  notificationsPush  Boolean @default(true) @map("notifications_push")
+  notificationsSms   Boolean @default(false) @map("notifications_sms")
+  notifyPriceAlerts  Boolean @default(true) @map("notify_price_alerts")
+  notifyPortfolio    Boolean @default(true) @map("notify_portfolio")
+  notifyNews         Boolean @default(false) @map("notify_news")
+  notifyAiInsights   Boolean @default(true) @map("notify_ai_insights")
 
   // Trading Preferences
-  defaultExchange     String   @default("NSE") @map("default_exchange")          // NSE, BSE, BOTH
-  riskTolerance       String   @default("moderate") @map("risk_tolerance")     // conservative, moderate, aggressive
-  investmentStyle     String   @default("long_term") @map("investment_style")    // intraday, swing, long_term, value
+  defaultExchange String @default("NSE") @map("default_exchange") // NSE, BSE, BOTH
+  riskTolerance   String @default("moderate") @map("risk_tolerance") // conservative, moderate, aggressive
+  investmentStyle String @default("long_term") @map("investment_style") // intraday, swing, long_term, value
 
   // UI Preferences
-  sidebarCollapsed    Boolean  @default(false) @map("sidebar_collapsed")
-  defaultView         String   @default("dashboard") @map("default_view")    // dashboard, portfolio, stocks
-  stockListColumns    Json?    @map("stock_list_columns")
-  dashboardLayout     Json?    @map("dashboard_layout")
+  sidebarCollapsed Boolean @default(false) @map("sidebar_collapsed")
+  defaultView      String  @default("dashboard") @map("default_view") // dashboard, portfolio, stocks
+  stockListColumns Json?   @map("stock_list_columns")
+  dashboardLayout  Json?   @map("dashboard_layout")
 
   // Privacy
-  profilePublic       Boolean  @default(false) @map("profile_public")
-  showPortfolio       Boolean  @default(false) @map("show_portfolio")
+  profilePublic Boolean @default(false) @map("profile_public")
+  showPortfolio Boolean @default(false) @map("show_portfolio")
 
   // Audit
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
+}
+
+// ============================================
+// OAUTH ACCOUNTS
+// ============================================
+
+model OAuthAccount {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  provider     String // google, github, microsoft, apple, etc.
+  providerId   String    @map("provider_id")
+  email        String?
+  name         String?
+  avatarUrl    String?   @map("avatar_url")
+  accessToken  String?   @map("access_token")
+  refreshToken String?   @map("refresh_token")
+  expiresAt    DateTime? @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+  @@map("oauth_accounts")
 }

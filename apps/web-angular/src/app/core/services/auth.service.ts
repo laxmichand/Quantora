@@ -80,6 +80,20 @@ export class AuthService {
     return this.http.get<any>(`${this.API_URL}/me`);
   }
 
+  googleLogin(): void {
+    window.location.href = `${this.API_URL}/google`;
+  }
+
+  handleOAuthCallback(): void {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
+    if (accessToken && refreshToken) {
+      this.storeAuth({ accessToken, refreshToken, user: null as any });
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
   private storeAuth(res: AuthResponse): void {
     localStorage.setItem(this.ACCESS_TOKEN_KEY, res.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, res.refreshToken);

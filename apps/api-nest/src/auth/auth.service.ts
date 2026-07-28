@@ -14,6 +14,9 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserPayload } from '../common/interfaces/user-payload.interface';
 import { randomBytes } from 'crypto';
 
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MIN = 15;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -39,6 +42,7 @@ export class AuthService {
         passwordHash,
         name: dto.name,
         phone: dto.phone,
+        provider: 'local',
         isEmailVerified: false,
         emailVerifyToken: randomBytes(32).toString('hex'),
         preferences: {
@@ -49,27 +53,178 @@ export class AuthService {
     });
 
     this.logger.log(`User registered: ${user.email}`);
-
     return this.generateTokens(user);
   }
 
   async login(dto: LoginDto, ip?: string, userAgent?: string): Promise<AuthResponseDto> {
-    const user = await this.validateUser(dto.email, dto.password);
-    if (!user) {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!user || user.isDeleted) {
+      await this.recordLogin(null, dto.email, false, ip, userAgent, 'local', 'Invalid credentials');
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check lockout
+    if (user.lockedUntil && new Date() < user.lockedUntil) {
+      const remaining = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      await this.recordLogin(user.id, user.email, false, ip, userAgent, 'local', 'Account locked');
+      throw new ForbiddenException(`Account locked. Try again in ${remaining} minutes`);
+    }
+
     if (!user.isActive) {
+      await this.recordLogin(user.id, user.email, false, ip, userAgent, 'local', 'Account deactivated');
       throw new ForbiddenException('Account is deactivated');
     }
 
+    // Verify password
+    const isValid = await bcrypt.compare(dto.password + this.pepper, user.passwordHash!);
+    if (!isValid) {
+      const attempts = user.failedLoginAttempts + 1;
+      if (attempts >= MAX_FAILED_ATTEMPTS) {
+        const lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_MIN * 60 * 1000);
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { failedLoginAttempts: attempts, lockedUntil },
+        });
+        await this.recordLogin(user.id, user.email, false, ip, userAgent, 'local', 'Account locked');
+        throw new ForbiddenException(`Account locked. Try again in ${LOCKOUT_DURATION_MIN} minutes`);
+      }
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: attempts },
+      });
+      await this.recordLogin(user.id, user.email, false, ip, userAgent, 'local', 'Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     if (!user.isEmailVerified) {
+      await this.recordLogin(user.id, user.email, false, ip, userAgent, 'local', 'Email not verified');
       throw new ForbiddenException('Please verify your email before logging in');
     }
 
+    // Success — reset lockout counter
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
+    });
+
+    await this.recordLogin(user.id, user.email, true, ip, userAgent, 'local', null);
     this.logger.log(`User logged in: ${user.email}`);
 
     return this.generateTokens(user);
+  }
+
+  async googleLogin(profile: {
+    email: string;
+    name: string;
+    picture?: string;
+    provider: string;
+    providerId: string;
+  }, ip?: string, userAgent?: string): Promise<AuthResponseDto> {
+    // Find existing user by email or OAuth account
+    let user = await this.prisma.user.findUnique({ where: { email: profile.email } });
+    if (user && user.isDeleted) {
+      throw new ForbiddenException('Account unavailable');
+    }
+
+    if (!user) {
+      // Create new user via OAuth
+      user = await this.prisma.user.create({
+        data: {
+          email: profile.email,
+          name: profile.name,
+          provider: 'google',
+          isEmailVerified: true,
+          oauthAccounts: {
+            create: {
+              provider: profile.provider,
+              providerId: profile.providerId,
+              email: profile.email,
+              name: profile.name,
+              avatarUrl: profile.picture,
+            },
+          },
+          preferences: {
+            create: { language: 'en', theme: 'slate' },
+          },
+        },
+      });
+    } else {
+      // Link OAuth account to existing user
+      const existingOAuth = await this.prisma.oAuthAccount.findUnique({
+        where: { provider_providerId: { provider: profile.provider, providerId: profile.providerId } },
+      });
+      if (!existingOAuth) {
+        await this.prisma.oAuthAccount.create({
+          data: {
+            userId: user.id,
+            provider: profile.provider,
+            providerId: profile.providerId,
+            email: profile.email,
+            name: profile.name,
+            avatarUrl: profile.picture,
+          },
+        });
+      }
+    }
+
+    // Mark last login
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    await this.recordLogin(user.id, user.email, true, ip, userAgent, 'google', null);
+    this.logger.log(`User logged in via Google: ${user.email}`);
+
+    return this.generateTokens({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
+  }
+
+  async getLoginHistory(userId: string, limit = 10) {
+    return this.prisma.loginHistory.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        success: true,
+        ipAddress: true,
+        userAgent: true,
+        provider: true,
+        failureReason: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  private async recordLogin(
+    userIdOrEmail: string | null,
+    email: string,
+    success: boolean,
+    ip?: string,
+    userAgent?: string,
+    provider = 'local',
+    failureReason?: string | null,
+  ) {
+    try {
+      await this.prisma.loginHistory.create({
+        data: {
+          userId: typeof userIdOrEmail === 'string' && userIdOrEmail.includes('@') ? null : userIdOrEmail,
+          email,
+          success,
+          ipAddress: ip,
+          userAgent,
+          provider,
+          failureReason,
+        },
+      });
+    } catch (e) {
+      this.logger.warn(`Failed to record login history: ${e}`);
+    }
   }
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -78,7 +233,7 @@ export class AuthService {
       return null;
     }
 
-    const isValid = await bcrypt.compare(password + this.pepper, user.passwordHash);
+    const isValid = await bcrypt.compare(password + this.pepper, user.passwordHash!);
     if (!isValid) {
       return null;
     }
@@ -201,8 +356,6 @@ export class AuthService {
     }
 
     const resetToken = randomBytes(32).toString('hex');
-    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
     await this.prisma.user.update({
       where: { id: user.id },
       data: { emailVerifyToken: resetToken },

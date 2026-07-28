@@ -1,8 +1,13 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { SharedModule } from '../../shared/shared.module';
+import { PortfolioRoutingModule } from './portfolio-routing.module';
+import { PortfolioOverviewComponent } from './portfolio-overview/portfolio-overview.component';
 
 @NgModule({
-  declarations: [],
-  imports: [CommonModule],
+  declarations: [PortfolioOverviewComponent],
+  imports: [
+    SharedModule,
+    PortfolioRoutingModule,
+  ],
 })
 export class PortfolioModule {}

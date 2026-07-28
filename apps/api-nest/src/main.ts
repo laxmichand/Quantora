@@ -3,6 +3,10 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppValidationPipe } from './common/pipes/validation.pipe';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import * as dotenv from 'dotenv';
+import { resolve } from 'path';
+
+dotenv.config({ path: resolve(process.cwd(), '..', '..', '.env') });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,8 +19,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:4200',
       'http://localhost:80',
-      'https://quantora.vercel.app',
       'https://quantora-web.vercel.app',
+      'https://quantora.vercel.app',
       'https://quantora-ih3a.onrender.com',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

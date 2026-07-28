@@ -1,0 +1,140 @@
+<!-- Market Indices Strip -->
+<div class="indices-strip">
+  <div class="index-item" *ngFor="let idx of indices">
+    <span class="idx-name">{{ idx.name }}</span>
+    <span class="idx-value">{{ idx.value }}</span>
+    <span class="idx-change" [class.up]="idx.change > 0" [class.down]="idx.change < 0">
+      {{ idx.change > 0 ? '+' : '' }}{{ idx.change }}%
+    </span>
+  </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <mat-icon>show_chart</mat-icon>
+      IN Stocks
+    </h1>
+    <p class="page-subtitle">NSE &bull; BSE &bull; {{ displayStocks.length }} stocks</p>
+  </div>
+  <div class="header-search">
+    <mat-icon>search</mat-icon>
+    <input type="text" placeholder="Search stocks..." [(ngModel)]="searchQuery" />
+  </div>
+</div>
+
+<!-- Tab Pills -->
+<div class="tab-pills">
+  <button *ngFor="let tab of tabs" class="pill" [class.active]="activeTab === tab" (click)="setTab(tab)">
+    <mat-icon>{{ tabIcons[tab] }}</mat-icon>
+    {{ tabLabels[tab] }}
+  </button>
+</div>
+
+<!-- Sector Filter Chips -->
+<div class="sector-chips">
+  <button *ngFor="let s of sectors" class="chip" [class.active]="activeSector === s" (click)="setSector(s)">
+    {{ s }}
+  </button>
+</div>
+
+<!-- Stock Table -->
+<div class="card">
+  <table class="stock-table">
+    <colgroup>
+      <col class="col-num" />
+      <col class="col-stock" />
+      <col class="col-price" />
+      <col class="col-change" />
+      <col class="col-pct" />
+      <col class="col-volume" />
+      <col class="col-mcap" />
+      <col class="col-pe" />
+      <col class="col-sector" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Stock</th>
+        <th class="text-right">LTP (₹)</th>
+        <th class="text-right">Change</th>
+        <th class="text-right">% Change</th>
+        <th class="text-right">Volume</th>
+        <th class="text-right">Mkt Cap</th>
+        <th class="text-right">P/E</th>
+        <th>Sector</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of displayStocks; let i = index; trackBy: trackBySymbol">
+        <td class="row-num">{{ i + 1 }}</td>
+        <td class="stock-name-cell">
+          <span class="stock-symbol">{{ s.symbol }}</span>
+          <span class="stock-fullname">{{ s.name }}</span>
+        </td>
+        <td class="text-right text-price">₹{{ s.price }}</td>
+        <td class="text-right">
+          <span [class.green]="s.change > 0" [class.red]="s.change < 0">
+            {{ s.change > 0 ? '+' : '' }}{{ s.change }}
+          </span>
+        </td>
+        <td class="text-right">
+          <span class="change-badge" [class.up]="s.pct > 0" [class.down]="s.pct < 0">
+            {{ s.pct > 0 ? '+' : '' }}{{ s.pct }}%
+          </span>
+        </td>
+        <td class="text-right text-muted">{{ s.volume }}</td>
+        <td class="text-right text-muted">{{ s.marketCap || '—' }}</td>
+        <td class="text-right text-muted">{{ s.pe || '—' }}</td>
+        <td>
+          <span class="sector-tag">{{ s.sector }}</span>
+        </td>
+      </tr>
+      <tr *ngIf="displayStocks.length === 0">
+        <td colspan="9" class="empty-row">
+          <mat-icon>search_off</mat-icon>
+          <span>No stocks match your filters</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Curated Screens -->
+<div class="section-header">
+  <h2 class="section-title">
+    <mat-icon>auto_awesome</mat-icon>
+    Curated Screens
+  </h2>
+</div>
+<div class="screens-grid">
+  <div class="screen-card" *ngFor="let s of curatedScreens">
+    <mat-icon>{{ s.icon }}</mat-icon>
+    <div class="screen-info">
+      <span class="screen-name">{{ s.name }}</span>
+      <span class="screen-count">{{ s.count }} stocks</span>
+    </div>
+    <mat-icon class="arrow">chevron_right</mat-icon>
+  </div>
+</div>
+
+<!-- Market News -->
+<div class="section-header">
+  <h2 class="section-title">
+    <mat-icon>newspaper</mat-icon>
+    Market News
+  </h2>
+</div>
+<div class="news-grid">
+  <div class="news-card" *ngFor="let n of news">
+    <div class="news-icon-wrap">
+      <mat-icon>{{ n.icon }}</mat-icon>
+    </div>
+    <div class="news-body">
+      <span class="news-cat">{{ n.category }}</span>
+      <h4 class="news-title">{{ n.title }}</h4>
+      <span class="news-time">{{ n.time }}</span>
+    </div>
+  </div>
+</div>

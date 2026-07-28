@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   error = '';
@@ -24,6 +24,10 @@ export class LoginComponent {
     private authService: AuthService,
     private router: Router,
   ) {}
+
+  ngOnInit(): void {
+    this.authService.handleOAuthCallback();
+  }
 
   onSubmit(): void {
     if (!this.email || !this.password) {
@@ -43,5 +47,9 @@ export class LoginComponent {
         this.error = err.error?.message || 'Invalid credentials';
       },
     });
+  }
+
+  googleLogin(): void {
+    this.authService.googleLogin();
   }
 }

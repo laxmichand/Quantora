@@ -1,21 +1,19 @@
 services:
   - type: web
-    name: quantora-api
+    name: quantora
     runtime: docker
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: MONGODB_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
+      - key: PORT
+        value: 3000
       - key: NODE_ENV
         value: production
+      - key: REDIS_URL
+        value: redis://localhost:6379
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: REFRESH_TOKEN_EXPIRY_DAYS
+        value: 7
     healthCheckPath: /api/health
     autoDeploy: true
 
@@ -24,10 +22,8 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile.python
     envVars:
-      - key: MONGODB_URL
-        sync: false
       - key: REDIS_URL
-        sync: false
+        value: redis://localhost:6379
       - key: ENVIRONMENT
         value: production
     healthCheckPath: /health

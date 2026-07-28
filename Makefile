@@ -1,4 +1,4 @@
-.PHONY: dev dev-backend dev-frontend dev-ai dev-db stop clean setup install
+.PHONY: start dev local dev-backend dev-frontend dev-ai dev-db stop clean setup install
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 NESTJS_DIR  := apps/api-nest
@@ -10,6 +10,14 @@ FASTAPI_PORT:= 8000
 REDIS_PORT  := 6379
 
 # ─── Default: run everything ──────────────────────────────────────────────────
+start: dev
+
+local: setup
+	@echo "── Starting local API dev ────────────────────────────────────"
+	@$(MAKE) dev-db &
+	@$(MAKE) dev-backend
+	@wait
+
 dev: setup
 	@echo "── Starting Quantora (all services) ──────────────────────────"
 	@$(MAKE) dev-db &
@@ -62,9 +70,7 @@ install:
 stop:
 	@echo "── Stopping Quantora services ────────────────────────────────"
 	@-docker compose stop redis 2>/dev/null
-	@-pkill -f "nest start" 2>/dev/null || true
-	@-pkill -f "ng serve" 2>/dev/null || true
-	@-pkill -f "uvicorn" 2>/dev/null || true
+	@-lsof -ti:$(NESTJS_PORT) -ti:$(ANGULAR_PORT) -ti:$(FASTAPI_PORT) 2>/dev/null | xargs kill 2>/dev/null || true
 	@echo "  ✓ Stopped all services"
 
 clean: stop

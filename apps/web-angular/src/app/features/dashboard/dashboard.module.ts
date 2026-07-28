@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { SharedModule } from '../../shared/shared.module';
 import { DashboardComponent } from './dashboard.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +16,7 @@ const routes: Routes = [{ path: '', component: DashboardComponent }];
     CommonModule,
     RouterModule.forChild(routes),
     TranslateModule.forChild(),
+    SharedModule,
     MatCardModule,
     MatIconModule,
     MatButtonModule,

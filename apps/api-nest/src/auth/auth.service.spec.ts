@@ -46,6 +46,9 @@ describe('AuthService', () => {
         update: jest.fn(),
         updateMany: jest.fn(),
       },
+      loginHistory: {
+        create: jest.fn(),
+      },
     };
 
     jwt = {
@@ -159,6 +162,68 @@ describe('AuthService', () => {
       await expect(service.login({ email: 'test@test.com', password: 'Test1234' })).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('should increment failedLoginAttempts on wrong password', async () => {
+      prisma.user.findUnique.mockResolvedValue({ ...mockUser, failedLoginAttempts: 0 });
+      prisma.user.update.mockResolvedValue({});
+
+      await expect(service.login({ email: 'test@test.com', password: 'wrong' })).rejects.toThrow(
+        UnauthorizedException,
+      );
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: { failedLoginAttempts: 1 },
+      });
+    });
+
+    it('should lock account after 5 failed attempts', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        failedLoginAttempts: 4,
+      });
+      prisma.user.update.mockResolvedValue({});
+
+      await expect(service.login({ email: 'test@test.com', password: 'wrong' })).rejects.toThrow(
+        ForbiddenException,
+      );
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: {
+          failedLoginAttempts: 5,
+          lockedUntil: expect.any(Date),
+        },
+      });
+    });
+
+    it('should reject login when account is locked', async () => {
+      const futureDate = new Date(Date.now() + 15 * 60 * 1000);
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        lockedUntil: futureDate,
+      });
+
+      await expect(service.login({ email: 'test@test.com', password: 'Test1234' })).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should reset counter on successful login', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        failedLoginAttempts: 3,
+      });
+      prisma.user.update.mockResolvedValue({});
+      prisma.refreshToken.create.mockResolvedValue({});
+
+      await service.login({ email: 'test@test.com', password: 'Test1234' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: expect.any(Date) },
+      });
     });
   });
 

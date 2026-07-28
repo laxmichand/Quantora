@@ -39,7 +39,7 @@ export class AppComponent {
     { symbol: 'USDINR', price: '83.62', change: -0.08 },
   ];
 
-  private hiddenRoutes = ['', 'auth', 'auth/login', 'auth/register'];
+  private hiddenRoutes = ['', 'auth', 'auth/login', 'auth/register', 'home'];
 
   constructor(
     public themeService: ThemeService,

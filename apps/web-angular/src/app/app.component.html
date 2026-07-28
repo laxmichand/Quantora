@@ -28,7 +28,7 @@
   <!-- SINGLE HEADER BAR -->
   <mat-toolbar class="app-toolbar">
     <!-- Logo -->
-    <a class="toolbar-logo" [routerLink]="isLoggedIn ? '/home' : '/'">
+    <a class="toolbar-logo" [routerLink]="isLoggedIn ? '/dashboard' : '/'">
       <div class="logo-icon-wrap">
         <mat-icon>account_balance</mat-icon>
       </div>
@@ -44,9 +44,7 @@
     <!-- Nav Links -->
     <nav class="toolbar-nav">
       <a class="nav-item" routerLink="/stocks" routerLinkActive="active">IN Stocks</a>
-      <a class="nav-item" routerLink="/etf" routerLinkActive="active">US Stocks &amp; ETFs</a>
       <a class="nav-item" routerLink="/mutual-funds" routerLinkActive="active">Mutual Funds</a>
-      <a class="nav-item" routerLink="/indices" routerLinkActive="active">ETFs</a>
       <a class="nav-item" routerLink="/indices" routerLinkActive="active">Indices</a>
 
       <!-- More dropdown -->
@@ -62,6 +60,8 @@
         <div class="more-panel" *ngIf="productsOpen">
           <div class="more-col">
             <div class="more-heading">Invest</div>
+            <a class="more-item" routerLink="/stocks"><mat-icon>show_chart</mat-icon>US Stocks</a>
+            <a class="more-item" routerLink="/etf"><mat-icon>candlestick_chart</mat-icon>ETFs</a>
             <a class="more-item" routerLink="/gold"><mat-icon>monetization_on</mat-icon>Gold</a>
             <a class="more-item" routerLink="/bonds"><mat-icon>request_quote</mat-icon>Bonds</a>
             <a class="more-item" routerLink="/ipo"><mat-icon>new_releases</mat-icon>IPO</a>

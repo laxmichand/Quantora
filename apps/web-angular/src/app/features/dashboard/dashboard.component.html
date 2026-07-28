@@ -1,64 +1,171 @@
-<div class="page-header">
-  <h1>{{ 'DASHBOARD.TITLE' | translate }}</h1>
-  <p>{{ 'DASHBOARD.WELCOME' | translate }}</p>
+<!-- Welcome -->
+<div class="welcome-row">
+  <div class="welcome-text">
+    <h1>Good morning, {{ userName }}</h1>
+    <p>Here's your investment overview for today</p>
+  </div>
+  <div class="market-status">
+    <span class="status-dot"></span>
+    Market Open
+  </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-4">
-  <mat-card *ngFor="let stat of stats" class="stat-card">
-    <mat-card-content>
-      <div class="stat-icon">
-        <mat-icon>{{ stat.icon }}</mat-icon>
-      </div>
-      <div class="stat-info">
-        <span class="stat-label">{{ stat.labelKey | translate }}</span>
-        <span class="stat-value">{{ stat.value }}</span>
-        <span
-          class="stat-change"
-          [class.positive]="stat.positive"
-          [class.negative]="!stat.positive"
-        >
-          {{ stat.change }}
-        </span>
-      </div>
-    </mat-card-content>
-  </mat-card>
+<div class="stats-grid">
+  <div class="stat-card" *ngFor="let stat of stats">
+    <div class="stat-icon" [style.background]="stat.color">
+      <mat-icon>{{ stat.icon }}</mat-icon>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">{{ stat.label }}</span>
+      <span class="stat-value">{{ stat.value }}</span>
+      <span class="stat-change" [class.positive]="stat.positive" [class.negative]="!stat.positive">
+        {{ stat.change }}
+      </span>
+    </div>
+  </div>
 </div>
 
-<!-- Top Stocks -->
-<div class="card" style="margin-top: 16px">
-  <h2 class="stock-section-title">
-    <mat-icon style="vertical-align: middle; margin-right: 8px">trending_up</mat-icon>
-    {{ 'DASHBOARD.TOP_STOCKS' | translate }}
-  </h2>
+<!-- Market Indices -->
+<div class="indices-strip">
+  <div class="index-item" *ngFor="let idx of indices">
+    <span class="idx-name">{{ idx.name }}</span>
+    <span class="idx-value">{{ idx.value }}</span>
+    <span class="idx-change" [class.up]="idx.change > 0" [class.down]="idx.change < 0">
+      {{ idx.change > 0 ? '+' : '' }}{{ idx.change }}%
+    </span>
+  </div>
+</div>
 
-  <table class="stock-table">
-    <thead>
-      <tr>
-        <th>{{ 'DASHBOARD.SYMBOL' | translate }}</th>
-        <th>{{ 'DASHBOARD.PRICE' | translate }}</th>
-        <th>{{ 'DASHBOARD.CHANGE' | translate }}</th>
-        <th>{{ 'DASHBOARD.AI_SCORE' | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let stock of topStocks">
-        <td class="symbol-cell">{{ stock.symbol }}</td>
-        <td>₹{{ stock.price | number: '1.2-2' }}</td>
-        <td [class.positive]="stock.change >= 0" [class.negative]="stock.change < 0">
-          {{ stock.change >= 0 ? '+' : '' }}{{ stock.change }}%
-        </td>
-        <td>
-          <span
-            class="ai-score-badge"
-            [class.high]="stock.aiScore >= 70"
-            [class.medium]="stock.aiScore >= 50 && stock.aiScore < 70"
-            [class.low]="stock.aiScore < 50"
-          >
-            {{ stock.aiScore }}
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<!-- Main 2-column layout -->
+<div class="dashboard-grid">
+
+  <!-- LEFT COLUMN -->
+  <div class="col-main">
+
+    <!-- Top Gainers / Losers / Active -->
+    <div class="card stock-tabs-card">
+      <div class="card-header-row">
+        <h2 class="card-title">
+          <mat-icon>show_chart</mat-icon>
+          Market Movers
+        </h2>
+        <div class="tab-pills">
+          <button class="pill" [class.active]="activeTab === 'gainers'" (click)="activeTab = 'gainers'">
+            <span class="pill-dot green"></span> Gainers
+          </button>
+          <button class="pill" [class.active]="activeTab === 'losers'" (click)="activeTab = 'losers'">
+            <span class="pill-dot red"></span> Losers
+          </button>
+          <button class="pill" [class.active]="activeTab === 'active'" (click)="activeTab = 'active'">
+            <span class="pill-dot blue"></span> Most Active
+          </button>
+        </div>
+      </div>
+
+      <app-data-table
+        [columns]="columns"
+        [data]="tabData"
+        [config]="{ showSearch: false, showColumnToggle: false, showPagination: false, pageSize: 5 }"
+        [loading]="false">
+      </app-data-table>
+    </div>
+
+    <!-- Sector Performance -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">
+          <mat-icon>donut_large</mat-icon>
+          Sector Performance
+        </h2>
+      </div>
+      <div class="sectors-grid">
+        <div class="sector-chip" *ngFor="let s of sectors">
+          <div class="sector-icon-wrap">
+            <mat-icon>{{ s.icon }}</mat-icon>
+          </div>
+          <div class="sector-info">
+            <span class="sector-name">{{ s.name }}</span>
+            <span class="sector-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+              {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+            </span>
+          </div>
+          <div class="sector-bar-wrap">
+            <div class="sector-bar" [class.up]="s.change > 0" [class.down]="s.change < 0"
+                 [style.width.%]="s.change > 0 ? s.change * 20 : s.change * -20">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="col-side">
+
+    <!-- Portfolio Allocation -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">
+          <mat-icon>pie_chart</mat-icon>
+          Allocation
+        </h2>
+      </div>
+      <div class="allocation-bars">
+        <div class="alloc-row" *ngFor="let a of portfolioAllocation">
+          <div class="alloc-label">
+            <span class="alloc-dot" [style.background]="a.color"></span>
+            {{ a.label }}
+          </div>
+          <div class="alloc-bar-track">
+            <div class="alloc-bar-fill" [style.width.%]="a.pct" [style.background]="a.color"></div>
+          </div>
+          <span class="alloc-pct">{{ a.pct }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- News -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">
+          <mat-icon>newspaper</mat-icon>
+          Market News
+        </h2>
+      </div>
+      <div class="news-list">
+        <a class="news-item" *ngFor="let n of news">
+          <div class="news-icon-wrap">
+            <mat-icon>{{ n.icon }}</mat-icon>
+          </div>
+          <div class="news-content">
+            <span class="news-title">{{ n.title }}</span>
+            <span class="news-meta">
+              <span class="news-category">{{ n.category }}</span>
+              &middot; {{ n.time }}
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">
+          <mat-icon>flash_on</mat-icon>
+          Quick Actions
+        </h2>
+      </div>
+      <div class="actions-grid">
+        <a class="action-item" *ngFor="let a of quickActions" [routerLink]="a.route">
+          <div class="action-icon" [style.background]="a.color + '18'" [style.color]="a.color">
+            <mat-icon>{{ a.icon }}</mat-icon>
+          </div>
+          <span class="action-label">{{ a.label }}</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
 </div>

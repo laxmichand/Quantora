@@ -82,6 +82,7 @@ if [ "$START_AI" = true ]; then
     pip install --quiet -r "$FASTAPI_DIR/requirements.txt" 2>&1 | tail -1
     if [ $? -eq 0 ]; then
       touch "$PYTHON_READY"
+      
       ok "Python dependencies installed"
     else
       warn "Some Python deps failed — install manually: cd apps/ai-fastapi && pip install -r requirements.txt"
