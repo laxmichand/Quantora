@@ -1,8 +1,9 @@
 {
   "version": 2,
-  "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "npm run build:prod",
-  "outputDirectory": "dist/quantora-frontend/browser",
+  "node": "22.22.3",
+  "installCommand": "cd ../.. && npm ci",
+  "buildCommand": "cd ../.. && npm run build:prod --workspace=@quantora/web",
+  "outputDirectory": "dist/quantora-frontend",
   "routes": [
     {
       "src": "/api/(.*)",
