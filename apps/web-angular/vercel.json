@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "rootDirectory": "apps/web-angular",
   "installCommand": "npm install --legacy-peer-deps --ignore-engines",
   "buildCommand": "npm run build:prod",
   "outputDirectory": "dist/quantora-frontend/browser",
