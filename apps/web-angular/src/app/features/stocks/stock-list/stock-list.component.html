@@ -1,0 +1,114 @@
+<!-- Market Indices Strip -->
+<div class="indices-strip">
+  <div class="index-item" *ngFor="let idx of indices">
+    <span class="idx-name">{{ idx.name }}</span>
+    <span class="idx-value">{{ idx.value }}</span>
+    <span class="idx-change" [class.up]="idx.change > 0" [class.down]="idx.change < 0">
+      {{ idx.change > 0 ? '+' : '' }}{{ idx.change }}%
+    </span>
+  </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <mat-icon>show_chart</mat-icon>
+      IN Stocks
+    </h1>
+    <p class="page-subtitle">NSE &bull; BSE &bull; {{ displayStocks.length }} stocks</p>
+  </div>
+</div>
+
+<!-- Tab Pills -->
+<div class="tab-pills">
+  <button
+    *ngFor="let tab of tabs"
+    class="pill"
+    [class.active]="activeTab === tab"
+    (click)="setTab(tab)"
+  >
+    <mat-icon>{{ tabIcons[tab] }}</mat-icon>
+    {{ tabLabels[tab] }}
+  </button>
+</div>
+
+<!-- Sector Filter Chips -->
+<div class="sector-chips">
+  <button
+    *ngFor="let s of sectors"
+    class="chip"
+    [class.active]="activeSector === s"
+    (click)="setSector(s)"
+  >
+    {{ s }}
+  </button>
+</div>
+
+<!-- Stock Table -->
+<app-data-table
+  [columns]="columns"
+  [data]="displayStocks"
+  [config]="{ showColumnToggle: false, pageSize: 15, emptyMessage: 'No stocks match your filters' }"
+>
+  <ng-template #slNumCell let-row let-i="index">
+    <span class="row-num">{{ i + 1 }}</span>
+  </ng-template>
+  <ng-template #slStockCell let-row>
+    <span class="stock-name-cell">
+      <span class="stock-symbol">{{ row.symbol }}</span>
+      <span class="stock-fullname">{{ row.name }}</span>
+    </span>
+  </ng-template>
+  <ng-template #slChgCell let-row>
+    <span [class.text-green]="row.change > 0" [class.text-red]="row.change < 0">
+      {{ row.change > 0 ? '+' : '' }}{{ row.change }}
+    </span>
+  </ng-template>
+  <ng-template #slPctCell let-row>
+    <span class="change-badge" [class.up]="row.pct > 0" [class.down]="row.pct < 0">
+      {{ row.pct > 0 ? '+' : '' }}{{ row.pct }}%
+    </span>
+  </ng-template>
+  <ng-template #slSectorCell let-row>
+    <span class="sector-tag">{{ row.sector }}</span>
+  </ng-template>
+</app-data-table>
+
+<!-- Curated Screens -->
+<div class="section-header">
+  <h2 class="section-title">
+    <mat-icon>auto_awesome</mat-icon>
+    Curated Screens
+  </h2>
+</div>
+<div class="screens-grid">
+  <div class="screen-card" *ngFor="let s of curatedScreens">
+    <mat-icon>{{ s.icon }}</mat-icon>
+    <div class="screen-info">
+      <span class="screen-name">{{ s.name }}</span>
+      <span class="screen-count">{{ s.count }} stocks</span>
+    </div>
+    <mat-icon class="arrow">chevron_right</mat-icon>
+  </div>
+</div>
+
+<!-- Market News -->
+<div class="section-header">
+  <h2 class="section-title">
+    <mat-icon>newspaper</mat-icon>
+    Market News
+  </h2>
+</div>
+<div class="news-grid">
+  <div class="news-card" *ngFor="let n of news">
+    <div class="news-icon-wrap">
+      <mat-icon>{{ n.icon }}</mat-icon>
+    </div>
+    <div class="news-body">
+      <span class="news-cat">{{ n.category }}</span>
+      <h4 class="news-title">{{ n.title }}</h4>
+      <span class="news-time">{{ n.time }}</span>
+    </div>
+  </div>
+</div>

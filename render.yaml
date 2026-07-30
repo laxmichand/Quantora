@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: quantora
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_URL
+        value: redis://localhost:6379
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: REFRESH_TOKEN_EXPIRY_DAYS
+        value: 7
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+  - type: web
+    name: quantora-ai
+    runtime: docker
+    dockerfilePath: ./Dockerfile.python
+    envVars:
+      - key: REDIS_URL
+        value: redis://localhost:6379
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /health
+    autoDeploy: true

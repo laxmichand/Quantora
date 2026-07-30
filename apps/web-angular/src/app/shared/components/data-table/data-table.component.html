@@ -1,0 +1,171 @@
+<div class="dt-root" [class.loading]="loading">
+  <!-- Toolbar -->
+  <div class="dt-toolbar" *ngIf="config.showSearch !== false || config.showColumnToggle !== false">
+    <!-- Search -->
+    <div class="dt-search" *ngIf="config.showSearch !== false">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        #searchInput
+        type="text"
+        class="dt-search-input"
+        placeholder="Search..."
+        [value]="searchTerm"
+        (input)="onSearchInput($any($event.target).value)"
+      />
+      <button *ngIf="searchTerm" class="dt-search-clear" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="dt-toolbar-spacer"></div>
+
+    <!-- Column Toggle -->
+    <div class="dt-col-menu-wrap" *ngIf="config.showColumnToggle !== false">
+      <button class="dt-toolbar-btn" (click)="toggleColumnMenu()" matTooltip="Columns">
+        <mat-icon>view_column</mat-icon>
+      </button>
+      <div class="dt-col-dropdown" *ngIf="columnMenuOpen">
+        <div class="dt-col-dropdown-header">
+          <span>Toggle Columns</span>
+          <button class="dt-col-reset" (click)="showAllColumns()">Show All</button>
+        </div>
+        <div class="dt-col-list">
+          <label class="dt-col-item" *ngFor="let col of columns">
+            <input type="checkbox" [checked]="!col.hidden" (change)="toggleColumn(col)" />
+            <span>{{ col.label }}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reset -->
+    <button
+      class="dt-toolbar-btn"
+      matTooltip="Reset table preferences"
+      (click)="resetPreferences()"
+    >
+      <mat-icon>restart_alt</mat-icon>
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div #tableWrapper class="dt-table-scroll">
+    <table
+      class="dt-table"
+      [class.striped]="config.striped"
+      [class.bordered]="config.bordered"
+      [class.compact]="config.compact"
+    >
+      <thead>
+        <tr>
+          <th
+            *ngFor="let col of visibleColumns; let i = index"
+            cdkDrag
+            [cdkDragData]="col"
+            (cdkDragDropped)="onColumnDrop($event)"
+            [style.width]="col.width"
+            [style.min-width]="col.minWidth"
+            [style.text-align]="col.align || 'left'"
+            [class.sortable]="col.sortable"
+            [class.sorted]="activeSort?.column === col.key"
+            [class.sticky]="col.sticky"
+            [class.dragging]="false"
+          >
+            <span class="th-inner" (click)="toggleSort(col)">
+              {{ col.label }}
+              <mat-icon
+                *ngIf="col.sortable"
+                class="sort-icon"
+                [class.active]="activeSort?.column === col.key"
+              >
+                {{ getSortIcon(col) }}
+              </mat-icon>
+            </span>
+            <span class="drag-handle" cdkDragHandle>
+              <mat-icon>drag_indicator</mat-icon>
+            </span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Skeleton -->
+        <ng-container *ngIf="loading">
+          <tr *ngFor="let r of [].constructor(loadingRows); let i = index" class="skeleton-row">
+            <td *ngFor="let col of visibleColumns" [style.text-align]="col.align || 'left'">
+              <div class="skeleton-bar" [style.width]="50 + ((i * 13) % 50) + '%'"></div>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- Data rows -->
+        <ng-container *ngIf="!loading">
+          <tr
+            *ngFor="let row of paginatedData; let i = index; trackBy: trackByIndex"
+            [class.clickable]="true"
+            [class.selected]="isSelected(row)"
+            (click)="rowClick.emit(row)"
+          >
+            <td
+              *ngFor="let col of visibleColumns"
+              [style.text-align]="col.align || 'left'"
+              [ngClass]="col.class"
+              [class.sticky]="col.sticky"
+            >
+              <ng-container *ngIf="col.cellTemplate; else defaultCell">
+                <ng-container
+                  *ngTemplateOutlet="col.cellTemplate; context: { $implicit: row, index: i }"
+                ></ng-container>
+              </ng-container>
+              <ng-template #defaultCell>{{ formatCellValue(row, col) }}</ng-template>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- Empty -->
+        <tr *ngIf="!loading && processedData.length === 0">
+          <td [attr.colspan]="visibleColumns.length" class="empty-cell">
+            <div class="empty-state">
+              <mat-icon>inbox</mat-icon>
+              <span>{{ config.emptyMessage || 'No data found' }}</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="dt-pagination" *ngIf="config.showPagination !== false && processedData.length > 0">
+    <div class="dt-page-info">
+      <select class="dt-page-size" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+        <option *ngFor="let opt of config.pageSizeOptions || [5, 10, 25, 50]" [ngValue]="opt">
+          {{ opt }} / page
+        </option>
+      </select>
+      <span class="dt-page-count">
+        {{ (currentPage - 1) * pageSize + 1 }}–{{
+          currentPage * pageSize > processedData.length
+            ? processedData.length
+            : currentPage * pageSize
+        }}
+        of {{ processedData.length }}
+      </span>
+    </div>
+    <div class="dt-page-controls">
+      <button class="dt-page-btn" [disabled]="currentPage === 1" (click)="prevPage()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button
+        *ngFor="let p of pageNumbers"
+        class="dt-page-btn"
+        [class.active]="p === currentPage"
+        (click)="goToPage(p)"
+      >
+        {{ p }}
+      </button>
+      <button class="dt-page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

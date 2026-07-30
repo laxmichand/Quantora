@@ -1,0 +1,461 @@
+<div class="landing-page">
+  <!-- ═══════════════════════ HERO ═══════════════════════ -->
+  <section class="tt-hero">
+    <!-- Index Strip -->
+    <div class="index-strip">
+      <div class="index-strip-inner">
+        <a *ngFor="let idx of indices" class="index-chip" routerLink="/stocks">
+          <span class="idx-name">{{ idx.name }}</span>
+          <span class="idx-val">{{ idx.value }}</span>
+          <span class="idx-chg" [class.green]="idx.change > 0" [class.red]="idx.change < 0">
+            {{ idx.change > 0 ? '+' : '' }}{{ idx.change }}%
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="tt-hero-inner">
+      <div class="tt-hero-left">
+        <div class="market-status-badge">
+          <span class="status-dot"></span>
+          {{ marketStatus }}
+        </div>
+        <h1 class="hero-title">
+          India's AI-Powered<br /><span class="accent">Investment Platform</span>
+        </h1>
+        <p class="hero-desc">
+          Real-time market data, AI-driven insights, and powerful screeners — all built for the
+          Indian investor.
+        </p>
+        <div class="hero-cta">
+          <a routerLink="/auth/register" class="btn-primary-lg">
+            <mat-icon>rocket_launch</mat-icon>
+            Get Started Free
+          </a>
+          <a routerLink="/auth/login" class="btn-outline-lg"> Sign In </a>
+        </div>
+        <div class="hero-trust">
+          <mat-icon>verified</mat-icon>
+          No credit card required &bull; Free forever
+        </div>
+      </div>
+
+      <div class="tt-hero-right">
+        <!-- Quantora AI Score (branded feature) -->
+        <div class="ai-score-card">
+          <div class="ai-score-header">
+            <div class="ai-score-label">
+              <mat-icon>psychology</mat-icon>
+              <span>Quantora AI Score</span>
+            </div>
+            <span class="ai-score-badge bullish">Bullish</span>
+          </div>
+          <div class="ai-score-ring">
+            <svg viewBox="0 0 120 120" class="ring-svg">
+              <circle cx="60" cy="60" r="52" class="ring-track" />
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                class="ring-fill"
+                stroke-dasharray="327"
+                stroke-dashoffset="59"
+              />
+            </svg>
+            <div class="ring-center">
+              <span class="ring-val">{{ aiScore.overall }}</span>
+              <span class="ring-max">/10</span>
+            </div>
+          </div>
+          <div class="ai-score-bars">
+            <div class="score-bar-row">
+              <span class="bar-label">Technicals</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="aiScore.technicals * 10"></div>
+              </div>
+              <span class="bar-val green">{{ aiScore.technicals }}</span>
+            </div>
+            <div class="score-bar-row">
+              <span class="bar-label">Fundamentals</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="aiScore.fundamentals * 10"></div>
+              </div>
+              <span class="bar-val green">{{ aiScore.fundamentals }}</span>
+            </div>
+            <div class="score-bar-row">
+              <span class="bar-label">Sentiment</span>
+              <div class="bar-track">
+                <div class="bar-fill orange" [style.width.%]="aiScore.sentiment * 10"></div>
+              </div>
+              <span class="bar-val orange">{{ aiScore.sentiment }}</span>
+            </div>
+            <div class="score-bar-row">
+              <span class="bar-label">Momentum</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="aiScore.momentum * 10"></div>
+              </div>
+              <span class="bar-val green">{{ aiScore.momentum }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ TODAY'S STOCKS ═══════════════════════ -->
+  <section class="tt-stocks reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">Today's Stocks</h2>
+        <a routerLink="/stocks" class="section-link">See All <mat-icon>arrow_forward</mat-icon></a>
+      </div>
+      <div class="stock-tabs">
+        <button
+          *ngFor="let tab of stockTabs; let i = index"
+          class="tab-btn"
+          [class.active]="activeStockTab === i"
+          (click)="setActiveStockTab(i)"
+        >
+          {{ tab }}
+        </button>
+      </div>
+      <app-data-table
+        [columns]="stockColumns"
+        [data]="stockData[stockTabs[activeStockTab]]"
+        [config]="{ showSearch: false, showColumnToggle: false, showPagination: false, maxRows: 5 }"
+      >
+        <ng-template #stockNumCell let-row let-i="index">
+          <span class="row-num">{{ i + 1 }}</span>
+        </ng-template>
+        <ng-template #stockSymCell let-row>
+          <span class="stock-name-cell">
+            <span class="stock-symbol">{{ row.symbol }}</span>
+            <span class="stock-fullname">{{ row.name }}</span>
+          </span>
+        </ng-template>
+        <ng-template #stockChgCell let-row>
+          <span [class.text-green]="row.change > 0" [class.text-red]="row.change < 0">
+            {{ row.change > 0 ? '+' : '' }}{{ row.change | number: '1.2-2' }}
+          </span>
+        </ng-template>
+        <ng-template #stockPctCell let-row>
+          <span class="pct-badge" [class.green]="row.pct > 0" [class.red]="row.pct < 0">
+            {{ row.pct > 0 ? '+' : '' }}{{ row.pct }}%
+          </span>
+        </ng-template>
+      </app-data-table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ MUTUAL FUNDS & ETFs ═══════════════════════ -->
+  <section class="tt-mf reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">Mutual Funds &amp; ETFs</h2>
+        <a routerLink="/mutual-funds" class="section-link"
+          >See All <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="stock-tabs">
+        <button
+          *ngFor="let tab of mfTabs; let i = index"
+          class="tab-btn"
+          [class.active]="activeMfTab === i"
+          (click)="setActiveMfTab(i)"
+        >
+          {{ tab }}
+        </button>
+      </div>
+      <app-data-table
+        [columns]="mfColumns"
+        [data]="mfData[mfTabs[activeMfTab]]"
+        [config]="{ showSearch: false, showColumnToggle: false, showPagination: false, maxRows: 5 }"
+      >
+        <ng-template #fundNumCell let-row let-i="index">
+          <span class="row-num">{{ i + 1 }}</span>
+        </ng-template>
+        <ng-template #fundNameTpl let-row>
+          <span class="fund-name">{{ row.name }}</span>
+        </ng-template>
+        <ng-template #fundCatTpl let-row>
+          <span class="cat-badge">{{ row.category }}</span>
+        </ng-template>
+        <ng-template #fundRiskTpl let-row>
+          <span
+            class="risk-badge"
+            [class.risk-mod]="row.risk === 'Moderate'"
+            [class.risk-high]="row.risk === 'High' || row.risk === 'Very High'"
+          >
+            {{ row.risk }}
+          </span>
+        </ng-template>
+      </app-data-table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ CURATED SCREENS & DEALS ═══════════════════════ -->
+  <section class="tt-screens reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">Curated Screens &amp; Deals</h2>
+        <a routerLink="/screener" class="section-link"
+          >Open Screener <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="screens-columns">
+        <!-- Stock Screens -->
+        <div class="screen-col">
+          <div class="screen-col-header">
+            <mat-icon>filter_list</mat-icon>
+            <span>Stock Screens</span>
+          </div>
+          <div class="screen-list">
+            <a
+              class="screen-item"
+              *ngFor="let s of curatedScreens | slice: 0 : 4"
+              routerLink="/screener"
+            >
+              <span class="screen-item-name">{{ s.name }}</span>
+              <span class="screen-item-count">{{ s.count }} stocks</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          </div>
+        </div>
+        <!-- Deals -->
+        <div class="screen-col">
+          <div class="screen-col-header">
+            <mat-icon>handshake</mat-icon>
+            <span>Smart Money Deals</span>
+          </div>
+          <div class="screen-list">
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">FII Buying Spree</span>
+              <span class="screen-item-count">12 stocks</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">DII Accumulation</span>
+              <span class="screen-item-count">8 stocks</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">Promoter Buying</span>
+              <span class="screen-item-count">5 stocks</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">Block Deals Today</span>
+              <span class="screen-item-count">3 deals</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          </div>
+        </div>
+        <!-- MF Screens -->
+        <div class="screen-col">
+          <div class="screen-col-header">
+            <mat-icon>account_balance_wallet</mat-icon>
+            <span>MF Screens</span>
+          </div>
+          <div class="screen-list">
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">Top Tax Savers</span>
+              <span class="screen-item-count">15 funds</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">Long Term Compounders</span>
+              <span class="screen-item-count">22 funds</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">Low Cost Index Funds</span>
+              <span class="screen-item-count">18 funds</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">Consistent Performers</span>
+              <span class="screen-item-count">10 funds</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ NEWS & EVENTS ═══════════════════════ -->
+  <section class="tt-news reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">Market News &amp; Events</h2>
+        <a routerLink="/blog" class="section-link">View All <mat-icon>arrow_forward</mat-icon></a>
+      </div>
+      <div class="news-layout">
+        <!-- Spotlight -->
+        <div class="news-spotlight">
+          <div class="spotlight-badge"><mat-icon>wb_sunny</mat-icon> Spotlight</div>
+          <h3 class="spotlight-title">{{ spotlightNews.title }}</h3>
+          <div class="spotlight-meta">
+            <span class="spotlight-cat">{{ spotlightNews.category }}</span>
+            <span class="spotlight-time">{{ spotlightNews.time }}</span>
+          </div>
+        </div>
+        <!-- Tabs + List -->
+        <div class="news-sidebar">
+          <div class="news-tabs">
+            <button
+              *ngFor="let tab of newsTabs; let i = index"
+              class="tab-btn"
+              [class.active]="activeNewsTab === i"
+              (click)="setActiveNewsTab(i)"
+            >
+              {{ tab }}
+            </button>
+          </div>
+          <div class="news-list">
+            <div class="news-item" *ngFor="let n of filteredNews | slice: 1 : 4">
+              <div class="news-icon-wrap">
+                <mat-icon>{{ n.icon }}</mat-icon>
+              </div>
+              <div class="news-body">
+                <span class="news-cat">{{ n.category }}</span>
+                <h4 class="news-title">{{ n.title }}</h4>
+                <span class="news-time">{{ n.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ FEATURES ═══════════════════════ -->
+  <section class="tt-features reveal">
+    <div class="tt-section-inner">
+      <div class="features-header">
+        <h2 class="section-title">Everything You Need to Invest Smarter</h2>
+        <p class="features-subtitle">
+          Powerful tools, real-time data, and AI insights — designed for Indian markets
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" *ngFor="let f of features">
+          <div class="feature-icon-wrap">
+            <mat-icon>{{ f.icon }}</mat-icon>
+          </div>
+          <h3 class="feature-title">{{ f.title }}</h3>
+          <p class="feature-desc">{{ f.desc }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ POPULAR STOCKS ═══════════════════════ -->
+  <section class="tt-popular reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">Popular Stocks</h2>
+        <a routerLink="/stocks" class="section-link">See All <mat-icon>arrow_forward</mat-icon></a>
+      </div>
+      <div class="popular-grid">
+        <a class="popular-card" *ngFor="let s of popularStocks" routerLink="/stocks">
+          <div class="pop-sym">{{ s.symbol }}</div>
+          <div class="pop-name">{{ s.name }}</div>
+          <div class="pop-price">₹{{ s.price }}</div>
+          <div class="pop-change" [class.green]="s.change > 0" [class.red]="s.change < 0">
+            {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ STATS BAR ═══════════════════════ -->
+  <section class="tt-stats reveal">
+    <div class="tt-section-inner">
+      <div class="stats-grid">
+        <div class="stat-item" *ngFor="let st of stats">
+          <mat-icon class="stat-icon">{{ st.icon }}</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">{{ st.value }}</span>
+            <span class="stat-label">{{ st.label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ CTA ═══════════════════════ -->
+  <section class="tt-cta reveal">
+    <div class="tt-section-inner cta-inner">
+      <h2>Start Investing Smarter Today</h2>
+      <p>Join thousands of Indians making better financial decisions with AI</p>
+      <div class="cta-actions">
+        <a routerLink="/auth/register" class="btn-primary-lg">
+          <mat-icon>rocket_launch</mat-icon>
+          Create Free Account
+        </a>
+        <a routerLink="/stocks" class="btn-outline-lg"> Explore Markets </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+  <footer class="tt-footer">
+    <div class="tt-footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <mat-icon>account_balance</mat-icon>
+            <span>Quantora</span>
+          </div>
+          <p>Intelligent Investing. Simplified. India's smartest AI-powered investment platform.</p>
+          <div class="footer-social">
+            <mat-icon>language</mat-icon>
+            <mat-icon>smart_display</mat-icon>
+            <mat-icon>chat</mat-icon>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Products</h4>
+          <a routerLink="/stocks">Stocks</a>
+          <a routerLink="/etf">ETFs</a>
+          <a routerLink="/indices">Indices</a>
+          <a routerLink="/mutual-funds">Mutual Funds</a>
+          <a routerLink="/gold">Gold</a>
+          <a routerLink="/bonds">Bonds</a>
+        </div>
+        <div class="footer-col">
+          <h4>Tools</h4>
+          <a routerLink="/screener">Screener</a>
+          <a routerLink="/compare">Compare</a>
+          <a routerLink="/backtest">Backtest</a>
+          <a routerLink="/calendar">Calendar</a>
+          <a routerLink="/watchlist">Watchlist</a>
+        </div>
+        <div class="footer-col">
+          <h4>Learn</h4>
+          <a routerLink="/blog">Blog</a>
+          <a routerLink="/research">Research</a>
+          <a routerLink="/learn">Courses</a>
+          <a routerLink="/glossary">Glossary</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a routerLink="/about">About Us</a>
+          <a routerLink="/careers">Careers</a>
+          <a routerLink="/contact">Contact</a>
+          <a routerLink="/privacy">Privacy Policy</a>
+          <a routerLink="/terms">Terms</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Quantora. All rights reserved.</span>
+        <span
+          >Investments in securities market are subject to market risks. Read all related documents
+          carefully before investing.</span
+        >
+      </div>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,101 @@
+#!/bin/sh
+
+echo "═══ Pre-commit CI Checks ═══"
+REPORT="## CI Local Check — $(date '+%Y-%m-%d %H:%M')\n\n"
+FAILED=0
+
+check_step() {
+  local name="$1"; shift
+  if "$@"; then
+    echo "  ✅"
+    REPORT="${REPORT}✓ ${name}\n"
+  else
+    echo "  ❌"
+    REPORT="${REPORT}✗ ${name}\n"
+    FAILED=1
+  fi
+}
+
+# 1. Prettier
+echo "── [1/6] Prettier ──────────"
+npx prettier --check "apps/api-nest/src/**/*.ts" "apps/web-angular/src/**/*.ts" "apps/web-angular/src/**/*.html" "apps/web-angular/src/**/*.scss" --ignore-path .gitignore >/dev/null 2>&1
+check_step "No formatting issues" test $? -eq 0
+
+# 2. Prisma generate
+echo "── [2/6] Prisma Generate ───"
+(cd apps/api-nest && npx prisma generate) >/dev/null 2>&1
+check_step "Code compiles (Prisma)" test $? -eq 0
+
+# 3. ESLint
+echo "── [3/6] ESLint ────────────"
+npx eslint "apps/api-nest/src/**/*.ts" --max-warnings=0 >/dev/null 2>&1
+check_step "No ESLint errors" test $? -eq 0
+
+# 4. TypeScript check
+echo "── [4/6] TypeScript ────────"
+npx tsc --noEmit -p apps/api-nest/tsconfig.build.json >/dev/null 2>&1
+check_step "No TypeScript errors" test $? -eq 0
+
+# 5. API unit tests
+echo "── [5/6] API Tests ─────────"
+cd apps/api-nest && npm run test -- --no-coverage >/dev/null 2>&1
+TEST_EXIT=$?
+cd ../..
+check_step "All tests pass" test $TEST_EXIT -eq 0
+
+# 6. API build
+echo "── [6/6] API Build ─────────"
+npm run build --workspace=@quantora/api 2>&1 | tail -5
+check_step "Code compiles (Build)" test $? -eq 0
+
+# ─── Duplicate Config Check ───
+echo "── [*] Duplicate Configs ────"
+DUPE_OK=1
+for f in .eslintrc.js .prettierrc commitlint.config.js; do
+  count=$(find apps -maxdepth 2 -name "$f" -not -path "*/node_modules/*" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$count" -gt 0 ]; then
+    echo "  ⚠ Duplicate $f found in $count sub-app(s)"
+    DUPE_OK=0
+  fi
+done
+if [ "$DUPE_OK" -eq 1 ]; then
+  echo "  ✅"
+  REPORT="${REPORT}✓ No duplicate configs\n"
+else
+  REPORT="${REPORT}✗ Duplicate configs found\n"
+fi
+
+# ─── Write report & stage it ───
+REPORT="${REPORT}\n### Duplicate Config Check\n"
+for f in .eslintrc.js .prettierrc tsconfig.base.json commitlint.config.js; do
+  root_count=$(find . -maxdepth 1 -name "$f" 2>/dev/null | wc -l | tr -d ' ')
+  sub_count=$(find apps -maxdepth 2 -name "$f" -not -path "*/node_modules/*" 2>/dev/null | wc -l | tr -d ' ')
+  REPORT="${REPORT}- ${f}: ${root_count} at root"
+  if [ "$sub_count" -gt 0 ]; then REPORT="${REPORT}, ${sub_count} in sub-apps ⚠"; else REPORT="${REPORT} ✅"; fi
+  REPORT="${REPORT}\n"
+done
+DOCKER_COUNT=$(find apps -maxdepth 2 -name "Dockerfile" -not -path "*/node_modules/*" 2>/dev/null | wc -l | tr -d ' ')
+REPORT="${REPORT}- Dockerfile — ${DOCKER_COUNT} total ✅\n"
+
+# ─── Append templates ───
+for f in "docs/templates/ENTERPRISE-CHECKLISTS.md" "docs/templates/SPRINT-TEMPLATE.md"; do
+  REPORT="${REPORT}\n---\n"
+  if [ -f "$f" ]; then
+    REPORT="${REPORT}$(sed '1,5d' "$f" | sed '/^```/d')\n"
+  fi
+done
+
+printf "%b" "$REPORT" > ci.report
+
+if [ "$FAILED" -eq 1 ]; then
+  echo ""
+  echo "════════════════════════════"
+  echo "❌ Some checks failed — commit blocked"
+  echo "════════════════════════════"
+  exit 1
+fi
+
+echo ""
+echo "════════════════════════════"
+echo "✅ All CI checks passed"
+echo "════════════════════════════"

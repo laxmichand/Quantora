@@ -1,0 +1,264 @@
+<div class="app-layout">
+  <!-- STOCK TICKER STRIP -->
+  <div class="ticker-strip">
+    <div class="ticker-track">
+      <div class="ticker-item" *ngFor="let s of stockTicker">
+        <span class="ticker-symbol">{{ s.symbol }}</span>
+        <span class="ticker-price">₹{{ s.price }}</span>
+        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+          <mat-icon>{{
+            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+          }}</mat-icon>
+          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+        </span>
+      </div>
+      <div class="ticker-item" *ngFor="let s of stockTicker">
+        <span class="ticker-symbol">{{ s.symbol }}</span>
+        <span class="ticker-price">₹{{ s.price }}</span>
+        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+          <mat-icon>{{
+            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+          }}</mat-icon>
+          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER BAR -->
+  <mat-toolbar class="app-toolbar">
+    <!-- Hamburger (mobile only) -->
+    <button class="mobile-hamburger" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+
+    <!-- Logo -->
+    <a class="toolbar-logo" [routerLink]="isLoggedIn ? '/dashboard' : '/'">
+      <div class="logo-icon-wrap">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="toolbar-title">Quantora</span>
+    </a>
+
+    <!-- Search (collapsible on mobile) -->
+    <div class="toolbar-search" [class.open]="searchOpen">
+      <button class="search-toggle" (click)="toggleSearch()" aria-label="Toggle search">
+        <mat-icon>search</mat-icon>
+      </button>
+      <input type="text" placeholder="Search stocks, MFs, ETFs..." />
+    </div>
+
+    <!-- Nav Links (desktop) -->
+    <nav class="toolbar-nav">
+      <a class="nav-item" routerLink="/stocks" routerLinkActive="active">IN Stocks</a>
+      <a class="nav-item" routerLink="/mutual-funds" routerLinkActive="active">Mutual Funds</a>
+      <a class="nav-item" routerLink="/indices" routerLinkActive="active">Indices</a>
+
+      <!-- More dropdown -->
+      <div class="more-dropdown" [class.open]="productsOpen">
+        <button
+          class="nav-item more-trigger"
+          (click)="toggleProducts()"
+          [class.active]="productsOpen"
+        >
+          More
+          <mat-icon class="chevron" [class.open]="productsOpen">expand_more</mat-icon>
+        </button>
+        <div class="more-panel" *ngIf="productsOpen">
+          <div class="more-col">
+            <div class="more-heading">Invest</div>
+            <a class="more-item" routerLink="/stocks"><mat-icon>show_chart</mat-icon>US Stocks</a>
+            <a class="more-item" routerLink="/etf"><mat-icon>candlestick_chart</mat-icon>ETFs</a>
+            <a class="more-item" routerLink="/gold"><mat-icon>monetization_on</mat-icon>Gold</a>
+            <a class="more-item" routerLink="/bonds"><mat-icon>request_quote</mat-icon>Bonds</a>
+            <a class="more-item" routerLink="/ipo"><mat-icon>new_releases</mat-icon>IPO</a>
+          </div>
+          <div class="more-col">
+            <div class="more-heading">Tools</div>
+            <a class="more-item" routerLink="/screener"><mat-icon>filter_list</mat-icon>Screener</a>
+            <a class="more-item" routerLink="/compare"
+              ><mat-icon>compare_arrows</mat-icon>Compare</a
+            >
+            <a class="more-item" routerLink="/backtest"><mat-icon>history</mat-icon>Backtest</a>
+            <a class="more-item" routerLink="/calendar"
+              ><mat-icon>calendar_month</mat-icon>Calendar</a
+            >
+          </div>
+          <div class="more-col">
+            <div class="more-heading">Learn</div>
+            <a class="more-item" routerLink="/blog"><mat-icon>article</mat-icon>Blog</a>
+            <a class="more-item" routerLink="/research"><mat-icon>science</mat-icon>Research</a>
+            <a class="more-item" routerLink="/learn"><mat-icon>school</mat-icon>Courses</a>
+            <a class="more-item" routerLink="/news"><mat-icon>newspaper</mat-icon>News</a>
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="isLoggedIn">
+        <a class="nav-item" routerLink="/portfolio" routerLinkActive="active">Portfolio</a>
+        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a class="nav-item" routerLink="/ai-chat" routerLinkActive="active">AI Chat</a>
+      </ng-container>
+    </nav>
+
+    <!-- Right side -->
+    <div class="toolbar-right">
+      <ng-container *ngIf="isLoggedIn">
+        <button mat-icon-button class="toolbar-icon-btn">
+          <mat-icon>notifications</mat-icon>
+        </button>
+        <div class="profile-dropdown" [class.open]="profileOpen">
+          <button class="profile-btn" (click)="toggleProfile()">
+            <div class="profile-avatar"><mat-icon>person</mat-icon></div>
+          </button>
+          <div class="profile-panel" *ngIf="profileOpen">
+            <a class="profile-item" routerLink="/settings"
+              ><mat-icon>settings</mat-icon><span>Settings</span></a
+            >
+            <a class="profile-item" routerLink="/settings" [queryParams]="{ tab: 'security' }"
+              ><mat-icon>security</mat-icon><span>Security</span></a
+            >
+            <div class="profile-divider"></div>
+            <button class="profile-item danger" (click)="logout()">
+              <mat-icon>logout</mat-icon><span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!isLoggedIn">
+        <a routerLink="/auth/register" class="btn-signup">Sign Up</a>
+        <a routerLink="/auth/login" class="btn-login">Login</a>
+      </ng-container>
+    </div>
+  </mat-toolbar>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-drawer-overlay" *ngIf="mobileMenuOpen" (click)="mobileMenuOpen = false"></div>
+  <nav class="mobile-drawer" [class.open]="mobileMenuOpen">
+    <div class="drawer-header">
+      <div class="logo-icon-wrap">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="drawer-title">Quantora</span>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Markets</div>
+      <a class="drawer-item" routerLink="/stocks" (click)="mobileMenuOpen = false">
+        <mat-icon>show_chart</mat-icon> IN Stocks
+      </a>
+      <a class="drawer-item" routerLink="/mutual-funds" (click)="mobileMenuOpen = false">
+        <mat-icon>account_balance</mat-icon> Mutual Funds
+      </a>
+      <a class="drawer-item" routerLink="/indices" (click)="mobileMenuOpen = false">
+        <mat-icon>trending_up</mat-icon> Indices
+      </a>
+    </div>
+
+    <ng-container *ngIf="isLoggedIn">
+      <div class="drawer-section">
+        <div class="drawer-section-title">Portfolio</div>
+        <a class="drawer-item" routerLink="/portfolio" (click)="mobileMenuOpen = false">
+          <mat-icon>pie_chart</mat-icon> Portfolio
+        </a>
+        <a class="drawer-item" routerLink="/dashboard" (click)="mobileMenuOpen = false">
+          <mat-icon>dashboard</mat-icon> Dashboard
+        </a>
+      </div>
+    </ng-container>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Invest</div>
+      <a class="drawer-item" routerLink="/stocks" (click)="mobileMenuOpen = false">
+        <mat-icon>show_chart</mat-icon> US Stocks
+      </a>
+      <a class="drawer-item" routerLink="/etf" (click)="mobileMenuOpen = false">
+        <mat-icon>candlestick_chart</mat-icon> ETFs
+      </a>
+      <a class="drawer-item" routerLink="/gold" (click)="mobileMenuOpen = false">
+        <mat-icon>monetization_on</mat-icon> Gold
+      </a>
+      <a class="drawer-item" routerLink="/bonds" (click)="mobileMenuOpen = false">
+        <mat-icon>request_quote</mat-icon> Bonds
+      </a>
+      <a class="drawer-item" routerLink="/ipo" (click)="mobileMenuOpen = false">
+        <mat-icon>new_releases</mat-icon> IPO
+      </a>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Tools</div>
+      <a class="drawer-item" routerLink="/screener" (click)="mobileMenuOpen = false">
+        <mat-icon>filter_list</mat-icon> Screener
+      </a>
+      <a class="drawer-item" routerLink="/compare" (click)="mobileMenuOpen = false">
+        <mat-icon>compare_arrows</mat-icon> Compare
+      </a>
+      <a class="drawer-item" routerLink="/backtest" (click)="mobileMenuOpen = false">
+        <mat-icon>history</mat-icon> Backtest
+      </a>
+      <a class="drawer-item" routerLink="/calendar" (click)="mobileMenuOpen = false">
+        <mat-icon>calendar_month</mat-icon> Calendar
+      </a>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Learn</div>
+      <a class="drawer-item" routerLink="/blog" (click)="mobileMenuOpen = false">
+        <mat-icon>article</mat-icon> Blog
+      </a>
+      <a class="drawer-item" routerLink="/research" (click)="mobileMenuOpen = false">
+        <mat-icon>science</mat-icon> Research
+      </a>
+      <a class="drawer-item" routerLink="/learn" (click)="mobileMenuOpen = false">
+        <mat-icon>school</mat-icon> Courses
+      </a>
+      <a class="drawer-item" routerLink="/news" (click)="mobileMenuOpen = false">
+        <mat-icon>newspaper</mat-icon> News
+      </a>
+    </div>
+
+    <ng-container *ngIf="isLoggedIn">
+      <div class="drawer-section">
+        <div class="drawer-section-title">Account</div>
+        <a class="drawer-item" routerLink="/settings" (click)="mobileMenuOpen = false">
+          <mat-icon>settings</mat-icon> Settings
+        </a>
+        <a
+          class="drawer-item"
+          routerLink="/settings"
+          [queryParams]="{ tab: 'security' }"
+          (click)="mobileMenuOpen = false"
+        >
+          <mat-icon>security</mat-icon> Security
+        </a>
+        <a class="drawer-item" routerLink="/ai-chat" (click)="mobileMenuOpen = false">
+          <mat-icon>smart_toy</mat-icon> AI Chat
+        </a>
+        <button class="drawer-item drawer-logout" (click)="logout()">
+          <mat-icon>logout</mat-icon> Sign Out
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!isLoggedIn">
+      <div class="drawer-section">
+        <a
+          class="drawer-item drawer-signup"
+          routerLink="/auth/register"
+          (click)="mobileMenuOpen = false"
+        >
+          <mat-icon>person_add</mat-icon> Sign Up
+        </a>
+        <a class="drawer-item" routerLink="/auth/login" (click)="mobileMenuOpen = false">
+          <mat-icon>login</mat-icon> Login
+        </a>
+      </div>
+    </ng-container>
+  </nav>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
