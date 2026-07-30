@@ -46,6 +46,7 @@ export class DevicesComponent implements OnInit {
         this.devices = devices;
         this.currentDevice = devices.find((d) => d.sessions?.some((s) => s.isCurrent)) || null;
       },
+      error: () => this.snackBar.open('Failed to load devices', 'Close', { duration: 3000 }),
     });
   }
 

@@ -135,7 +135,7 @@ export class DeviceManagementService {
       },
     });
 
-    return devices.map((d) => this.toResponse(d, d.deviceId === currentDeviceId));
+    return devices.map((d) => this.toResponse(d, d.id === currentDeviceId));
   }
 
   async getDevice(userId: string, deviceId: string): Promise<DeviceResponseDto> {

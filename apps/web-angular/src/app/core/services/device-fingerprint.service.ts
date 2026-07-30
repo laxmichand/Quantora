@@ -40,6 +40,7 @@ export interface DeviceFingerprintData {
 
 @Injectable({ providedIn: 'root' })
 export class DeviceFingerprintService {
+  private readonly STORAGE_KEY = 'quantora_device_id';
   private storedDeviceId: string | null = null;
 
   /**
@@ -92,7 +93,11 @@ export class DeviceFingerprintService {
 
   getCurrentDeviceId(): string {
     if (!this.storedDeviceId) {
-      this.storedDeviceId = this.generateDeviceId();
+      this.storedDeviceId = localStorage.getItem(this.STORAGE_KEY);
+      if (!this.storedDeviceId) {
+        this.storedDeviceId = this.generateDeviceId();
+        localStorage.setItem(this.STORAGE_KEY, this.storedDeviceId);
+      }
     }
     return this.storedDeviceId;
   }
