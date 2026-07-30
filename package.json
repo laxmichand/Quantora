@@ -18,7 +18,7 @@
     "test": "turbo run test",
     "clean": "turbo run clean",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "prepare": "husky || false"
+    "prepare": "test -d .git && husky || true"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
