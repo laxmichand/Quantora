@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "installCommand": "npm install --legacy-peer-deps",
+  "rootDirectory": "apps/web-angular",
+  "installCommand": "npm install --legacy-peer-deps --ignore-engines",
   "buildCommand": "npm run build:prod",
   "outputDirectory": "dist/quantora-frontend/browser",
+  "nodeVersion": "22.x",
   "routes": [
     {
       "src": "/api/(.*)",
