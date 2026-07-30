@@ -98,8 +98,11 @@
 
           <div class="risk-bar-wrap">
             <div class="risk-bar">
-              <div class="risk-fill" [style.width.%]="accountRisk.score"
-                [style.background]="riskColor(accountRisk.score)"></div>
+              <div
+                class="risk-fill"
+                [style.width.%]="accountRisk.score"
+                [style.background]="riskColor(accountRisk.score)"
+              ></div>
             </div>
 
             <strong class="risk-num" [style.color]="riskColor(accountRisk.score)">
@@ -186,8 +189,12 @@
           <p class="card-sub">Last few notable events on your account.</p>
 
           <div class="timeline">
-            <div class="tl-item" *ngFor="let e of recentEvents" [class.warn]="e.severity !== 'info'"
-              [class.bad]="e.severity === 'critical' || e.severity === 'high'">
+            <div
+              class="tl-item"
+              *ngFor="let e of recentEvents"
+              [class.warn]="e.severity !== 'info'"
+              [class.bad]="e.severity === 'critical' || e.severity === 'high'"
+            >
               <div class="tl-title">
                 {{ e.eventType | titlecase }}
               </div>
@@ -227,8 +234,11 @@
           </p>
 
           <div class="device-list" *ngIf="activeSessions.length > 0; else noSessions">
-            <div class="device-card" *ngFor="let d of activeSessions"
-              [class.current]="d.sessions.some((s) => s.isCurrent)">
+            <div
+              class="device-card"
+              *ngFor="let d of activeSessions"
+              [class.current]="d.sessions.some((s) => s.isCurrent)"
+            >
               <div class="d-icon">
                 <mat-icon>
                   {{ getDeviceIcon(d) }}
@@ -247,8 +257,13 @@
                   <!-- Rename -->
                   <ng-template #renameForm>
                     <div class="rename-inline">
-                      <input #renameInput [(ngModel)]="renameValue" (keyup.enter)="saveRename(d.id)"
-                        (keyup.escape)="cancelRename()" placeholder="Device name" />
+                      <input
+                        #renameInput
+                        [(ngModel)]="renameValue"
+                        (keyup.enter)="saveRename(d.id)"
+                        (keyup.escape)="cancelRename()"
+                        placeholder="Device name"
+                      />
 
                       <button mat-icon-button (click)="saveRename(d.id)">
                         <mat-icon>check</mat-icon>
@@ -292,7 +307,7 @@
                   <span>
                     🕒
                     {{
-                    d.sessions.some((s) => s.isCurrent) ? 'Active now' : timeAgo(d.lastActivity)
+                      d.sessions.some((s) => s.isCurrent) ? 'Active now' : timeAgo(d.lastActivity)
                     }}
                   </span>
 
@@ -316,18 +331,30 @@
 
                   <!-- Other-device actions -->
                   <ng-container *ngIf="!d.sessions.some((s) => s.isCurrent)">
-                    <button mat-stroked-button *ngIf="d.trustedDevice" (click)="onTrustDevice(d.id, false)">
+                    <button
+                      mat-stroked-button
+                      *ngIf="d.trustedDevice"
+                      (click)="onTrustDevice(d.id, false)"
+                    >
                       <mat-icon>block</mat-icon>
                       Untrust
                     </button>
 
-                    <button mat-stroked-button *ngIf="!d.trustedDevice" (click)="onTrustDevice(d.id, true)">
+                    <button
+                      mat-stroked-button
+                      *ngIf="!d.trustedDevice"
+                      (click)="onTrustDevice(d.id, true)"
+                    >
                       <mat-icon>verified_user</mat-icon>
                       Trust
                     </button>
 
-                    <button mat-stroked-button color="warn" *ngIf="d.sessions.length > 0 && d.sessions[0]?.id"
-                      (click)="onLogoutSession(d.sessions[0].id)">
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      *ngIf="d.sessions.length > 0 && d.sessions[0]?.id"
+                      (click)="onLogoutSession(d.sessions[0].id)"
+                    >
                       <mat-icon>logout</mat-icon>
                       Log out
                     </button>
@@ -517,8 +544,12 @@
           <p class="card-sub">Suspicious activity detected by the risk engine.</p>
 
           <div class="timeline" *ngIf="securityEvents.length > 0; else noAlerts">
-            <div class="tl-item" *ngFor="let e of securityEvents" [class.warn]="e.severity !== 'info'"
-              [class.bad]="e.severity === 'critical' || e.severity === 'high'">
+            <div
+              class="tl-item"
+              *ngFor="let e of securityEvents"
+              [class.warn]="e.severity !== 'info'"
+              [class.bad]="e.severity === 'critical' || e.severity === 'high'"
+            >
               <div class="tl-title">
                 {{ e.eventType | titlecase }}
               </div>
@@ -578,7 +609,11 @@
             </div>
 
             <label class="toggle">
-              <input type="checkbox" [checked]="settings.biometric" (change)="toggleSetting('biometric')" />
+              <input
+                type="checkbox"
+                [checked]="settings.biometric"
+                (change)="toggleSetting('biometric')"
+              />
 
               <span class="toggle-slider"></span>
             </label>
@@ -593,7 +628,11 @@
             </div>
 
             <label class="toggle">
-              <input type="checkbox" [checked]="settings.adaptiveMfa" (change)="toggleSetting('adaptiveMfa')" />
+              <input
+                type="checkbox"
+                [checked]="settings.adaptiveMfa"
+                (change)="toggleSetting('adaptiveMfa')"
+              />
 
               <span class="toggle-slider"></span>
             </label>
@@ -608,7 +647,11 @@
             </div>
 
             <label class="toggle">
-              <input type="checkbox" [checked]="settings.newDeviceAlerts" (change)="toggleSetting('newDeviceAlerts')" />
+              <input
+                type="checkbox"
+                [checked]="settings.newDeviceAlerts"
+                (change)="toggleSetting('newDeviceAlerts')"
+              />
 
               <span class="toggle-slider"></span>
             </label>
@@ -623,7 +666,11 @@
             </div>
 
             <label class="toggle">
-              <input type="checkbox" [checked]="settings.torBlocking" (change)="toggleSetting('torBlocking')" />
+              <input
+                type="checkbox"
+                [checked]="settings.torBlocking"
+                (change)="toggleSetting('torBlocking')"
+              />
 
               <span class="toggle-slider"></span>
             </label>
