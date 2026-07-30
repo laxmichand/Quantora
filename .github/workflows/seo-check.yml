@@ -17,7 +17,7 @@ on:
       - '.github/workflows/seo-check.yml'
 
 env:
-  NODE_VERSION: '22.22.3'
+  NODE_VERSION: '24'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

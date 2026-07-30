@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "node": "22.22.3",
   "installCommand": "cd ../.. && npm ci",
   "buildCommand": "cd ../.. && npm run build:prod --workspace=@quantora/web",
   "outputDirectory": "dist/quantora-frontend",
