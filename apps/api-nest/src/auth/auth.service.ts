@@ -120,25 +120,24 @@ export class AuthService {
 
     this.logger.log(`User registered: ${user.email}`);
 
-    // Register device if provided
-    let deviceId: string | undefined;
-    if (dto.deviceId) {
-      try {
-        const device = await this.registerOrUpdateDevice(user.id, {
-          deviceId: dto.deviceId,
-          fingerprint: dto.fingerprint,
-          ip,
-          userAgent,
-        });
-        deviceId = device.id;
-      } catch (err) {
-        this.logger.warn(`Device registration failed: ${(err as Error).message}`);
-      }
+    // Register/create device record
+    let devicePk: string;
+    try {
+      const device = await this.registerOrUpdateDevice(user.id, {
+        deviceId: dto.deviceId || randomBytes(16).toString('hex'),
+        fingerprint: dto.fingerprint,
+        ip,
+        userAgent,
+      });
+      devicePk = device.id;
+    } catch (err) {
+      this.logger.warn(`Device registration failed: ${(err as Error).message}`);
+      throw err;
     }
 
     const { accessToken, refreshToken, sessionId } = await this.tokenService.generateTokenPair(
       user,
-      deviceId || 'unknown',
+      devicePk,
     );
 
     await this.audit.log({
@@ -287,16 +286,14 @@ export class AuthService {
     });
 
     // Register/update device
-    let deviceRecordId: string | undefined;
-    if (deviceId) {
-      const device = await this.registerOrUpdateDevice(user.id, {
-        deviceId,
-        fingerprint: ctx.fingerprint,
-        ip,
-        userAgent,
-      });
-      deviceRecordId = device.id;
-    }
+    const clientDeviceId = deviceId || randomBytes(16).toString('hex');
+    const device = await this.registerOrUpdateDevice(user.id, {
+      deviceId: clientDeviceId,
+      fingerprint: ctx.fingerprint,
+      ip,
+      userAgent,
+    });
+    const deviceRecordId = device.id;
 
     // Get IP intelligence
     let ipInfo;
@@ -435,7 +432,7 @@ export class AuthService {
     // ─── Full login — generate tokens ─────────────────────────────────
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
-      deviceRecordId || 'unknown',
+      deviceRecordId,
     );
 
     // Record login history
@@ -577,7 +574,7 @@ export class AuthService {
     // Generate tokens
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
-      challenge.deviceRecordId || 'unknown',
+      challenge.deviceRecordId,
     );
 
     await this.recordLogin({
