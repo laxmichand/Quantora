@@ -99,5 +99,8 @@ eggs/
 tmp/
 temp/
 
+# Redis
+dump.rdb
+
 # CI
 ci.report

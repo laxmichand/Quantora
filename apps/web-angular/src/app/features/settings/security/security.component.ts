@@ -1,9 +1,26 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { DeviceService, DeviceInfo } from '../../../core/services/device.service';
 import { SessionService } from '../../../core/services/session.service';
+import {
+  SecurityService,
+  LoginHistoryEntry,
+  SecurityEvent,
+} from '../../../core/services/security.service';
+
+interface SecuritySettings {
+  mfa: boolean;
+  biometric: boolean;
+  adaptiveMfa: boolean;
+  newDeviceAlerts: boolean;
+  torBlocking: boolean;
+}
+
+interface RiskMeta {
+  label: string;
+  score: number;
+}
 
 @Component({
   standalone: false,
@@ -11,17 +28,30 @@ import { SessionService } from '../../../core/services/session.service';
   templateUrl: './security.component.html',
   styleUrls: ['./security.component.scss'],
 })
-export class SecurityComponent implements OnInit, OnDestroy {
+export class SecurityComponent implements OnInit {
+  devices: DeviceInfo[] = [];
+  loginHistory: LoginHistoryEntry[] = [];
+  securityEvents: SecurityEvent[] = [];
   currentDevice: DeviceInfo | null = null;
-  otherDevices: DeviceInfo[] = [];
 
   loading = true;
-  private subs = new Subscription();
+  activeTab = 'overview';
+  renamingDeviceId: string | null = null;
+  renameValue = '';
+
+  settings: SecuritySettings = {
+    mfa: true,
+    biometric: true,
+    adaptiveMfa: true,
+    newDeviceAlerts: true,
+    torBlocking: true,
+  };
 
   constructor(
     public authService: AuthService,
     private deviceService: DeviceService,
     private sessionService: SessionService,
+    private securityService: SecurityService,
     private snackBar: MatSnackBar,
   ) {}
 
@@ -29,44 +59,72 @@ export class SecurityComponent implements OnInit, OnDestroy {
     this.loadAll();
   }
 
-  ngOnDestroy(): void {
-    this.subs.unsubscribe();
+  get accountRisk(): RiskMeta {
+    const maxRisk = Math.max(...this.devices.map((d) => d.riskScore || 0), 18);
+    return { label: this.riskLabel(maxRisk), score: Math.min(maxRisk, 100) };
   }
 
-  get deviceIcon(): string {
-    const d = this.currentDevice;
-    if (!d) return 'computer';
-    if (d.deviceType === 'mobile') return 'smartphone';
-    if (d.deviceType === 'tablet') return 'tablet_mac';
-    return 'computer';
+  get activeSessions(): DeviceInfo[] {
+    return this.devices.filter((d) => d.sessions && d.sessions.length > 0);
   }
 
-  get currentSessionLoginTime(): string | undefined {
-    return this.currentDevice?.sessions?.[0]?.loginTime;
+  get activeAlerts(): number {
+    return this.securityEvents.filter((e) => e.severity === 'high' || e.severity === 'critical')
+      .length;
   }
 
-  get currentSessionId(): string | undefined {
-    return this.currentDevice?.sessions?.[0]?.id;
+  get trustedDevices(): DeviceInfo[] {
+    return this.devices.filter((d) => d.trustedDevice);
+  }
+
+  get recentEvents(): SecurityEvent[] {
+    return this.securityEvents.slice(0, 3);
   }
 
   private loadAll(): void {
-    this.loading = true;
-    this.subs.add(
-      this.deviceService.getAll().subscribe({
-        next: (devices) => {
-          this.currentDevice = devices.find((d) => d.sessions?.some((s) => s.isCurrent)) || null;
-          this.otherDevices = devices.filter((d) => d.id !== this.currentDevice?.id && d.sessions?.length > 0);
-          this.loading = false;
-        },
-        error: () => {
-          this.loading = false;
-          this.snackBar.open('Failed to load devices', 'Dismiss', { duration: 3000 });
-        },
-      }),
-    );
+    this.deviceService.getAll().subscribe({
+      next: (devices) => {
+        // Normalize: ensure every device has sessions array
+        this.devices = devices.map((d) => ({ ...d, sessions: d.sessions || [] }));
+        this.currentDevice = this.devices.find((d) => d.sessions.some((s) => s.isCurrent)) || null;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      },
+    });
+
+    this.securityService.getLoginHistory(20).subscribe({
+      next: (h) => {
+        this.loginHistory = h;
+      },
+    });
+
+    this.securityService.getSecurityEvents().subscribe({
+      next: (e) => {
+        this.securityEvents = e;
+      },
+    });
   }
 
-  // ─── Session Actions ──────────────────────────────────────
+  switchTab(tab: string): void {
+    this.activeTab = tab;
+  }
+
+  getDeviceIcon(d: DeviceInfo): string {
+    const type = d.deviceType?.toLowerCase() || '';
+    if (type === 'mobile') return 'smartphone';
+    if (type === 'tablet') return 'tablet_mac';
+    return 'computer';
+  }
+
+  getDeviceOSText(d: DeviceInfo): string {
+    return [d.os, d.osVersion].filter(Boolean).join(' ') || 'Unknown OS';
+  }
+
+  getDeviceBrowserText(d: DeviceInfo): string {
+    return [d.browser, d.browserVersion].filter(Boolean).join(' ') || 'Unknown Browser';
+  }
 
   onLogoutCurrent(): void {
     this.sessionService.logout().subscribe(() => {
@@ -108,8 +166,6 @@ export class SecurityComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Device Actions ───────────────────────────────────────
-
   onTrustDevice(deviceId: string, trusted: boolean): void {
     this.deviceService.trust(deviceId, trusted).subscribe({
       next: () => {
@@ -124,31 +180,151 @@ export class SecurityComponent implements OnInit, OnDestroy {
   }
 
   onRenameDevice(deviceId: string): void {
-    const name = prompt('Enter new device name:');
-    if (name && name.trim()) {
-      this.deviceService.rename(deviceId, name.trim()).subscribe({
-        next: () => {
-          this.snackBar.open('Device renamed', 'Done', { duration: 2000 });
-          this.loadAll();
-        },
-        error: () => this.snackBar.open('Failed to rename device', 'Dismiss', { duration: 3000 }),
-      });
-    }
+    const d = this.devices.find((x) => x.id === deviceId);
+    if (!d) return;
+    this.renamingDeviceId = deviceId;
+    this.renameValue = d.deviceName || '';
+  }
+
+  cancelRename(): void {
+    this.renamingDeviceId = null;
+    this.renameValue = '';
+  }
+
+  saveRename(deviceId: string): void {
+    if (!this.renameValue.trim()) return;
+    this.deviceService.rename(deviceId, this.renameValue.trim()).subscribe({
+      next: () => {
+        this.renamingDeviceId = null;
+        this.snackBar.open('Device renamed', 'Done', { duration: 2000 });
+        this.loadAll();
+      },
+      error: () => this.snackBar.open('Failed to rename device', 'Dismiss', { duration: 3000 }),
+    });
   }
 
   onRemoveDevice(deviceId: string): void {
-    if (confirm('Remove this device? All sessions will be logged out.')) {
-      this.deviceService.remove(deviceId).subscribe({
-        next: () => {
-          this.snackBar.open('Device removed', 'Done', { duration: 2000 });
-          this.loadAll();
-        },
-        error: () => this.snackBar.open('Failed to remove device', 'Dismiss', { duration: 3000 }),
-      });
-    }
+    const d = this.devices.find((x) => x.id === deviceId);
+    if (!d) return;
+    this.deviceService.remove(deviceId).subscribe({
+      next: () => {
+        this.snackBar.open('Device removed', 'Done', { duration: 2000 });
+        this.loadAll();
+      },
+      error: () => this.snackBar.open('Failed to remove device', 'Dismiss', { duration: 3000 }),
+    });
   }
 
-  // ─── Helpers ──────────────────────────────────────────────
+  toggleSetting(key: keyof SecuritySettings): void {
+    this.settings[key] = !this.settings[key];
+    this.snackBar.open(
+      `${this.settingLabel(key)} ${this.settings[key] ? 'enabled' : 'disabled'}`,
+      'Done',
+      { duration: 2000 },
+    );
+  }
+
+  private settingLabel(key: keyof SecuritySettings): string {
+    const map: Record<keyof SecuritySettings, string> = {
+      mfa: 'Multi-Factor Authentication',
+      biometric: 'Biometric login',
+      adaptiveMfa: 'Adaptive MFA',
+      newDeviceAlerts: 'New device alerts',
+      torBlocking: 'TOR blocking',
+    };
+    return map[key];
+  }
+
+  riskScore(d: DeviceInfo): number {
+    return d.riskScore ?? 0;
+  }
+
+  riskLabel(score: number): string {
+    if (score <= 20) return 'Low';
+    if (score <= 50) return 'Medium';
+    if (score <= 80) return 'High';
+    return 'Critical';
+  }
+
+  riskColor(score: number): string {
+    if (score <= 20) return 'var(--positive)';
+    if (score <= 50) return 'var(--warning)';
+    if (score <= 80) return 'var(--orange)';
+    return 'var(--negative)';
+  }
+
+  riskBadgeClass(score: number): string {
+    if (score <= 20) return 'badge-low';
+    if (score <= 50) return 'badge-medium';
+    if (score <= 80) return 'badge-high';
+    return 'badge-critical';
+  }
+
+  eventSeverityClass(severity: string): string {
+    if (severity === 'critical' || severity === 'high') return 'tl-item warn';
+    if (severity === 'medium') return 'tl-item warn';
+    return 'tl-item';
+  }
+
+  loginHistoryLevel(entry: LoginHistoryEntry): string {
+    if (!entry.success) return 'bad';
+    if (entry.riskScore > 50) return 'bad';
+    if (entry.riskScore > 20) return 'warn';
+    return 'ok';
+  }
+
+  parseBrowser(ua?: string | null): string {
+    if (!ua) return 'Unknown';
+    if (ua.includes('Edg/') || ua.includes('Edge/')) return 'Edge';
+    if (ua.includes('OPR/') || ua.includes('Opera/')) return 'Opera';
+    if (ua.includes('Firefox/')) return 'Firefox';
+    if (ua.includes('Chrome/')) return 'Chrome';
+    if (ua.includes('Safari/')) return 'Safari';
+    return 'Browser';
+  }
+
+  parseOS(ua?: string | null): string {
+    if (!ua) return 'Unknown';
+    if (ua.includes('Windows NT')) return 'Windows';
+    if (ua.includes('Mac OS X')) return 'macOS';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('iPhone') || ua.includes('iPad')) return 'iOS';
+    if (ua.includes('Linux')) return 'Linux';
+    return 'Unknown';
+  }
+
+  parseDeviceName(ua?: string | null): string {
+    if (!ua) return 'Unknown';
+    if (ua.includes('iPhone')) return 'iPhone';
+    if (ua.includes('iPad')) return 'iPad';
+    if (ua.includes('Macintosh') || ua.includes('MacBook')) return 'Mac';
+    if (ua.includes('Windows')) return 'PC';
+    if (ua.includes('Android')) {
+      const m = ua.match(/; ([\w\s]+) Build/);
+      return m ? m[1] : 'Android';
+    }
+    return 'Device';
+  }
+
+  historyDeviceLabel(h: LoginHistoryEntry): string {
+    if (h.deviceName) return h.deviceName;
+    if (h.browser) return h.browser;
+    const browser = this.parseBrowser(h.userAgent);
+    const os = this.parseOS(h.userAgent);
+    return `${browser} · ${os}`;
+  }
+
+  historyLocation(h: LoginHistoryEntry): string {
+    if (h.city && h.country) return `${h.city}, ${h.country}`;
+    if (h.city) return h.city;
+    return 'Unknown';
+  }
+
+  deviceLocation(d: DeviceInfo): string {
+    if (d.city && d.country) return `${d.city}, ${d.country}`;
+    if (d.city) return d.city;
+    return null as any;
+  }
 
   timeAgo(date?: string): string {
     if (!date) return 'Just now';
@@ -161,5 +337,12 @@ export class SecurityComponent implements OnInit, OnDestroy {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
+  }
+
+  maskIp(ip?: string): string {
+    if (!ip) return 'Unknown';
+    const parts = ip.split('.');
+    if (parts.length === 4) return `${parts[0]}.${parts[1]}.xxx.xxx`;
+    return ip.slice(0, Math.min(ip.length, 12)) + '...';
   }
 }

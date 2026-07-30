@@ -11,6 +11,7 @@ export interface LoginHistoryEntry {
   mfaMethod?: string;
   mfaSuccess?: boolean;
   ipAddress?: string;
+  userAgent?: string;
   deviceName?: string;
   deviceType?: string;
   browser?: string;

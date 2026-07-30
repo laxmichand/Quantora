@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 
-const PUBLIC_PATHS = [
+const PUBLIC_PATHS: string[] = [
   '/api/health',
   '/api/auth/login',
   '/api/auth/login/mfa',
@@ -34,7 +34,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
     const path = request.url?.split('?')[0];
 
-    if (PUBLIC_PATHS.some((p) => path.startsWith(p))) return true;
+    if (PUBLIC_PATHS.includes(path)) return true;
 
     return super.canActivate(context);
   }

@@ -25,7 +25,14 @@ export interface DeviceInfo {
   loginCount: number;
   status: string;
   createdAt: string;
-  sessions: { id: string; loginTime?: string; lastActivity: string; expiresAt?: string; ipAddress?: string; isCurrent: boolean }[];
+  sessions: {
+    id: string;
+    loginTime?: string;
+    lastActivity: string;
+    expiresAt?: string;
+    ipAddress?: string;
+    isCurrent: boolean;
+  }[];
 }
 
 @Injectable({ providedIn: 'root' })

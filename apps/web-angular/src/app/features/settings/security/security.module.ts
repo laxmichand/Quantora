@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +14,7 @@ const routes: Routes = [{ path: '', component: SecurityComponent }];
   declarations: [SecurityComponent],
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule.forChild(routes),
     MatIconModule,
     MatButtonModule,

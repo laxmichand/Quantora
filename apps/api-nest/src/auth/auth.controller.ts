@@ -119,13 +119,20 @@ export class AuthController {
       }
       throw new UnauthorizedException('No refresh token');
     }
-    const result = await this.authService.refreshTokens(
-      refreshToken,
-      req.ip,
-      req.headers['user-agent'],
-    );
-    this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return { user: result.user };
+    try {
+      const result = await this.authService.refreshTokens(
+        refreshToken,
+        req.ip,
+        req.headers['user-agent'],
+      );
+      this.setAuthCookies(res, result.accessToken, result.refreshToken);
+      return { user: result.user };
+    } catch (e: any) {
+      // Token reuse or invalid token — clear stale cookies so the client
+      // doesn't loop retrying the same dead token
+      this.clearAuthCookies(res);
+      throw e;
+    }
   }
 
   @Post('logout')

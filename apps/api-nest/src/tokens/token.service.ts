@@ -135,7 +135,7 @@ export class TokenService {
       email: user.email,
       role: user.role,
       jti,
-      sid: sessionId,
+      sid: sessionId!,
       did: deviceId,
       type: 'access',
     };
@@ -146,7 +146,7 @@ export class TokenService {
       email: user.email,
       role: user.role,
       jti: this.generateJti(),
-      sid: sessionId,
+      sid: sessionId!,
       did: deviceId,
       family: familyId,
       type: 'refresh',
@@ -170,9 +170,9 @@ export class TokenService {
 
     // Blacklist old access token if rotating
     // Add to Redis active sessions
-    await this.redis.addUserSession(user.id, sessionId, this.refreshExpiryDays * SECONDS_PER_DAY);
+    await this.redis.addUserSession(user.id, sessionId!, this.refreshExpiryDays * SECONDS_PER_DAY);
 
-    return { accessToken, refreshToken, sessionId };
+    return { accessToken, refreshToken, sessionId: sessionId! };
   }
 
   async rotateRefreshToken(
@@ -189,24 +189,24 @@ export class TokenService {
     try {
       oldPayload = (await this.jwtService.verifyAsync(oldRefreshToken)) as TokenPayload;
       if (oldPayload.type !== 'refresh') {
-      throw new UnauthorizedException('Not a refresh token');
-    }
-  } catch {
-    // Try to find by hash in DB
-    const hash = this.hashToken(oldRefreshToken);
-    const session = await this.prisma.session.findFirst({
-      where: { refreshTokenHash: hash, revoked: false },
-    });
-    if (session) {
-      // The old token is still valid in DB — revoke this session
-      await this.prisma.session.update({
-        where: { id: session.id },
-        data: { revoked: true, logoutReason: 'token_reuse' },
+        throw new UnauthorizedException('Not a refresh token');
+      }
+    } catch {
+      // Try to find by hash in DB
+      const hash = this.hashToken(oldRefreshToken);
+      const session = await this.prisma.session.findFirst({
+        where: { refreshTokenHash: hash, revoked: false },
       });
-      await this.redis.removeUserSession(user.id, session.id);
+      if (session) {
+        // The old token is still valid in DB — revoke this session
+        await this.prisma.session.update({
+          where: { id: session.id },
+          data: { revoked: true, logoutReason: 'token_reuse' },
+        });
+        await this.redis.removeUserSession(user.id, session.id);
+      }
+      throw new UnauthorizedException('Invalid refresh token');
     }
-    throw new UnauthorizedException('Invalid refresh token');
-  }
 
     // Check for reuse: look up session by old refresh token hash
     const oldHash = this.hashToken(oldRefreshToken);
