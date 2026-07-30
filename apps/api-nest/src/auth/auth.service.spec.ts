@@ -132,6 +132,9 @@ describe('AuthService', () => {
         upsert: jest.fn().mockResolvedValue({ id: 'test-device-id' }),
         update: jest.fn(),
       },
+      session: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
     };
 
     jwt = {

@@ -43,14 +43,8 @@ export class DeviceFingerprintService {
   private readonly STORAGE_KEY = 'quantora_device_id';
   private storedDeviceId: string | null = null;
 
-  /**
-   * Collect a comprehensive device fingerprint.
-   * UUID deviceId persists in memory only — never touches localStorage.
-   */
   async collect(): Promise<DeviceFingerprintData> {
-    if (!this.storedDeviceId) {
-      this.storedDeviceId = this.generateDeviceId();
-    }
+    this.storedDeviceId = this.getCurrentDeviceId();
 
     return {
       deviceId: this.storedDeviceId,
@@ -100,6 +94,11 @@ export class DeviceFingerprintService {
       }
     }
     return this.storedDeviceId;
+  }
+
+  clearDeviceId(): void {
+    this.storedDeviceId = null;
+    localStorage.removeItem(this.STORAGE_KEY);
   }
 
   private generateDeviceId(): string {

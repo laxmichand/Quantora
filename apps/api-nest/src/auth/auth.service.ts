@@ -430,9 +430,20 @@ export class AuthService {
     }
 
     // ─── Full login — generate tokens ─────────────────────────────────
+    // Reuse existing active session for same device if available
+    const existingSession = await this.prisma.session.findFirst({
+      where: {
+        userId: user.id,
+        deviceId: deviceRecordId,
+        revoked: false,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { lastActivity: 'desc' },
+    });
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       deviceRecordId,
+      existingSession?.id,
     );
 
     // Record login history
@@ -571,10 +582,20 @@ export class AuthService {
     // Clear MFA challenge
     await this.redis.deleteMfaChallenge(mfaSessionToken);
 
-    // Generate tokens
+    // Generate tokens (reuse existing session for same device)
+    const existingSession = await this.prisma.session.findFirst({
+      where: {
+        userId: user.id,
+        deviceId: challenge.deviceRecordId,
+        revoked: false,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { lastActivity: 'desc' },
+    });
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       challenge.deviceRecordId,
+      existingSession?.id,
     );
 
     await this.recordLogin({
