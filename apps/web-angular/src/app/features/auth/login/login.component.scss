@@ -84,7 +84,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 48px;
+  padding: 48px 56px;
   position: relative;
   overflow: hidden;
 
@@ -122,7 +122,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 
   .brand-mark {
     width: 36px;
@@ -161,12 +161,12 @@
 
 // Tagline
 .qauth-tagline {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
   color: white;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: -0.5px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 
   span {
     background: linear-gradient(135deg, #60a5fa, #34d399);
@@ -177,26 +177,26 @@
 }
 
 .qauth-sub {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.5;
-  margin-bottom: 16px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin-bottom: 24px;
 }
 
 // Features list
 .qauth-features {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 28px;
 }
 
 .qfeat {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
   transition: background 0.2s;
   cursor: default;
 
@@ -263,24 +263,25 @@
   flex-direction: column;
 
   strong {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.92);
+    margin-bottom: 2px;
   }
 
   span {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.45);
-    line-height: 1.3;
-    margin-top: 1px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.4;
   }
 }
 
 // Market chips in left panel
 .qauth-market {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .mchip {
@@ -344,7 +345,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 40px;
+  padding: 32px 48px;
   background: var(--card-bg);
   border-left: 1px solid var(--card-border);
   overflow-y: auto;
@@ -353,8 +354,8 @@
 // Right panel brand header
 .qauth-right-header {
   width: 100%;
-  max-width: 380px;
-  margin-bottom: 20px;
+  max-width: 400px;
+  margin-bottom: 28px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -404,10 +405,10 @@
 // Card
 .qauth-card {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
   animation: cardSlideUp 0.4s ease-out;
 }
 
@@ -479,16 +480,16 @@
 .qauth-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .qauth-field {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 14px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
   border: 1px solid var(--border-light);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--content-bg);
   transition: all 0.2s;
 
@@ -525,72 +526,74 @@
 }
 
 .field-icon mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
   color: var(--subtext);
 }
 
-.field-input {
-  flex: 1;
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  .required {
+    color: #e53935;
+    margin-left: 1px;
+  }
+}
+
+.field-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
 
-  label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--subtext);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  input {
+    flex: 1;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 15px;
+    color: var(--heading);
+    padding: 2px 0;
+    font-family: inherit;
 
-    .required {
-      color: #e53935;
-      margin-left: 1px;
+    &::placeholder {
+      color: var(--subtext);
+      opacity: 0.4;
     }
   }
+}
 
-  .input-wrapper {
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+
+  .toggle-pw {
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: var(--subtext);
+    opacity: 0.6;
+    transition: opacity 0.2s;
 
-    input {
-      flex: 1;
-      border: none;
-      background: none;
-      outline: none;
-      font-size: 14px;
-      color: var(--heading);
-      padding: 2px 0;
-      font-family: inherit;
-
-      &::placeholder {
-        color: var(--subtext);
-        opacity: 0.4;
-      }
+    &:hover {
+      opacity: 1;
     }
 
-    .toggle-pw {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 2px;
-      color: var(--subtext);
-      opacity: 0.6;
-      transition: opacity 0.2s;
-
-      &:hover {
-        opacity: 1;
-      }
-
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
     }
   }
 }
@@ -600,12 +603,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: -4px;
 }
 
 .qauth-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   font-size: 13px;
   color: var(--subtext);
@@ -613,8 +617,8 @@
   input[type='checkbox'] {
     appearance: none;
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border: 1.5px solid var(--border-light);
     border-radius: 4px;
     cursor: pointer;
@@ -627,12 +631,12 @@
     &:checked::after {
       content: '';
       position: absolute;
-      left: 4.5px;
-      top: 1.5px;
-      width: 5px;
-      height: 9px;
+      left: 5px;
+      top: 2px;
+      width: 6px;
+      height: 10px;
       border: solid white;
-      border-width: 0 2px 2px 0;
+      border-width: 0 2.5px 2.5px 0;
       transform: rotate(45deg);
     }
   }
@@ -652,27 +656,28 @@
 .error-msg {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 12px 16px;
   background: var(--negative-bg);
   color: var(--negative);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
 
   mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
   }
 }
 
 // Button
 .qauth-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), #6366f1);
   color: white;
   font-size: 14px;
@@ -736,7 +741,8 @@
 .qauth-divider {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  margin: 4px 0 2px;
 
   &::before,
   &::after {
@@ -776,6 +782,11 @@
   transition: all 0.2s;
   animation: fadeIn 0.4s ease-out 0.35s both;
 
+  &:only-child {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
   &:nth-child(2) {
     animation-delay: 0.4s;
   }
@@ -806,7 +817,7 @@
 // Footer
 .qauth-footer {
   text-align: center;
-  padding-top: 4px;
+  padding: 6px 0 2px;
 
   span {
     font-size: 13px;
@@ -834,26 +845,29 @@
     padding: 32px 24px;
     min-height: auto;
   }
+  .qauth-left-content {
+    max-width: 100%;
+  }
   .qauth-left-content h1 {
-    font-size: 28px;
+    font-size: 26px;
   }
   .qauth-features {
-    gap: 10px;
+    gap: 8px;
   }
   .qfeat {
     padding: 8px 10px;
-  }
-  .qfeat-text strong {
-    font-size: 13px;
-  }
-  .qfeat-text span {
-    font-size: 11px;
   }
   .qauth-right {
     width: 100%;
     min-width: unset;
     border-left: none;
     border-top: 1px solid var(--card-border);
-    padding: 32px 24px;
+    padding: 28px 24px;
+  }
+  .qauth-right-header {
+    margin-bottom: 20px;
+  }
+  .qauth-card {
+    gap: 22px;
   }
 }

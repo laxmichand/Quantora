@@ -106,9 +106,11 @@
         <!-- Form -->
         <form (ngSubmit)="onSubmit()" class="qauth-form">
           <div class="qauth-field">
-            <div class="field-icon"><mat-icon>mail_outline</mat-icon></div>
-            <div class="field-input">
-              <label for="email">Email address <span class="required">*</span></label>
+            <label class="field-label" for="email"
+              >Email address <span class="required">*</span></label
+            >
+            <div class="field-row">
+              <div class="field-icon"><mat-icon>mail_outline</mat-icon></div>
               <input
                 id="email"
                 type="email"
@@ -121,9 +123,11 @@
             </div>
           </div>
           <div class="qauth-field">
-            <div class="field-icon"><mat-icon>lock_outline</mat-icon></div>
-            <div class="field-input">
-              <label for="password">Password <span class="required">*</span></label>
+            <label class="field-label" for="password"
+              >Password <span class="required">*</span></label
+            >
+            <div class="field-row">
+              <div class="field-icon"><mat-icon>lock_outline</mat-icon></div>
               <div class="input-wrapper">
                 <input
                   id="password"

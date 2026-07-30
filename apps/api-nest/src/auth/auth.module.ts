@@ -10,6 +10,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { SecurityAuditModule } from '../security-audit/security-audit.module';
 import { SecurityAuditService } from '../security-audit/security-audit.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { RiskEngineModule } from '../risk-engine/risk-engine.module';
 
 const jwtSecret = process.env.JWT_SECRET || 'quantora-dev-secret';
 
@@ -24,6 +25,7 @@ const jwtSecret = process.env.JWT_SECRET || 'quantora-dev-secret';
     PrismaModule,
     SecurityAuditModule,
     NotificationsModule,
+    RiskEngineModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, LocalStrategy, GoogleStrategy, SecurityAuditService],
