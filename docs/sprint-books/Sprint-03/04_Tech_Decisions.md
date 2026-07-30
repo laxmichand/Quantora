@@ -18,6 +18,7 @@
 **Rationale:** `@nestjs/passport` v11 with `passport` v0.7 has compatibility issues with inline `AuthGuard()` calls during NestJS route registration. Named class guards are resolved properly.
 
 **Files:**
+
 - Created: `apps/api-nest/src/auth/guards/google-auth.guard.ts`
 - Updated: `apps/api-nest/src/auth/auth.controller.ts`
 
@@ -34,6 +35,7 @@
 **Rationale:** Simpler to maintain, no secret duplication, single source of truth. `dotenv` loaded in `main.ts` with path resolution to root.
 
 **Files:**
+
 - Deleted: `apps/api-nest/.env`, `apps/api-nest/.env.example`
 - Updated: `.env` (root), `.env.example` (root)
 - Updated: `apps/api-nest/src/main.ts` (dotenv config)
@@ -93,6 +95,7 @@
 **Rationale:** More data visible per viewport. Professional financial platform feel. Applied globally via SCSS variables.
 
 **Changes:**
+
 - Table th: 5px 10px / 10px font
 - Table td: 5px 10px / 12px font
 - Card padding: 14px / border-radius: 10px

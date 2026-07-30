@@ -120,6 +120,7 @@ Update `apps/web-angular/vercel.json` with your actual Render URLs:
 After deployment, update CORS in both services with your actual Vercel URL:
 
 **NestJS** (`apps/api-nest/src/main.ts`):
+
 ```typescript
 origin: [
   'http://localhost:4200',
@@ -128,6 +129,7 @@ origin: [
 ```
 
 **FastAPI** (`apps/ai-fastapi/main.py`):
+
 ```python
 allow_origins=[
     "http://localhost:4200",
@@ -141,28 +143,31 @@ Push changes → Both Render services auto-redeploy.
 
 ## Step 7: Verify
 
-| Service | URL | Health Check |
-|---------|-----|-------------|
-| Frontend | https://quantora.vercel.app | Open in browser |
-| API | https://quantora-api.onrender.com/api/health | Should return JSON |
-| AI Service | https://quantora-ai.onrender.com/health | Should return JSON |
-| Swagger | https://quantora-api.onrender.com/api/docs | Should show API docs |
+| Service    | URL                                          | Health Check         |
+| ---------- | -------------------------------------------- | -------------------- |
+| Frontend   | https://quantora.vercel.app                  | Open in browser      |
+| API        | https://quantora-api.onrender.com/api/health | Should return JSON   |
+| AI Service | https://quantora-ai.onrender.com/health      | Should return JSON   |
+| Swagger    | https://quantora-api.onrender.com/api/docs   | Should show API docs |
 
 ---
 
 ## Important Notes
 
 ### Render Free Tier
+
 - Services **spin down after 15 min** of inactivity
 - First request after sleep takes **~30 sec** to wake up
 - This is normal for free tier — investors will see a brief loading delay
 
 ### Vercel Free Tier
+
 - Generous for frontend hosting
 - Auto-deploys on every git push
 - Custom domain support
 
 ### Supabase Free Tier
+
 - 500MB database storage
 - 50,000 monthly active users
 - 500MB file storage
@@ -187,16 +192,18 @@ git push
 ## Custom Domain (Optional)
 
 ### Vercel
+
 1. Go to Project → Settings → Domains
 2. Add your domain (e.g., quantora.in)
 3. Update DNS records as shown
 
 ### Render
+
 1. Go to Service → Settings → Custom Domains
 2. Add your domain
 3. Update DNS records
 
 ---
 
-*Deployment Cost: ₹0/month*
-*Last Updated: 2026-07-27*
+_Deployment Cost: ₹0/month_
+_Last Updated: 2026-07-27_

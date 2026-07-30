@@ -28,6 +28,10 @@ import { UserPayload } from '../common/interfaces/user-payload.interface';
 import { Public } from '../common/decorators/public.decorator';
 import { SecurityAuditService } from '../security-audit/security-audit.service';
 
+const ACCESS_TOKEN_COOKIE_MAX_AGE = 15 * 60 * 1000;
+const REFRESH_TOKEN_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const DEFAULT_LOGIN_HISTORY_LIMIT = 10;
+
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -108,7 +112,7 @@ export class AuthController {
         try {
           await this.authService.logout(oldToken);
         } catch {
-          // ignore — stale token
+          /* stale token — ignore */
         }
         res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
         res.clearCookie('refreshToken', { path: '/' });
@@ -219,7 +223,10 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get login history' })
   async getLoginHistory(@CurrentUser() user: UserPayload, @Query('limit') limit?: string) {
-    return this.authService.getLoginHistory(user.sub, limit ? parseInt(limit, 10) : 10);
+    return this.authService.getLoginHistory(
+      user.sub,
+      limit ? parseInt(limit, 10) : DEFAULT_LOGIN_HISTORY_LIMIT,
+    );
   }
 
   @Get('security-events')
@@ -238,14 +245,14 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      maxAge: 15 * 60 * 1000, // 15 min
+      maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
     });
     res.cookie('_qtr', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/api/auth',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
     });
   }
 

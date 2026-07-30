@@ -9,14 +9,14 @@
 
 ## 1. General Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Consistency** | Follow existing patterns in the codebase |
-| **Readability** | Code is read more than written — optimize for humans |
-| **Simplicity** | Don't over-engineer. YAGNI (You Ain't Gonna Need It) |
-| **Type Safety** | Always use types. Never use `any` (TypeScript) or `Any` (Python) |
-| **Single Responsibility** | One function, one purpose |
-| **No Hardcoded Values** | All constants in config files or environment variables |
+| Principle                 | Description                                                      |
+| ------------------------- | ---------------------------------------------------------------- |
+| **Consistency**           | Follow existing patterns in the codebase                         |
+| **Readability**           | Code is read more than written — optimize for humans             |
+| **Simplicity**            | Don't over-engineer. YAGNI (You Ain't Gonna Need It)             |
+| **Type Safety**           | Always use types. Never use `any` (TypeScript) or `Any` (Python) |
+| **Single Responsibility** | One function, one purpose                                        |
+| **No Hardcoded Values**   | All constants in config files or environment variables           |
 
 ---
 
@@ -24,18 +24,18 @@
 
 ### Naming Conventions
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Files | `kebab-case` | `auth.service.ts`, `portfolio.controller.ts` |
-| Classes | `PascalCase` | `AuthService`, `PortfolioController` |
-| Methods | `camelCase` | `getUserById()`, `calculateRisk()` |
-| Variables | `camelCase` | `stockPrice`, `userPortfolio` |
-| Constants | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT`, `API_VERSION` |
-| Interfaces | `PascalCase` (no `I` prefix) | `User`, `Portfolio`, `StockScore` |
-| DTOs | `PascalCase` + `Dto` suffix | `CreateUserDto`, `LoginDto` |
-| Guards | `PascalCase` + `Guard` suffix | `JwtAuthGuard`, `RolesGuard` |
-| Decorators | `PascalCase` + `Decorator` suffix | `CurrentUserDecorator` |
-| Database columns | `snake_case` | `password_hash`, `created_at` |
+| Element          | Convention                        | Example                                      |
+| ---------------- | --------------------------------- | -------------------------------------------- |
+| Files            | `kebab-case`                      | `auth.service.ts`, `portfolio.controller.ts` |
+| Classes          | `PascalCase`                      | `AuthService`, `PortfolioController`         |
+| Methods          | `camelCase`                       | `getUserById()`, `calculateRisk()`           |
+| Variables        | `camelCase`                       | `stockPrice`, `userPortfolio`                |
+| Constants        | `UPPER_SNAKE_CASE`                | `MAX_RETRY_COUNT`, `API_VERSION`             |
+| Interfaces       | `PascalCase` (no `I` prefix)      | `User`, `Portfolio`, `StockScore`            |
+| DTOs             | `PascalCase` + `Dto` suffix       | `CreateUserDto`, `LoginDto`                  |
+| Guards           | `PascalCase` + `Guard` suffix     | `JwtAuthGuard`, `RolesGuard`                 |
+| Decorators       | `PascalCase` + `Decorator` suffix | `CurrentUserDecorator`                       |
+| Database columns | `snake_case`                      | `password_hash`, `created_at`                |
 
 ### Code Style
 
@@ -112,14 +112,14 @@ export class PortfoliosModule {}
 
 ### Naming Conventions
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Files | `snake_case` | `ai_scorer.py`, `portfolio_risk.py` |
-| Classes | `PascalCase` | `AIScorer`, `PortfolioRiskCalculator` |
-| Functions | `snake_case` | `calculate_var()`, `get_stock_scores()` |
-| Variables | `snake_case` | `stock_price`, `user_portfolio` |
-| Constants | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT`, `API_VERSION` |
-| Type hints | Always required | `def get_user(user_id: str) -> User:` |
+| Element    | Convention         | Example                                 |
+| ---------- | ------------------ | --------------------------------------- |
+| Files      | `snake_case`       | `ai_scorer.py`, `portfolio_risk.py`     |
+| Classes    | `PascalCase`       | `AIScorer`, `PortfolioRiskCalculator`   |
+| Functions  | `snake_case`       | `calculate_var()`, `get_stock_scores()` |
+| Variables  | `snake_case`       | `stock_price`, `user_portfolio`         |
+| Constants  | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT`, `API_VERSION`        |
+| Type hints | Always required    | `def get_user(user_id: str) -> User:`   |
 
 ### Code Style
 
@@ -131,12 +131,12 @@ async def calculate_portfolio_var(
     days: int = 10
 ) -> VaRResult:
     """Calculate Value at Risk for a portfolio.
-    
+
     Args:
         portfolio_id: The portfolio UUID
         confidence: Confidence level (default 95%)
         days: Time horizon in days
-        
+
     Returns:
         VaRResult with VaR, CVaR, and explanation
     """
@@ -186,16 +186,16 @@ class StockAnalysisResponse(BaseModel):
 
 ### Naming Conventions
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Files | `kebab-case` | `stock-card.component.ts`, `auth.service.ts` |
-| Components | `PascalCase` + `Component` | `StockCardComponent` |
-| Services | `PascalCase` + `Service` | `AuthService`, `ApiService` |
-| Modules | `PascalCase` + `Module` | `DashboardModule` |
-| Guards | `PascalCase` + `Guard` | `AuthGuard` |
-| Pipes | `PascalCase` + `Pipe` | `CurrencyPipe` |
-| Selectors | `app-` prefix | `app-stock-card`, `app-sidebar` |
-| Template vars | `camelCase` | `stockPrice`, `isLoaded` |
+| Element       | Convention                 | Example                                      |
+| ------------- | -------------------------- | -------------------------------------------- |
+| Files         | `kebab-case`               | `stock-card.component.ts`, `auth.service.ts` |
+| Components    | `PascalCase` + `Component` | `StockCardComponent`                         |
+| Services      | `PascalCase` + `Service`   | `AuthService`, `ApiService`                  |
+| Modules       | `PascalCase` + `Module`    | `DashboardModule`                            |
+| Guards        | `PascalCase` + `Guard`     | `AuthGuard`                                  |
+| Pipes         | `PascalCase` + `Pipe`      | `CurrencyPipe`                               |
+| Selectors     | `app-` prefix              | `app-stock-card`, `app-sidebar`              |
+| Template vars | `camelCase`                | `stockPrice`, `isLoaded`                     |
 
 ### Component Structure
 
@@ -236,9 +236,10 @@ export class StockCardComponent implements OnInit, OnDestroy {
 
   // 6. Private methods (internal logic)
   private loadStock(): void {
-    this.stockService.getStock(this.symbol)
+    this.stockService
+      .getStock(this.symbol)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(stock => this.stock = stock);
+      .subscribe((stock) => (this.stock = stock));
   }
 }
 ```
@@ -300,12 +301,12 @@ model User {
 
 ### Branch Naming
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Feature | `feature/short-description` | `feature/portfolio-upload` |
-| Fix | `fix/short-description` | `fix/score-calculation` |
-| Refactor | `refactor/short-description` | `refactor/auth-module` |
-| docs | `docs/short-description` | `docs/api-documentation` |
+| Type     | Pattern                      | Example                    |
+| -------- | ---------------------------- | -------------------------- |
+| Feature  | `feature/short-description`  | `feature/portfolio-upload` |
+| Fix      | `fix/short-description`      | `fix/score-calculation`    |
+| Refactor | `refactor/short-description` | `refactor/auth-module`     |
+| docs     | `docs/short-description`     | `docs/api-documentation`   |
 
 ### Commit Messages (Conventional Commits)
 
@@ -322,20 +323,24 @@ chore(deps): update NestJS to v10
 
 ```markdown
 ## Description
+
 [What does this PR do?]
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Refactor
 - [ ] Documentation
 
 ## Testing
+
 - [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Manual testing done
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-reviewed
 - [ ] No console.log/print left
@@ -406,4 +411,4 @@ it('should reject unauthenticated requests', async () => {});
 
 ---
 
-*These standards ensure consistency across the entire codebase. All new code must follow these conventions.*
+_These standards ensure consistency across the entire codebase. All new code must follow these conventions._

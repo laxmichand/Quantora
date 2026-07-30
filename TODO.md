@@ -1,6 +1,7 @@
 # TODO — Sprint 4
 
 ## Pre-requisites (CI/CD)
+
 - [ ] Add `RENDER_DEPLOY_HOOK_API` to GitHub Secrets
 - [ ] Add `VERCEL_TOKEN` to GitHub Secrets
 - [ ] Verify SonarCloud scan passes (set `SONAR_TOKEN` secret)
@@ -9,6 +10,7 @@
 ## Sprint 4 Tasks — Auth Flow Verification
 
 ### Backend (NestJS API)
+
 - [ ] **Google OAuth — verify backend flow**
   - [ ] Check `google.strategy.ts` — client ID, callback URL, scopes
   - [ ] Check `google-auth.guard.ts` — guard logic
@@ -30,6 +32,7 @@
   - [ ] Verify refresh token rotation works
 
 ### Frontend (Angular)
+
 - [ ] **Login page — verify UI flow**
   - [ ] Check `login.component.ts` — form submit, error handling, OAuth callback handler
   - [ ] Check `login.component.html` — form fields, Google button, validation display
@@ -47,6 +50,7 @@
   - [ ] Verify authenticated user can access dashboard/portfolio/stocks
 
 ### Auth Service & Interceptors
+
 - [ ] **AuthService — verify all methods**
   - [ ] `login()` / `register()` — store tokens and user
   - [ ] `logout()` — clear tokens, redirect to login
@@ -60,6 +64,7 @@
   - [ ] Check failed refresh redirects to login
 
 ### Testing
+
 - [ ] **Write/update E2E tests for auth flow**
   - [ ] Register → Login → Get profile → Refresh → Logout
   - [ ] Registration validation (duplicate email, short password, invalid email)

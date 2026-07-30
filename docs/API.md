@@ -30,13 +30,13 @@ Quantora is an intelligent investing platform. All endpoints are prefixed with `
 
 The API allows requests from:
 
-| Origin | Purpose |
-|--------|---------|
-| `http://localhost:4200` | Local Angular dev |
-| `http://localhost:80` | Local Docker |
-| `https://quantora.vercel.app` | Production frontend |
-| `https://quantora-web.vercel.app` | Staging frontend |
-| `https://quantora-ih3a.onrender.com` | Render deployment |
+| Origin                               | Purpose             |
+| ------------------------------------ | ------------------- |
+| `http://localhost:4200`              | Local Angular dev   |
+| `http://localhost:80`                | Local Docker        |
+| `https://quantora.vercel.app`        | Production frontend |
+| `https://quantora-web.vercel.app`    | Staging frontend    |
+| `https://quantora-ih3a.onrender.com` | Render deployment   |
 
 ### Rate Limiting
 
@@ -91,19 +91,19 @@ The token is obtained from `POST /api/auth/login` or `POST /api/auth/register`. 
 
 ## Status Codes
 
-| Code | Meaning |
-|------|---------|
-| `200` | OK — Request succeeded |
-| `201` | Created — Resource created |
-| `204` | No Content — Delete succeeded |
-| `400` | Bad Request — Invalid input |
-| `401` | Unauthorized — Missing/invalid token |
-| `403` | Forbidden — Insufficient permissions |
-| `404` | Not Found — Resource does not exist |
-| `409` | Conflict — Duplicate resource |
-| `422` | Unprocessable — Validation error |
+| Code  | Meaning                                     |
+| ----- | ------------------------------------------- |
+| `200` | OK — Request succeeded                      |
+| `201` | Created — Resource created                  |
+| `204` | No Content — Delete succeeded               |
+| `400` | Bad Request — Invalid input                 |
+| `401` | Unauthorized — Missing/invalid token        |
+| `403` | Forbidden — Insufficient permissions        |
+| `404` | Not Found — Resource does not exist         |
+| `409` | Conflict — Duplicate resource               |
+| `422` | Unprocessable — Validation error            |
 | `429` | Too Many Requests — Rate limited (Sprint 2) |
-| `500` | Internal Server Error |
+| `500` | Internal Server Error                       |
 
 ---
 
@@ -217,12 +217,12 @@ Register a new user account.
 
 **Request Fields**:
 
-| Field | Type | Required | Constraints |
-|-------|------|----------|-------------|
-| `email` | string | Yes | Valid email format |
-| `password` | string | Yes | Min 8 chars, must contain uppercase, lowercase, and number |
-| `name` | string | Yes | Min 2 characters |
-| `phone` | string | No | — |
+| Field      | Type   | Required | Constraints                                                |
+| ---------- | ------ | -------- | ---------------------------------------------------------- |
+| `email`    | string | Yes      | Valid email format                                         |
+| `password` | string | Yes      | Min 8 chars, must contain uppercase, lowercase, and number |
+| `name`     | string | Yes      | Min 2 characters                                           |
+| `phone`    | string | No       | —                                                          |
 
 **Response 201**:
 
@@ -468,11 +468,11 @@ Reset password using the token from email.
 
 > **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
 
-| Method | URL | Sprint Status | Auth | Description |
-|--------|-----|---------------|------|-------------|
-| `GET` | `/api/users` | Scaffolded (Sprint 1) | Protected | List all users (admin) |
-| `GET` | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Get user by ID |
-| `PATCH` | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Update user profile |
+| Method   | URL              | Sprint Status         | Auth      | Description              |
+| -------- | ---------------- | --------------------- | --------- | ------------------------ |
+| `GET`    | `/api/users`     | Scaffolded (Sprint 1) | Protected | List all users (admin)   |
+| `GET`    | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Get user by ID           |
+| `PATCH`  | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Update user profile      |
 | `DELETE` | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Soft delete user (admin) |
 
 ---
@@ -481,17 +481,17 @@ Reset password using the token from email.
 
 > **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
 
-| Method | URL | Sprint Status | Auth | Description |
-|--------|-----|---------------|------|-------------|
-| `GET` | `/api/portfolios` | Scaffolded (Sprint 1) | Protected | List user's portfolios |
-| `POST` | `/api/portfolios` | Scaffolded (Sprint 1) | Protected | Create a new portfolio |
-| `GET` | `/api/portfolios/:id` | Scaffolded (Sprint 1) | Protected | Get portfolio details |
-| `PATCH` | `/api/portfolios/:id` | Scaffolded (Sprint 1) | Protected | Update portfolio |
-| `DELETE` | `/api/portfolios/:id` | Scaffolded (Sprint 1) | Protected | Soft delete portfolio |
-| `GET` | `/api/portfolios/:id/holdings` | Scaffolded (Sprint 1) | Protected | List holdings in portfolio |
-| `POST` | `/api/portfolios/:id/holdings` | Scaffolded (Sprint 1) | Protected | Add a holding to portfolio |
-| `PATCH` | `/api/portfolios/:id/holdings/:holdingId` | Scaffolded (Sprint 1) | Protected | Update a holding |
-| `DELETE` | `/api/portfolios/:id/holdings/:holdingId` | Scaffolded (Sprint 1) | Protected | Remove a holding |
+| Method   | URL                                       | Sprint Status         | Auth      | Description                |
+| -------- | ----------------------------------------- | --------------------- | --------- | -------------------------- |
+| `GET`    | `/api/portfolios`                         | Scaffolded (Sprint 1) | Protected | List user's portfolios     |
+| `POST`   | `/api/portfolios`                         | Scaffolded (Sprint 1) | Protected | Create a new portfolio     |
+| `GET`    | `/api/portfolios/:id`                     | Scaffolded (Sprint 1) | Protected | Get portfolio details      |
+| `PATCH`  | `/api/portfolios/:id`                     | Scaffolded (Sprint 1) | Protected | Update portfolio           |
+| `DELETE` | `/api/portfolios/:id`                     | Scaffolded (Sprint 1) | Protected | Soft delete portfolio      |
+| `GET`    | `/api/portfolios/:id/holdings`            | Scaffolded (Sprint 1) | Protected | List holdings in portfolio |
+| `POST`   | `/api/portfolios/:id/holdings`            | Scaffolded (Sprint 1) | Protected | Add a holding to portfolio |
+| `PATCH`  | `/api/portfolios/:id/holdings/:holdingId` | Scaffolded (Sprint 1) | Protected | Update a holding           |
+| `DELETE` | `/api/portfolios/:id/holdings/:holdingId` | Scaffolded (Sprint 1) | Protected | Remove a holding           |
 
 ### Create Portfolio — Request Body (Planned)
 
@@ -508,7 +508,7 @@ Reset password using the token from email.
 {
   "stockSymbol": "RELIANCE",
   "quantity": 10,
-  "avgBuyPrice": 2450.50
+  "avgBuyPrice": 2450.5
 }
 ```
 
@@ -518,13 +518,13 @@ Reset password using the token from email.
 
 > **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
 
-| Method | URL | Sprint Status | Auth | Description |
-|--------|-----|---------------|------|-------------|
-| `GET` | `/api/stocks` | Scaffolded (Sprint 1) | Public | List all stocks |
-| `POST` | `/api/stocks` | Scaffolded (Sprint 1) | Protected | Add a stock (admin) |
-| `GET` | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Public | Get stock by symbol |
-| `PATCH` | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Protected | Update stock data (admin) |
-| `DELETE` | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Protected | Remove a stock (admin) |
+| Method   | URL                   | Sprint Status         | Auth      | Description               |
+| -------- | --------------------- | --------------------- | --------- | ------------------------- |
+| `GET`    | `/api/stocks`         | Scaffolded (Sprint 1) | Public    | List all stocks           |
+| `POST`   | `/api/stocks`         | Scaffolded (Sprint 1) | Protected | Add a stock (admin)       |
+| `GET`    | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Public    | Get stock by symbol       |
+| `PATCH`  | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Protected | Update stock data (admin) |
+| `DELETE` | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Protected | Remove a stock (admin)    |
 
 ---
 
@@ -532,9 +532,9 @@ Reset password using the token from email.
 
 > **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
 
-| Method | URL | Sprint Status | Auth | Description |
-|--------|-----|---------------|------|-------------|
-| `POST` | `/api/scores/stock` | Scaffolded (Sprint 1) | Protected | Get AI score for a stock |
+| Method | URL                     | Sprint Status         | Auth      | Description                  |
+| ------ | ----------------------- | --------------------- | --------- | ---------------------------- |
+| `POST` | `/api/scores/stock`     | Scaffolded (Sprint 1) | Protected | Get AI score for a stock     |
 | `POST` | `/api/scores/portfolio` | Scaffolded (Sprint 1) | Protected | Get AI score for a portfolio |
 
 ### Score Stock — Request Body (Planned)
@@ -568,10 +568,10 @@ Reset password using the token from email.
 
 > **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
 
-| Method | URL | Sprint Status | Auth | Description |
-|--------|-----|---------------|------|-------------|
-| `POST` | `/api/chat` | Scaffolded (Sprint 1) | Protected | Send a message to AI advisor |
-| `GET` | `/api/chat/history` | Scaffolded (Sprint 1) | Protected | Get chat history |
+| Method | URL                 | Sprint Status         | Auth      | Description                  |
+| ------ | ------------------- | --------------------- | --------- | ---------------------------- |
+| `POST` | `/api/chat`         | Scaffolded (Sprint 1) | Protected | Send a message to AI advisor |
+| `GET`  | `/api/chat/history` | Scaffolded (Sprint 1) | Protected | Get chat history             |
 
 ### Chat Request — Request Body (Planned)
 
@@ -598,19 +598,19 @@ Reset password using the token from email.
 
 > **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
 
-| Method | URL | Sprint Status | Auth | Description |
-|--------|-----|---------------|------|-------------|
-| `POST` | `/api/payments/create-order` | Scaffolded (Sprint 1) | Protected | Create a payment order |
-| `POST` | `/api/payments/verify` | Scaffolded (Sprint 1) | Protected | Verify payment callback |
-| `GET` | `/api/payments/history` | Scaffolded (Sprint 1) | Protected | Get payment history |
+| Method | URL                          | Sprint Status         | Auth      | Description             |
+| ------ | ---------------------------- | --------------------- | --------- | ----------------------- |
+| `POST` | `/api/payments/create-order` | Scaffolded (Sprint 1) | Protected | Create a payment order  |
+| `POST` | `/api/payments/verify`       | Scaffolded (Sprint 1) | Protected | Verify payment callback |
+| `GET`  | `/api/payments/history`      | Scaffolded (Sprint 1) | Protected | Get payment history     |
 
 ### Subscription Plans (Planned)
 
-| Plan | Price | Features |
-|------|-------|----------|
-| `free` | ₹0/mo | 1 portfolio, basic scores |
-| `pro` | ₹499/mo | Unlimited portfolios, AI chat, advanced scores |
-| `enterprise` | Custom | API access, white-label, priority support |
+| Plan         | Price   | Features                                       |
+| ------------ | ------- | ---------------------------------------------- |
+| `free`       | ₹0/mo   | 1 portfolio, basic scores                      |
+| `pro`        | ₹499/mo | Unlimited portfolios, AI chat, advanced scores |
+| `enterprise` | Custom  | API access, white-label, priority support      |
 
 ---
 
@@ -656,7 +656,7 @@ Reset password using the token from email.
   "portfolioId": "uuid (FK → Portfolio)",
   "stockSymbol": "string (e.g. 'RELIANCE')",
   "quantity": 10,
-  "avgBuyPrice": 2450.50,
+  "avgBuyPrice": 2450.5,
   "addedAt": "datetime",
   "updatedAt": "datetime",
   "version": 1
@@ -670,11 +670,11 @@ Reset password using the token from email.
   "id": "uuid",
   "userId": "uuid (FK → User)",
   "name": "string",
-  "targetAmount": 1000000.00,
-  "currentAmount": 250000.00,
+  "targetAmount": 1000000.0,
+  "currentAmount": 250000.0,
   "deadline": "date",
   "type": "retirement | education | house | emergency",
-  "sipAmount": 10000.00,
+  "sipAmount": 10000.0,
   "riskTolerance": "conservative | moderate | aggressive",
   "status": "active | completed | paused",
   "createdAt": "datetime",
@@ -694,7 +694,7 @@ Reset password using the token from email.
   "startDate": "datetime",
   "endDate": "datetime | null",
   "paymentMethod": "string | null",
-  "amount": 499.00,
+  "amount": 499.0,
   "currency": "INR",
   "createdAt": "datetime",
   "updatedAt": "datetime",
@@ -711,7 +711,7 @@ Reset password using the token from email.
   "type": "price_target | volume | news | portfolio | goal",
   "stockSymbol": "string | null",
   "condition": "above | below | percent_change",
-  "threshold": 2500.00,
+  "threshold": 2500.0,
   "isActive": true,
   "lastTriggeredAt": "datetime | null",
   "createdAt": "datetime",
@@ -754,49 +754,49 @@ Reset password using the token from email.
 
 ## Sprint Status Legend
 
-| Status | Meaning |
-|--------|---------|
-| **Implemented (Sprint 1)** | Endpoints are live and functional |
-| **Scaffolded (Sprint 1)** | Controller exists but has no route handlers |
-| **Planned (Sprint 2)** | Defined in DTOs and Sprint 2 plan, not yet coded |
+| Status                     | Meaning                                          |
+| -------------------------- | ------------------------------------------------ |
+| **Implemented (Sprint 1)** | Endpoints are live and functional                |
+| **Scaffolded (Sprint 1)**  | Controller exists but has no route handlers      |
+| **Planned (Sprint 2)**     | Defined in DTOs and Sprint 2 plan, not yet coded |
 
 ---
 
 ## Endpoint Summary
 
-| Method | URL | Sprint | Auth | Status |
-|--------|-----|--------|------|--------|
-| `GET` | `/api` | 1 | Public | Implemented |
-| `GET` | `/api/health` | 1 | Public | Implemented |
-| `POST` | `/api/auth/register` | 2 | Public | Planned |
-| `POST` | `/api/auth/login` | 2 | Public | Planned |
-| `POST` | `/api/auth/refresh` | 2 | Public | Planned |
-| `GET` | `/api/auth/me` | 2 | Protected | Planned |
-| `POST` | `/api/auth/logout` | 2 | Protected | Planned |
-| `POST` | `/api/auth/forgot-password` | 2 | Public | Planned |
-| `POST` | `/api/auth/reset-password` | 2 | Public | Planned |
-| `GET` | `/api/users` | — | Protected | Scaffolded |
-| `GET` | `/api/users/:id` | — | Protected | Scaffolded |
-| `PATCH` | `/api/users/:id` | — | Protected | Scaffolded |
-| `DELETE` | `/api/users/:id` | — | Protected | Scaffolded |
-| `GET` | `/api/portfolios` | — | Protected | Scaffolded |
-| `POST` | `/api/portfolios` | — | Protected | Scaffolded |
-| `GET` | `/api/portfolios/:id` | — | Protected | Scaffolded |
-| `PATCH` | `/api/portfolios/:id` | — | Protected | Scaffolded |
-| `DELETE` | `/api/portfolios/:id` | — | Protected | Scaffolded |
-| `GET` | `/api/portfolios/:id/holdings` | — | Protected | Scaffolded |
-| `POST` | `/api/portfolios/:id/holdings` | — | Protected | Scaffolded |
-| `PATCH` | `/api/portfolios/:id/holdings/:holdingId` | — | Protected | Scaffolded |
-| `DELETE` | `/api/portfolios/:id/holdings/:holdingId` | — | Protected | Scaffolded |
-| `GET` | `/api/stocks` | — | Public | Scaffolded |
-| `POST` | `/api/stocks` | — | Protected | Scaffolded |
-| `GET` | `/api/stocks/:symbol` | — | Public | Scaffolded |
-| `PATCH` | `/api/stocks/:symbol` | — | Protected | Scaffolded |
-| `DELETE` | `/api/stocks/:symbol` | — | Protected | Scaffolded |
-| `POST` | `/api/scores/stock` | — | Protected | Scaffolded |
-| `POST` | `/api/scores/portfolio` | — | Protected | Scaffolded |
-| `POST` | `/api/chat` | — | Protected | Scaffolded |
-| `GET` | `/api/chat/history` | — | Protected | Scaffolded |
-| `POST` | `/api/payments/create-order` | — | Protected | Scaffolded |
-| `POST` | `/api/payments/verify` | — | Protected | Scaffolded |
-| `GET` | `/api/payments/history` | — | Protected | Scaffolded |
+| Method   | URL                                       | Sprint | Auth      | Status      |
+| -------- | ----------------------------------------- | ------ | --------- | ----------- |
+| `GET`    | `/api`                                    | 1      | Public    | Implemented |
+| `GET`    | `/api/health`                             | 1      | Public    | Implemented |
+| `POST`   | `/api/auth/register`                      | 2      | Public    | Planned     |
+| `POST`   | `/api/auth/login`                         | 2      | Public    | Planned     |
+| `POST`   | `/api/auth/refresh`                       | 2      | Public    | Planned     |
+| `GET`    | `/api/auth/me`                            | 2      | Protected | Planned     |
+| `POST`   | `/api/auth/logout`                        | 2      | Protected | Planned     |
+| `POST`   | `/api/auth/forgot-password`               | 2      | Public    | Planned     |
+| `POST`   | `/api/auth/reset-password`                | 2      | Public    | Planned     |
+| `GET`    | `/api/users`                              | —      | Protected | Scaffolded  |
+| `GET`    | `/api/users/:id`                          | —      | Protected | Scaffolded  |
+| `PATCH`  | `/api/users/:id`                          | —      | Protected | Scaffolded  |
+| `DELETE` | `/api/users/:id`                          | —      | Protected | Scaffolded  |
+| `GET`    | `/api/portfolios`                         | —      | Protected | Scaffolded  |
+| `POST`   | `/api/portfolios`                         | —      | Protected | Scaffolded  |
+| `GET`    | `/api/portfolios/:id`                     | —      | Protected | Scaffolded  |
+| `PATCH`  | `/api/portfolios/:id`                     | —      | Protected | Scaffolded  |
+| `DELETE` | `/api/portfolios/:id`                     | —      | Protected | Scaffolded  |
+| `GET`    | `/api/portfolios/:id/holdings`            | —      | Protected | Scaffolded  |
+| `POST`   | `/api/portfolios/:id/holdings`            | —      | Protected | Scaffolded  |
+| `PATCH`  | `/api/portfolios/:id/holdings/:holdingId` | —      | Protected | Scaffolded  |
+| `DELETE` | `/api/portfolios/:id/holdings/:holdingId` | —      | Protected | Scaffolded  |
+| `GET`    | `/api/stocks`                             | —      | Public    | Scaffolded  |
+| `POST`   | `/api/stocks`                             | —      | Protected | Scaffolded  |
+| `GET`    | `/api/stocks/:symbol`                     | —      | Public    | Scaffolded  |
+| `PATCH`  | `/api/stocks/:symbol`                     | —      | Protected | Scaffolded  |
+| `DELETE` | `/api/stocks/:symbol`                     | —      | Protected | Scaffolded  |
+| `POST`   | `/api/scores/stock`                       | —      | Protected | Scaffolded  |
+| `POST`   | `/api/scores/portfolio`                   | —      | Protected | Scaffolded  |
+| `POST`   | `/api/chat`                               | —      | Protected | Scaffolded  |
+| `GET`    | `/api/chat/history`                       | —      | Protected | Scaffolded  |
+| `POST`   | `/api/payments/create-order`              | —      | Protected | Scaffolded  |
+| `POST`   | `/api/payments/verify`                    | —      | Protected | Scaffolded  |
+| `GET`    | `/api/payments/history`                   | —      | Protected | Scaffolded  |

@@ -75,20 +75,20 @@
 
 ## 2. Database Strategy
 
-| Database | Purpose | Why This Choice |
-|----------|---------|----------------|
-| **PostgreSQL** | Users, Portfolios, Holdings, Goals, Subscriptions, Alerts, Watchlists, Audit Logs | ACID compliance, relationships, Prisma ORM |
-| **MongoDB Atlas** | Stocks, News, Scores, Chat History, Forecasts, Research, Sector Data, Smart Money | Flexible schemas, high-volume documents, fast reads |
-| **Redis** | Live Prices, Sessions, Rate Limits, Cache, Feature Flags | TTL-based caching, pub/sub, real-time |
-| **pgvector** | Embeddings for RAG (stock reports, annual reports, news, chat history, learning content) | PostgreSQL extension, no separate DB needed |
+| Database          | Purpose                                                                                  | Why This Choice                                     |
+| ----------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **PostgreSQL**    | Users, Portfolios, Holdings, Goals, Subscriptions, Alerts, Watchlists, Audit Logs        | ACID compliance, relationships, Prisma ORM          |
+| **MongoDB Atlas** | Stocks, News, Scores, Chat History, Forecasts, Research, Sector Data, Smart Money        | Flexible schemas, high-volume documents, fast reads |
+| **Redis**         | Live Prices, Sessions, Rate Limits, Cache, Feature Flags                                 | TTL-based caching, pub/sub, real-time               |
+| **pgvector**      | Embeddings for RAG (stock reports, annual reports, news, chat history, learning content) | PostgreSQL extension, no separate DB needed         |
 
 ### Connection Details
 
-| Service | Connection |
-|---------|-----------|
-| PostgreSQL | `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres` |
-| MongoDB Atlas | `mongodb+srv://[USERNAME]:[PASSWORD]@[CLUSTER].mongodb.net` |
-| Redis | `redis://localhost:6379` |
+| Service       | Connection                                                                    |
+| ------------- | ----------------------------------------------------------------------------- |
+| PostgreSQL    | `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres` |
+| MongoDB Atlas | `mongodb+srv://[USERNAME]:[PASSWORD]@[CLUSTER].mongodb.net`                   |
+| Redis         | `redis://localhost:6379`                                                      |
 
 ---
 
@@ -96,16 +96,16 @@
 
 ### Topics
 
-| Topic | Producer | Consumer | Purpose |
-|-------|----------|----------|---------|
-| `stock.prices` | Data Fetcher | Score Calculator | Live price updates |
-| `stock.scores` | Score Calculator | Notification Service | Score change alerts |
-| `news.raw` | News Collector | Sentiment Analyzer | New articles |
-| `news.processed` | Sentiment Analyzer | Stock Mapper | Scored articles |
-| `portfolio.changes` | Portfolio Service | Risk Calculator | Holdings changed |
-| `alerts.triggered` | Alert Service | Notification Service | Send notifications |
-| `user.events` | Backend API | Analytics Service | User actions |
-| `ai.requests` | Backend API | AI Service | Chat/analysis requests |
+| Topic               | Producer           | Consumer             | Purpose                |
+| ------------------- | ------------------ | -------------------- | ---------------------- |
+| `stock.prices`      | Data Fetcher       | Score Calculator     | Live price updates     |
+| `stock.scores`      | Score Calculator   | Notification Service | Score change alerts    |
+| `news.raw`          | News Collector     | Sentiment Analyzer   | New articles           |
+| `news.processed`    | Sentiment Analyzer | Stock Mapper         | Scored articles        |
+| `portfolio.changes` | Portfolio Service  | Risk Calculator      | Holdings changed       |
+| `alerts.triggered`  | Alert Service      | Notification Service | Send notifications     |
+| `user.events`       | Backend API        | Analytics Service    | User actions           |
+| `ai.requests`       | Backend API        | AI Service           | Chat/analysis requests |
 
 ### Event Flow
 
@@ -162,17 +162,17 @@ NSE API → Kafka(stock.prices) → PostgreSQL(Price Store)
 
 ### LangGraph Agents
 
-| Agent | Responsibility | Tools |
-|-------|---------------|-------|
-| Planner Agent | Decompose complex queries | — |
-| Stock Agent | Fetch stock data & scores | yfinance, PostgreSQL, MongoDB |
-| Risk Agent | Portfolio risk assessment | PostgreSQL, risk calculator |
-| News Agent | News & sentiment | News API, sentiment analyzer |
-| Forecast Agent | Price predictions | ML models, Vector DB |
-| Tax Agent | Tax optimization | PostgreSQL, tax rules |
-| Explainability Agent | Plain language | LLM |
-| Memory Agent | Context retention | Redis, MongoDB |
-| Research Agent | Deep company research | Annual reports, LLM |
+| Agent                | Responsibility            | Tools                         |
+| -------------------- | ------------------------- | ----------------------------- |
+| Planner Agent        | Decompose complex queries | —                             |
+| Stock Agent          | Fetch stock data & scores | yfinance, PostgreSQL, MongoDB |
+| Risk Agent           | Portfolio risk assessment | PostgreSQL, risk calculator   |
+| News Agent           | News & sentiment          | News API, sentiment analyzer  |
+| Forecast Agent       | Price predictions         | ML models, Vector DB          |
+| Tax Agent            | Tax optimization          | PostgreSQL, tax rules         |
+| Explainability Agent | Plain language            | LLM                           |
+| Memory Agent         | Context retention         | Redis, MongoDB                |
+| Research Agent       | Deep company research     | Annual reports, LLM           |
 
 ---
 
@@ -180,13 +180,13 @@ NSE API → Kafka(stock.prices) → PostgreSQL(Price Store)
 
 ### Collections (pgvector)
 
-| Collection | Documents | Purpose |
-|------------|-----------|---------|
-| `stock_reports` | Company research reports | "Tell me about ITC" → relevant chunks |
-| `annual_reports` | AR analysis chunks | "What did CEO say?" → quotes |
-| `news_archive` | Processed news | "Recent ITC news" → relevant articles |
-| `chat_history` | Past conversations | "What did I ask before?" → context |
-| `learning_content` | Lessons, courses | "Explain P/E ratio" → lesson chunks |
+| Collection         | Documents                | Purpose                               |
+| ------------------ | ------------------------ | ------------------------------------- |
+| `stock_reports`    | Company research reports | "Tell me about ITC" → relevant chunks |
+| `annual_reports`   | AR analysis chunks       | "What did CEO say?" → quotes          |
+| `news_archive`     | Processed news           | "Recent ITC news" → relevant articles |
+| `chat_history`     | Past conversations       | "What did I ask before?" → context    |
+| `learning_content` | Lessons, courses         | "Explain P/E ratio" → lesson chunks   |
 
 ### RAG Flow
 
@@ -211,25 +211,25 @@ Client → Nginx → NestJS API → [PostgreSQL / MongoDB / Redis]
 
 ### Rate Limiting
 
-| Tier | Requests/min | Burst |
-|------|-------------|-------|
-| Free | 60 | 10 |
-| Pro | 300 | 50 |
-| Enterprise | 1000 | 100 |
+| Tier       | Requests/min | Burst |
+| ---------- | ------------ | ----- |
+| Free       | 60           | 10    |
+| Pro        | 300          | 50    |
+| Enterprise | 1000         | 100   |
 
 ---
 
 ## 7. Security Architecture
 
-| Layer | Implementation |
-|-------|---------------|
-| Auth | JWT (15 min) + Refresh Token (7 days) |
-| Password | bcrypt (12 rounds) |
-| API | Rate limiting, CORS, Helmet |
-| Data | Encryption at rest, TLS in transit |
-| AI | Input validation, output filtering |
-| Compliance | SEBI disclaimers, DPDP Act |
-| Audit | Every action logged in audit_logs |
+| Layer      | Implementation                        |
+| ---------- | ------------------------------------- |
+| Auth       | JWT (15 min) + Refresh Token (7 days) |
+| Password   | bcrypt (12 rounds)                    |
+| API        | Rate limiting, CORS, Helmet           |
+| Data       | Encryption at rest, TLS in transit    |
+| AI         | Input validation, output filtering    |
+| Compliance | SEBI disclaimers, DPDP Act            |
+| Audit      | Every action logged in audit_logs     |
 
 ---
 
@@ -260,14 +260,14 @@ Client → Nginx → NestJS API → [PostgreSQL / MongoDB / Redis]
 
 ## 9. Monitoring & Observability
 
-| Tool | Purpose |
-|------|---------|
+| Tool                 | Purpose                                    |
+| -------------------- | ------------------------------------------ |
 | Structured JSON Logs | Winston (NestJS), Python logging (FastAPI) |
-| Health Checks | `/health` endpoint per service |
-| Metrics | Prometheus + Grafana (Phase 2+) |
-| Error Tracking | Sentry (Phase 2+) |
-| Uptime | BetterStack or UptimeRobot |
+| Health Checks        | `/health` endpoint per service             |
+| Metrics              | Prometheus + Grafana (Phase 2+)            |
+| Error Tracking       | Sentry (Phase 2+)                          |
+| Uptime               | BetterStack or UptimeRobot                 |
 
 ---
 
-*This architecture supports all 20 modules with scalability, reliability, and AI-first design.*
+_This architecture supports all 20 modules with scalability, reliability, and AI-first design._

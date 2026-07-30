@@ -8,12 +8,12 @@ AI-powered investment intelligence platform for Indian retail investors.
 
 ## Live Services
 
-| Service | URL | Status |
-|---------|-----|--------|
-| Frontend (Angular) | https://quantora-web.vercel.app | Live |
-| Backend (NestJS) | https://quantora-ih3a.onrender.com/api/health | Live |
-| AI Service (FastAPI) | https://quantora-ai-633n.onrender.com/health | Live |
-| Swagger Docs | https://quantora-ih3a.onrender.com/api/docs | View |
+| Service              | URL                                           | Status |
+| -------------------- | --------------------------------------------- | ------ |
+| Frontend (Angular)   | https://quantora-web.vercel.app               | Live   |
+| Backend (NestJS)     | https://quantora-ih3a.onrender.com/api/health | Live   |
+| AI Service (FastAPI) | https://quantora-ai-633n.onrender.com/health  | Live   |
+| Swagger Docs         | https://quantora-ih3a.onrender.com/api/docs   | View   |
 
 ### Quick Health Check
 
@@ -27,11 +27,11 @@ curl https://quantora-ai-633n.onrender.com/health
 
 ### Test Credentials (seeded)
 
-| Account | Email | Password |
-|---------|-------|----------|
-| Admin | `admin@quantora.com` | `admin123` |
-| Demo | `demo@quantora.com` | `demo123` |
-| Test | `test@test.com` | `Test1234` |
+| Account | Email                | Password   |
+| ------- | -------------------- | ---------- |
+| Admin   | `admin@quantora.com` | `admin123` |
+| Demo    | `demo@quantora.com`  | `demo123`  |
+| Test    | `test@test.com`      | `Test1234` |
 
 Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 
@@ -39,41 +39,41 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Angular 22 + Angular Material |
-| Backend | NestJS 11 + Prisma 6.19 |
-| AI Service | Python FastAPI + yfinance |
-| Database | Supabase PostgreSQL (free) |
-| Cache | Redis |
-| Auth | Google OAuth 2.0 + JWT + HttpOnly Refresh Cookies + Argon2id + Session Limits |
-| CI/CD | GitHub Actions |
-| Hosting | Render (free) + Vercel (free) |
+| Layer      | Technology                                                                    |
+| ---------- | ----------------------------------------------------------------------------- |
+| Frontend   | Angular 22 + Angular Material                                                 |
+| Backend    | NestJS 11 + Prisma 6.19                                                       |
+| AI Service | Python FastAPI + yfinance                                                     |
+| Database   | Supabase PostgreSQL (free)                                                    |
+| Cache      | Redis                                                                         |
+| Auth       | Google OAuth 2.0 + JWT + HttpOnly Refresh Cookies + Argon2id + Session Limits |
+| CI/CD      | GitHub Actions                                                                |
+| Hosting    | Render (free) + Vercel (free)                                                 |
 
 ---
 
 ## Sprint Status
 
-| Sprint | Name | Status |
-|--------|------|--------|
-| 1 | Engineering Foundation | Complete |
-| 2 | Identity & Security | Complete |
-| 3 | Google OAuth + Landing Page + Auth Security + Responsive UI | Complete |
-| 4 | Full Stack Version Upgrade | Complete |
-| 5 | Data Ingestion & Analysis | Next |
-| 6 | Passive Income & Portfolio | Planned |
-| 7 | AI-Powered Features | Planned |
-| 8 | Risk Analytics | Planned |
-| 9 | AI Chat & Agents | Planned |
-| 10 | News Intelligence | Planned |
-| 11 | Forecasts & Research | Planned |
-| 12 | Broker Integrations | Planned |
-| 13 | Screener & Alerts | Planned |
-| 14 | Charting Engine | Planned |
-| 15 | Provider Standardization | Planned |
-| 16 | Community & Learning | Planned |
-| 17 | Premium & Notifications | Planned |
-| 18 | Production Readiness | Planned |
+| Sprint | Name                                                        | Status   |
+| ------ | ----------------------------------------------------------- | -------- |
+| 1      | Engineering Foundation                                      | Complete |
+| 2      | Identity & Security                                         | Complete |
+| 3      | Google OAuth + Landing Page + Auth Security + Responsive UI | Complete |
+| 4      | Full Stack Version Upgrade                                  | Complete |
+| 5      | Data Ingestion & Analysis                                   | Next     |
+| 6      | Passive Income & Portfolio                                  | Planned  |
+| 7      | AI-Powered Features                                         | Planned  |
+| 8      | Risk Analytics                                              | Planned  |
+| 9      | AI Chat & Agents                                            | Planned  |
+| 10     | News Intelligence                                           | Planned  |
+| 11     | Forecasts & Research                                        | Planned  |
+| 12     | Broker Integrations                                         | Planned  |
+| 13     | Screener & Alerts                                           | Planned  |
+| 14     | Charting Engine                                             | Planned  |
+| 15     | Provider Standardization                                    | Planned  |
+| 16     | Community & Learning                                        | Planned  |
+| 17     | Premium & Notifications                                     | Planned  |
+| 18     | Production Readiness                                        | Planned  |
 
 **Current:** Sprint 4 complete — Full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24). Sprint 5 — Data Ingestion & Analysis — up next.
 
@@ -82,6 +82,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 ## Sprint Achievements
 
 ### Sprint 1 — Engineering Foundation
+
 - Monorepo with Turborepo, Docker Compose (Redis)
 - NestJS backend with Prisma + Supabase PostgreSQL
 - FastAPI AI service scaffold
@@ -92,6 +93,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - 14 files created, all services live
 
 ### Sprint 2 — Identity & Security
+
 - User registration + login with bcrypt(12) + pepper
 - JWT strategy + refresh token rotation
 - RBAC (user, pro, admin roles)
@@ -104,6 +106,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - Dev tooling (Makefile, dev.sh)
 
 ### Sprint 3 — Google OAuth + Landing Page + Auth Security + Responsive UI
+
 - Google OAuth login (end-to-end)
 - Account lockout (5 attempts / 15 min)
 - Login history tracking
@@ -118,6 +121,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - Single root .env file
 
 ### Sprint 4 — Full Stack Version Upgrade
+
 - Angular 19 → 22 (builder switched to `@angular/build` esbuild/Vite)
 - NestJS 10 → 11
 - TypeScript 5 → 6
@@ -137,12 +141,14 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - Session restore on page load from cookie
 
 #### Theme & Preferences
+
 - 6 themes (slate, light, dark, indigo, emerald, rose)
 - Theme sync with backend UserPreference API
 - PreferencesService auto-loads theme on login
 - All hardcoded colors → CSS variables (profile, ticker, buttons)
 
 #### Responsive Mobile Layout
+
 - Hamburger menu + off-canvas drawer (20+ nav items)
 - Collapsible search (icon → full-width on tap)
 - Click-based dropdowns (touch-friendly, replaces hover)
@@ -151,6 +157,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - Print styles (hide header/ticker)
 
 #### Unified Data Table
+
 - Landing page (Today's Stocks + Mutual Funds) → app-data-table
 - Stock-list (40 stocks) → app-data-table with sort/search/pagination
 - Dashboard + Portfolio already using app-data-table
@@ -158,6 +165,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - 280 lines duplicate table CSS removed
 
 #### Test Results
+
 - 27/27 backend tests passing (+5 auth security tests)
 - 22/22 frontend Angular tests passing
 
@@ -200,24 +208,24 @@ npm run dev:ai              # FastAPI on :8000
 
 ## CI/CD — 16 GitHub Actions Jobs
 
-| Job | What It Does |
-|-----|-------------|
-| Lint | Prettier, ESLint (API), Prisma generate, TypeScript check (API) |
-| Test API | NestJS unit tests (27 tests) |
-| Test Web | Angular Karma unit tests (Jasmine) |
-| Test AI | FastAPI pytest |
-| Build API | NestJS production build |
-| Build Web | Angular production build |
-| Build AI | Python import verification |
-| SEO Check | Lighthouse CI + scripted SEO checks |
-| Security Audit | npm audit (critical) |
-| Secret Scan | Gitleaks |
-| CodeQL | JS/TS security analysis |
-| Hardcoded Secrets | Pattern-based secret scan |
-| SonarCloud | Code quality scan |
-| Docker Build | API + AI image build verification |
-| CI Gate | Aggregates all results (blocks merge on failure) |
-| Deploy API/Web | Render + Vercel (main branch only) |
+| Job               | What It Does                                                    |
+| ----------------- | --------------------------------------------------------------- |
+| Lint              | Prettier, ESLint (API), Prisma generate, TypeScript check (API) |
+| Test API          | NestJS unit tests (27 tests)                                    |
+| Test Web          | Angular Karma unit tests (Jasmine)                              |
+| Test AI           | FastAPI pytest                                                  |
+| Build API         | NestJS production build                                         |
+| Build Web         | Angular production build                                        |
+| Build AI          | Python import verification                                      |
+| SEO Check         | Lighthouse CI + scripted SEO checks                             |
+| Security Audit    | npm audit (critical)                                            |
+| Secret Scan       | Gitleaks                                                        |
+| CodeQL            | JS/TS security analysis                                         |
+| Hardcoded Secrets | Pattern-based secret scan                                       |
+| SonarCloud        | Code quality scan                                               |
+| Docker Build      | API + AI image build verification                               |
+| CI Gate           | Aggregates all results (blocks merge on failure)                |
+| Deploy API/Web    | Render + Vercel (main branch only)                              |
 
 ---
 
@@ -231,19 +239,19 @@ See [docs/DEPLOY.md](docs/DEPLOY.md) for full deployment guide.
 
 ## Documentation
 
-| Doc | Description |
-|-----|-------------|
-| [Sprint Plan](docs/SPRINT-PLAN.md) | 17 sprints mapped with architecture |
-| [Architecture](docs/ARCHITECTURE.md) | System architecture and C4 diagrams |
-| [Database](docs/DATABASE.md) | Schema, migrations, ERD |
-| [Product](docs/PRODUCT.md) | PRD, user stories, features |
-| [API](docs/API.md) | REST API reference |
-| [Deploy](docs/DEPLOY.md) | Deployment guide |
-| [Changelog](docs/CHANGELOG.md) | Version history |
+| Doc                                                              | Description                                         |
+| ---------------------------------------------------------------- | --------------------------------------------------- |
+| [Sprint Plan](docs/SPRINT-PLAN.md)                               | 17 sprints mapped with architecture                 |
+| [Architecture](docs/ARCHITECTURE.md)                             | System architecture and C4 diagrams                 |
+| [Database](docs/DATABASE.md)                                     | Schema, migrations, ERD                             |
+| [Product](docs/PRODUCT.md)                                       | PRD, user stories, features                         |
+| [API](docs/API.md)                                               | REST API reference                                  |
+| [Deploy](docs/DEPLOY.md)                                         | Deployment guide                                    |
+| [Changelog](docs/CHANGELOG.md)                                   | Version history                                     |
 | [Enterprise Checklists](docs/templates/ENTERPRISE-CHECKLISTS.md) | 7 checklists (security, performance, testing, etc.) |
-| [Sprint 1 Book](docs/sprint-books/Sprint-01/) | 11 sections + execution report |
-| [Sprint 2 Book](docs/sprint-books/Sprint-02/) | 12 sections + execution report |
-| [Sprint 3 Book](docs/sprint-books/Sprint-03/) | 11 sections + execution report |
+| [Sprint 1 Book](docs/sprint-books/Sprint-01/)                    | 11 sections + execution report                      |
+| [Sprint 2 Book](docs/sprint-books/Sprint-02/)                    | 12 sections + execution report                      |
+| [Sprint 3 Book](docs/sprint-books/Sprint-03/)                    | 11 sections + execution report                      |
 
 ---
 
@@ -252,6 +260,7 @@ See [docs/DEPLOY.md](docs/DEPLOY.md) for full deployment guide.
 Single `.env` file at root (never commit). See `.env.example` for full documentation.
 
 Key variables:
+
 - `DATABASE_URL` — Supabase PostgreSQL connection string
 - `JWT_SECRET` — JWT signing secret
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials
@@ -259,5 +268,5 @@ Key variables:
 
 ---
 
-*Sprint 1-4: Engineering Foundation + Identity & Security + Google OAuth + Auth Security + Responsive UI + Full Stack Version Upgrade — Complete*
-*Last Updated: July 29, 2026*
+_Sprint 1-4: Engineering Foundation + Identity & Security + Google OAuth + Auth Security + Responsive UI + Full Stack Version Upgrade — Complete_
+_Last Updated: July 29, 2026_

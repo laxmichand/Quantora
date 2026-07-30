@@ -27,6 +27,41 @@ import { randomBytes } from 'crypto';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MIN = 15;
+const MINUTE_MS = 60_000;
+
+const ARGON_MEMORY_COST = 19456;
+const ARGON_TIME_COST = 2;
+
+const MFA_CHALLENGE_TTL = 300;
+const MFA_RATE_LIMIT_ATTEMPTS = 5;
+const MFA_RATE_LIMIT_WINDOW_SECONDS = 60;
+const MFA_SETUP_TTL = 600;
+const BACKUP_CODE_COUNT = 8;
+const BACKUP_CODE_BYTES = 4;
+
+interface RecordLoginParams {
+  userId: string | null;
+  email: string;
+  success: boolean;
+  ip?: string;
+  userAgent?: string;
+  provider?: string;
+  failureReason?: string | null;
+  extra?: {
+    riskScore?: number;
+    riskLevel?: string;
+    riskFactors?: any[];
+    deviceId?: string;
+    sessionId?: string;
+    country?: string;
+    city?: string;
+    isNewDevice?: boolean;
+    isNewCountry?: boolean;
+    vpnDetected?: boolean;
+    proxyDetected?: boolean;
+    torDetected?: boolean;
+  };
+}
 
 export interface LoginContext {
   ip?: string;
@@ -65,8 +100,8 @@ export class AuthService {
 
     const passwordHash = await argon2.hash(dto.password + this.pepper, {
       type: argon2.argon2id,
-      memoryCost: 19456,
-      timeCost: 2,
+      memoryCost: ARGON_MEMORY_COST,
+      timeCost: ARGON_TIME_COST,
     });
 
     const user = await this.prisma.user.create({
@@ -142,27 +177,43 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user || user.isDeleted) {
-      await this.recordLogin(null, dto.email, false, ip, userAgent, 'local', 'Invalid credentials');
+      await this.recordLogin({
+        userId: null,
+        email: dto.email,
+        success: false,
+        ip,
+        userAgent,
+        provider: 'local',
+        failureReason: 'Invalid credentials',
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // Check lockout
     if (user.lockedUntil && new Date() < user.lockedUntil) {
-      const remaining = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
-      await this.recordLogin(user.id, user.email, false, ip, userAgent, 'local', 'Account locked');
+      const remaining = Math.ceil((user.lockedUntil.getTime() - Date.now()) / MINUTE_MS);
+      await this.recordLogin({
+        userId: user.id,
+        email: user.email,
+        success: false,
+        ip,
+        userAgent,
+        provider: 'local',
+        failureReason: 'Account locked',
+      });
       throw new ForbiddenException(`Account locked. Try again in ${remaining} minutes`);
     }
 
     if (!user.isActive) {
-      await this.recordLogin(
-        user.id,
-        user.email,
-        false,
+      await this.recordLogin({
+        userId: user.id,
+        email: user.email,
+        success: false,
         ip,
         userAgent,
-        'local',
-        'Account deactivated',
-      );
+        provider: 'local',
+        failureReason: 'Account deactivated',
+      });
       throw new ForbiddenException('Account is deactivated');
     }
 
@@ -175,18 +226,18 @@ export class AuthService {
           where: { id: user.id },
           data: {
             failedLoginAttempts: attempts,
-            lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MIN * 60 * 1000),
+            lockedUntil: new Date(Date.now() + LOCKOUT_DURATION_MIN * MINUTE_MS),
           },
         });
-        await this.recordLogin(
-          user.id,
-          user.email,
-          false,
+        await this.recordLogin({
+          userId: user.id,
+          email: user.email,
+          success: false,
           ip,
           userAgent,
-          'local',
-          'Account locked',
-        );
+          provider: 'local',
+          failureReason: 'Account locked',
+        });
         await this.audit.createSecurityEvent({
           userId: user.id,
           eventType: SecurityEventType.ACCOUNT_LOCKED,
@@ -202,28 +253,28 @@ export class AuthService {
         where: { id: user.id },
         data: { failedLoginAttempts: attempts },
       });
-      await this.recordLogin(
-        user.id,
-        user.email,
-        false,
+      await this.recordLogin({
+        userId: user.id,
+        email: user.email,
+        success: false,
         ip,
         userAgent,
-        'local',
-        'Invalid credentials',
-      );
+        provider: 'local',
+        failureReason: 'Invalid credentials',
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
     if (!user.isEmailVerified) {
-      await this.recordLogin(
-        user.id,
-        user.email,
-        false,
+      await this.recordLogin({
+        userId: user.id,
+        email: user.email,
+        success: false,
         ip,
         userAgent,
-        'local',
-        'Email not verified',
-      );
+        provider: 'local',
+        failureReason: 'Email not verified',
+      });
       throw new ForbiddenException('Please verify your email before logging in');
     }
 
@@ -252,7 +303,7 @@ export class AuthService {
     try {
       ipInfo = await this.ipIntel.lookup(ip || '');
     } catch {
-      /* ignore */
+      this.logger.debug('IP intelligence lookup failed');
     }
 
     // Evaluate risk
@@ -292,15 +343,15 @@ export class AuthService {
 
     // Block critical risk
     if (riskResult.blocked) {
-      await this.recordLogin(
-        user.id,
-        user.email,
-        false,
+      await this.recordLogin({
+        userId: user.id,
+        email: user.email,
+        success: false,
         ip,
         userAgent,
-        'local',
-        'Login blocked by risk engine',
-      );
+        provider: 'local',
+        failureReason: 'Login blocked by risk engine',
+      });
       await this.audit.createSecurityEvent({
         userId: user.id,
         eventType: SecurityEventType.CRITICAL_LOGIN_BLOCKED,
@@ -334,20 +385,28 @@ export class AuthService {
             userAgent,
             completed: false,
           }),
-          300,
-        ); // 5 minute TTL
+          MFA_CHALLENGE_TTL,
+        );
 
-        await this.recordLogin(user.id, user.email, true, ip, userAgent, 'local', null, {
-          riskScore: riskResult.score,
-          riskLevel: riskResult.level,
-          riskFactors: riskResult.factors,
-          deviceId: deviceRecordId,
-          country: ipInfo?.country,
-          city: ipInfo?.city,
-          isNewDevice: riskResult.factors.some((f) => f.name === 'new_device'),
-          vpnDetected: ipInfo?.isVpn || false,
-          torDetected: ipInfo?.isTor || false,
-          proxyDetected: ipInfo?.isProxy || false,
+        await this.recordLogin({
+          userId: user.id,
+          email: user.email,
+          success: true,
+          ip,
+          userAgent,
+          provider: 'local',
+          extra: {
+            riskScore: riskResult.score,
+            riskLevel: riskResult.level,
+            riskFactors: riskResult.factors,
+            deviceId: deviceRecordId,
+            country: ipInfo?.country,
+            city: ipInfo?.city,
+            isNewDevice: riskResult.factors.some((f) => f.name === 'new_device'),
+            vpnDetected: ipInfo?.isVpn || false,
+            torDetected: ipInfo?.isTor || false,
+            proxyDetected: ipInfo?.isProxy || false,
+          },
         });
 
         if (riskResult.level === 'high') {
@@ -381,19 +440,27 @@ export class AuthService {
 
     // Record login history
     const isNewDevice = riskResult.factors.some((f) => f.name === 'new_device');
-    await this.recordLogin(user.id, user.email, true, ip, userAgent, 'local', null, {
-      riskScore: riskResult.score,
-      riskLevel: riskResult.level,
-      riskFactors: riskResult.factors,
-      deviceId: deviceRecordId,
-      sessionId: tokenPair.sessionId,
-      country: ipInfo?.country,
-      city: ipInfo?.city,
-      isNewDevice,
-      isNewCountry: riskResult.factors.some((f) => f.name === 'new_country'),
-      vpnDetected: ipInfo?.isVpn || false,
-      torDetected: ipInfo?.isTor || false,
-      proxyDetected: ipInfo?.isProxy || false,
+    await this.recordLogin({
+      userId: user.id,
+      email: user.email,
+      success: true,
+      ip,
+      userAgent,
+      provider: 'local',
+      extra: {
+        riskScore: riskResult.score,
+        riskLevel: riskResult.level,
+        riskFactors: riskResult.factors,
+        deviceId: deviceRecordId,
+        sessionId: tokenPair.sessionId,
+        country: ipInfo?.country,
+        city: ipInfo?.city,
+        isNewDevice,
+        isNewCountry: riskResult.factors.some((f) => f.name === 'new_country'),
+        vpnDetected: ipInfo?.isVpn || false,
+        torDetected: ipInfo?.isTor || false,
+        proxyDetected: ipInfo?.isProxy || false,
+      },
     });
 
     // Create security events for new device/new country
@@ -477,7 +544,11 @@ export class AuthService {
   }> {
     // Rate limit MFA attempts (5 attempts per minute per IP)
     if (ip) {
-      const allowed = await this.redis.rateLimit(`mfa:${ip}`, 5, 60);
+      const allowed = await this.redis.rateLimit(
+        `mfa:${ip}`,
+        MFA_RATE_LIMIT_ATTEMPTS,
+        MFA_RATE_LIMIT_WINDOW_SECONDS,
+      );
       if (!allowed) throw new UnauthorizedException('Too many MFA attempts. Try again later.');
     }
 
@@ -509,21 +580,20 @@ export class AuthService {
       challenge.deviceRecordId || 'unknown',
     );
 
-    await this.recordLogin(
-      user.id,
-      user.email,
-      true,
-      challenge.ip,
-      challenge.userAgent,
-      'local',
-      null,
-      {
+    await this.recordLogin({
+      userId: user.id,
+      email: user.email,
+      success: true,
+      ip: challenge.ip,
+      userAgent: challenge.userAgent,
+      provider: 'local',
+      extra: {
         riskScore: challenge.riskResult?.score,
         riskLevel: challenge.riskResult?.level,
         deviceId: challenge.deviceRecordId,
         sessionId: tokenPair.sessionId,
       },
-    );
+    });
 
     return {
       accessToken: tokenPair.accessToken,
@@ -603,10 +673,12 @@ export class AuthService {
     const qrCode = await toDataURL(otpauth);
 
     // Generate backup codes
-    const backupCodes = Array.from({ length: 8 }, () => randomBytes(4).toString('hex'));
+    const backupCodes = Array.from({ length: BACKUP_CODE_COUNT }, () =>
+      randomBytes(BACKUP_CODE_BYTES).toString('hex'),
+    );
 
     // Store temporarily — user must verify to enable
-    await this.redis.cacheSet(`mfa_setup:${userId}`, { secret, backupCodes }, 600);
+    await this.redis.cacheSet(`mfa_setup:${userId}`, { secret, backupCodes }, MFA_SETUP_TTL);
 
     return { secret, qrCode, backupCodes };
   }
@@ -736,29 +808,17 @@ export class AuthService {
     });
   }
 
-  private async recordLogin(
-    userId: string | null,
-    email: string,
-    success: boolean,
-    ip?: string,
-    userAgent?: string,
-    provider = 'local',
-    failureReason?: string | null,
-    extra: {
-      riskScore?: number;
-      riskLevel?: string;
-      riskFactors?: any[];
-      deviceId?: string;
-      sessionId?: string;
-      country?: string;
-      city?: string;
-      isNewDevice?: boolean;
-      isNewCountry?: boolean;
-      vpnDetected?: boolean;
-      proxyDetected?: boolean;
-      torDetected?: boolean;
-    } = {},
-  ) {
+  private async recordLogin(params: RecordLoginParams) {
+    const {
+      userId,
+      email,
+      success,
+      ip,
+      userAgent,
+      provider = 'local',
+      failureReason,
+      extra = {},
+    } = params;
     try {
       await this.prisma.loginHistory.create({
         data: {
@@ -928,8 +988,8 @@ export class AuthService {
 
     const passwordHash = await argon2.hash(newPassword + this.pepper, {
       type: argon2.argon2id,
-      memoryCost: 19456,
-      timeCost: 2,
+      memoryCost: ARGON_MEMORY_COST,
+      timeCost: ARGON_TIME_COST,
     });
 
     await this.prisma.user.update({

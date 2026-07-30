@@ -121,7 +121,8 @@ export class AuthService {
     const fp = this.fingerprint.getCurrentDeviceId();
     this.http
       .post(`${this.API_URL}/logout`, {}, { withCredentials: true })
-      .subscribe({ error: () => {} });
+      .pipe(catchError(() => of(null)))
+      .subscribe();
     this.currentUserSubject.next(null);
     this.router.navigate(['/auth/login']);
   }

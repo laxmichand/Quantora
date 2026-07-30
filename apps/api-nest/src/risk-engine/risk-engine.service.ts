@@ -30,6 +30,42 @@ export interface RiskContext {
   longitude?: number;
 }
 
+const LOOPBACK_IPV4 = '127.0.0.1';
+const LOOPBACK_IPV6 = '::1';
+
+const SCORE_NEW_COUNTRY = 15;
+const SCORE_NEW_COUNTRY_FIRST = 10;
+const SCORE_NEW_CITY = 5;
+const SCORE_TIMEZONE_MISMATCH = 5;
+const SCORE_IMPOSSIBLE_TRAVEL = 20;
+const SCORE_NEW_DEVICE = 15;
+const SCORE_BLOCKED_DEVICE = 100;
+const SCORE_FINGERPRINT_MISMATCH = 15;
+const SCORE_TRUSTED_DEVICE = -20;
+const SCORE_VPN = 15;
+const SCORE_TOR = 20;
+const SCORE_PROXY = 10;
+const SCORE_RAPID_ATTEMPTS = 10;
+const SCORE_FAILED_ATTEMPTS_IP = 10;
+
+const TRAVEL_DISTANCE_KM_MIN = 1_000;
+const TRAVEL_TIME_HOURS_MAX = 2;
+const TRAVEL_SPEED_KMH_MIN = 800;
+
+const BEHAVIOR_WINDOW_MS = 60_000;
+const RAPID_ATTEMPT_THRESHOLD = 3;
+const FAILED_IP_WINDOW_MS = 15 * 60_000;
+const FAILED_IP_THRESHOLD = 3;
+
+const TOTAL_SCORE_MAX = 100;
+const MFA_THRESHOLD = 20;
+const BLOCK_THRESHOLD = 81;
+
+const LEVEL_LOW_MAX = 20;
+const LEVEL_MEDIUM_MAX = 50;
+const LEVEL_HIGH_MAX = 80;
+const IP_BLOCK_SCORE = 100;
+
 @Injectable()
 export class RiskEngineService {
   private readonly logger = new Logger(RiskEngineService.name);
@@ -43,7 +79,7 @@ export class RiskEngineService {
     const factors: RiskFactor[] = [];
     let totalScore = 0;
 
-    if (!ctx.ip || ctx.ip === '127.0.0.1' || ctx.ip === '::1') {
+    if (!ctx.ip || ctx.ip === LOOPBACK_IPV4 || ctx.ip === LOOPBACK_IPV6) {
       return { score: 0, level: 'low', factors: [], requiresMfa: false, blocked: false };
     }
 
@@ -58,11 +94,16 @@ export class RiskEngineService {
     if (blockedIp) {
       factors.push({
         name: 'ip_blocked',
-        score: 100,
+        score: IP_BLOCK_SCORE,
         detail: `IP address is blocked: ${blockedIp.reason || 'No reason'}`,
       });
-      const level = 'critical';
-      return { score: 100, level, factors, requiresMfa: true, blocked: true };
+      return {
+        score: IP_BLOCK_SCORE,
+        level: 'critical',
+        factors,
+        requiresMfa: true,
+        blocked: true,
+      };
     }
 
     const ipInfo = await this.ipIntel.lookup(ctx.ip);
@@ -95,12 +136,11 @@ export class RiskEngineService {
       totalScore += f.score;
     }
 
-    // Clamp score
-    totalScore = Math.min(100, Math.max(0, totalScore));
+    totalScore = Math.min(TOTAL_SCORE_MAX, Math.max(0, totalScore));
 
     const level = this.scoreToLevel(totalScore);
-    const requiresMfa = totalScore > 20;
-    const blocked = totalScore >= 81;
+    const requiresMfa = totalScore > MFA_THRESHOLD;
+    const blocked = totalScore >= BLOCK_THRESHOLD;
 
     this.logger.debug(`Risk score for ${ctx.email}: ${totalScore} (${level})`, factors);
 
@@ -122,7 +162,7 @@ export class RiskEngineService {
         // New country
         factors.push({
           name: 'new_country',
-          score: 15,
+          score: SCORE_NEW_COUNTRY,
           detail: `Login from new country: ${ipInfo.country}`,
         });
 
@@ -149,11 +189,14 @@ export class RiskEngineService {
             );
             const timeDiffHours =
               (Date.now() - previousLogin.createdAt.getTime()) / (1000 * 60 * 60);
-            // Impossible travel: distance too far for time elapsed (> 800 km/h)
-            if (dist > 1000 && timeDiffHours < 2 && dist / Math.max(timeDiffHours, 0.01) > 800) {
+            if (
+              dist > TRAVEL_DISTANCE_KM_MIN &&
+              timeDiffHours < TRAVEL_TIME_HOURS_MAX &&
+              dist / Math.max(timeDiffHours, 0.01) > TRAVEL_SPEED_KMH_MIN
+            ) {
               factors.push({
                 name: 'impossible_travel',
-                score: 20,
+                score: SCORE_IMPOSSIBLE_TRAVEL,
                 detail: `Travel of ${Math.round(dist)}km in ${timeDiffHours.toFixed(1)}h from previous location`,
               });
             }
@@ -167,7 +210,7 @@ export class RiskEngineService {
         if (!sameCountryLogins) {
           factors.push({
             name: 'new_country',
-            score: 10,
+            score: SCORE_NEW_COUNTRY_FIRST,
             detail: `First login from ${ipInfo.country}`,
           });
         } else if (ipInfo.city) {
@@ -180,7 +223,11 @@ export class RiskEngineService {
             },
           });
           if (!sameCity) {
-            factors.push({ name: 'new_city', score: 5, detail: `New city: ${ipInfo.city}` });
+            factors.push({
+              name: 'new_city',
+              score: SCORE_NEW_CITY,
+              detail: `New city: ${ipInfo.city}`,
+            });
           }
         }
       }
@@ -190,7 +237,7 @@ export class RiskEngineService {
     if (ctx.timezone && ipInfo.timezone && ctx.timezone !== ipInfo.timezone) {
       factors.push({
         name: 'timezone_mismatch',
-        score: 5,
+        score: SCORE_TIMEZONE_MISMATCH,
         detail: `Expected ${ctx.timezone}, got ${ipInfo.timezone}`,
       });
     }
@@ -213,16 +260,23 @@ export class RiskEngineService {
 
     if (!existingDevice) {
       // New device
-      factors.push({ name: 'new_device', score: 15, detail: 'First login from this device' });
+      factors.push({
+        name: 'new_device',
+        score: SCORE_NEW_DEVICE,
+        detail: 'First login from this device',
+      });
     } else if (existingDevice.status === 'blocked') {
-      // Blocked device — critical
-      factors.push({ name: 'blocked_device', score: 100, detail: 'Login from a blocked device' });
+      factors.push({
+        name: 'blocked_device',
+        score: SCORE_BLOCKED_DEVICE,
+        detail: 'Login from a blocked device',
+      });
     } else if (ctx.deviceFingerprint && existingDevice.fingerprintHash) {
       // Check fingerprint match
       if (ctx.deviceFingerprint !== existingDevice.fingerprintHash) {
         factors.push({
           name: 'fingerprint_mismatch',
-          score: 15,
+          score: SCORE_FINGERPRINT_MISMATCH,
           detail: 'Device fingerprint does not match stored hash',
         });
       }
@@ -236,7 +290,7 @@ export class RiskEngineService {
     ) {
       factors.push({
         name: 'trusted_device',
-        score: -20,
+        score: SCORE_TRUSTED_DEVICE,
         detail: 'Device is trusted — risk reduced',
       });
     }
@@ -248,13 +302,17 @@ export class RiskEngineService {
     const factors: RiskFactor[] = [];
 
     if (ipInfo.isVpn) {
-      factors.push({ name: 'vpn_detected', score: 15, detail: 'VPN connection detected' });
+      factors.push({ name: 'vpn_detected', score: SCORE_VPN, detail: 'VPN connection detected' });
     }
     if (ipInfo.isTor) {
-      factors.push({ name: 'tor_detected', score: 20, detail: 'TOR connection detected' });
+      factors.push({ name: 'tor_detected', score: SCORE_TOR, detail: 'TOR connection detected' });
     }
     if (ipInfo.isProxy) {
-      factors.push({ name: 'proxy_detected', score: 10, detail: 'Proxy connection detected' });
+      factors.push({
+        name: 'proxy_detected',
+        score: SCORE_PROXY,
+        detail: 'Proxy connection detected',
+      });
     }
 
     return factors;
@@ -267,13 +325,13 @@ export class RiskEngineService {
     const recentAttempts = await this.prisma.loginHistory.count({
       where: {
         userId: ctx.userId,
-        createdAt: { gte: new Date(Date.now() - 60000) }, // last minute
+        createdAt: { gte: new Date(Date.now() - BEHAVIOR_WINDOW_MS) },
       },
     });
-    if (recentAttempts >= 3) {
+    if (recentAttempts >= RAPID_ATTEMPT_THRESHOLD) {
       factors.push({
         name: 'rapid_attempts',
-        score: 10,
+        score: SCORE_RAPID_ATTEMPTS,
         detail: `${recentAttempts} login attempts in last minute`,
       });
     }
@@ -284,13 +342,13 @@ export class RiskEngineService {
         userId: ctx.userId,
         success: false,
         ipAddress: ctx.ip,
-        createdAt: { gte: new Date(Date.now() - 15 * 60000) },
+        createdAt: { gte: new Date(Date.now() - FAILED_IP_WINDOW_MS) },
       },
     });
-    if (failedFromIp >= 3) {
+    if (failedFromIp >= FAILED_IP_THRESHOLD) {
       factors.push({
         name: 'failed_attempts_ip',
-        score: 10,
+        score: SCORE_FAILED_ATTEMPTS_IP,
         detail: `${failedFromIp} failed attempts from this IP`,
       });
     }
@@ -299,9 +357,9 @@ export class RiskEngineService {
   }
 
   private scoreToLevel(score: number): 'low' | 'medium' | 'high' | 'critical' {
-    if (score <= 20) return 'low';
-    if (score <= 50) return 'medium';
-    if (score <= 80) return 'high';
+    if (score <= LEVEL_LOW_MAX) return 'low';
+    if (score <= LEVEL_MEDIUM_MAX) return 'medium';
+    if (score <= LEVEL_HIGH_MAX) return 'high';
     return 'critical';
   }
 }

@@ -1,6 +1,12 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import Redis from 'ioredis';
 
+const RETRY_BACKOFF_MS = 50;
+const RETRY_MAX_MS = 2000;
+const MAX_RETRIES_PER_REQUEST = 3;
+const DEFAULT_MFA_TTL = 300;
+const DEFAULT_CACHE_TTL = 3600;
+
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
@@ -8,8 +14,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-      maxRetriesPerRequest: 3,
+      retryStrategy: (times) => Math.min(times * RETRY_BACKOFF_MS, RETRY_MAX_MS),
+      maxRetriesPerRequest: MAX_RETRIES_PER_REQUEST,
       enableOfflineQueue: false,
       lazyConnect: true,
     });
@@ -119,13 +125,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return {
       allowed: count <= maxAttempts,
       remaining: Math.max(0, maxAttempts - count),
-      resetAt: now + ttl * 1000,
+      resetAt: now + ttl * 1000, // convert seconds to ms
     };
   }
 
   // ─── MFA Challenge Store ──────────────────────────────────
 
-  async setMfaChallenge(sessionToken: string, data: string, ttlSeconds = 300): Promise<void> {
+  async setMfaChallenge(
+    sessionToken: string,
+    data: string,
+    ttlSeconds = DEFAULT_MFA_TTL,
+  ): Promise<void> {
     if (!this.isConnected()) return;
     await this.client.set(`mfa:${sessionToken}`, data, 'EX', ttlSeconds);
   }
@@ -148,7 +158,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return val ? JSON.parse(val) : null;
   }
 
-  async cacheSet(key: string, value: unknown, ttlSeconds = 3600): Promise<void> {
+  async cacheSet(key: string, value: unknown, ttlSeconds = DEFAULT_CACHE_TTL): Promise<void> {
     if (!this.isConnected()) return;
     await this.client.set(`cache:${key}`, JSON.stringify(value), 'EX', ttlSeconds);
   }

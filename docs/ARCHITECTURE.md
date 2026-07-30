@@ -73,45 +73,45 @@
 
 **Purpose:** Structured data with relationships, ACID compliance.
 
-| Table | Purpose | Key Relationships |
-|-------|---------|-------------------|
-| `users` | User accounts, auth, roles | — |
-| `portfolios` | User portfolios | → users |
-| `holdings` | Portfolio holdings | → portfolios, → stocks_ref |
-| `goals` | Financial goals | → users |
-| `subscriptions` | Plan management | → users |
-| `audit_logs` | Action tracking | → users |
-| `alerts` | Price/notification alerts | → users |
-| `watchlists` | User watchlists | → users |
+| Table           | Purpose                    | Key Relationships          |
+| --------------- | -------------------------- | -------------------------- |
+| `users`         | User accounts, auth, roles | —                          |
+| `portfolios`    | User portfolios            | → users                    |
+| `holdings`      | Portfolio holdings         | → portfolios, → stocks_ref |
+| `goals`         | Financial goals            | → users                    |
+| `subscriptions` | Plan management            | → users                    |
+| `audit_logs`    | Action tracking            | → users                    |
+| `alerts`        | Price/notification alerts  | → users                    |
+| `watchlists`    | User watchlists            | → users                    |
 
 ### MongoDB (Document)
 
 **Purpose:** Flexible schemas, high-volume data, fast reads.
 
-| Collection | Purpose | Why MongoDB |
-|------------|---------|-------------|
-| `stocks` | Stock master data | Schema varies by source |
-| `scores` | AI scores per stock | Complex nested scores |
-| `news` | News articles | Unstructured content |
-| `chat_history` | AI conversations | Variable message formats |
-| `forecasts` | Price/earnings forecasts | Complex nested output |
-| `research_reports` | Generated reports | Large documents |
-| `sector_data` | Sector metrics | Flexible time-series |
-| `smart_money` | FII/DII tracking | Variable data format |
+| Collection         | Purpose                  | Why MongoDB              |
+| ------------------ | ------------------------ | ------------------------ |
+| `stocks`           | Stock master data        | Schema varies by source  |
+| `scores`           | AI scores per stock      | Complex nested scores    |
+| `news`             | News articles            | Unstructured content     |
+| `chat_history`     | AI conversations         | Variable message formats |
+| `forecasts`        | Price/earnings forecasts | Complex nested output    |
+| `research_reports` | Generated reports        | Large documents          |
+| `sector_data`      | Sector metrics           | Flexible time-series     |
+| `smart_money`      | FII/DII tracking         | Variable data format     |
 
 ### Redis (Cache + Sessions)
 
 **Purpose:** Speed, TTL-based caching, real-time.
 
-| Key Pattern | TTL | Purpose |
-|-------------|-----|---------|
-| `stock:price:{symbol}` | 5 min | Live stock price |
-| `stock:history:{symbol}` | 1 hour | Historical data |
-| `stock:scores:{symbol}` | 1 hour | AI scores |
-| `session:{userId}` | 7 days | User session |
-| `rate:{ip}` | 1 min | Rate limiting |
-| `leaderboard` | 1 day | Community rankings |
-| `alerts:queue` | — | Pending alerts |
+| Key Pattern              | TTL    | Purpose            |
+| ------------------------ | ------ | ------------------ |
+| `stock:price:{symbol}`   | 5 min  | Live stock price   |
+| `stock:history:{symbol}` | 1 hour | Historical data    |
+| `stock:scores:{symbol}`  | 1 hour | AI scores          |
+| `session:{userId}`       | 7 days | User session       |
+| `rate:{ip}`              | 1 min  | Rate limiting      |
+| `leaderboard`            | 1 day  | Community rankings |
+| `alerts:queue`           | —      | Pending alerts     |
 
 ---
 
@@ -119,16 +119,16 @@
 
 ### Topics
 
-| Topic | Producer | Consumer | Purpose |
-|-------|----------|----------|---------|
-| `stock.prices` | Data Fetcher | Score Calculator | Live price updates |
-| `stock.scores` | Score Calculator | Notification Service | Score change alerts |
-| `news.raw` | News Collector | Sentiment Analyzer | New articles |
-| `news.processed` | Sentiment Analyzer | Stock Mapper | Scored articles |
-| `portfolio.changes` | Portfolio Service | Risk Calculator | Holdings changed |
-| `alerts.triggered` | Alert Service | Notification Service | Send notifications |
-| `user.events` | Backend API | Analytics Service | User actions |
-| `ai.requests` | Backend API | AI Service | Chat/analysis requests |
+| Topic               | Producer           | Consumer             | Purpose                |
+| ------------------- | ------------------ | -------------------- | ---------------------- |
+| `stock.prices`      | Data Fetcher       | Score Calculator     | Live price updates     |
+| `stock.scores`      | Score Calculator   | Notification Service | Score change alerts    |
+| `news.raw`          | News Collector     | Sentiment Analyzer   | New articles           |
+| `news.processed`    | Sentiment Analyzer | Stock Mapper         | Scored articles        |
+| `portfolio.changes` | Portfolio Service  | Risk Calculator      | Holdings changed       |
+| `alerts.triggered`  | Alert Service      | Notification Service | Send notifications     |
+| `user.events`       | Backend API        | Analytics Service    | User actions           |
+| `ai.requests`       | Backend API        | AI Service           | Chat/analysis requests |
 
 ### Event Flow
 
@@ -185,17 +185,17 @@ NSE API → Kafka(stock.prices) → PostgreSQL(Price Store)
 
 ### LangGraph Agents
 
-| Agent | Responsibility | Tools |
-|-------|---------------|-------|
-| Planner Agent | Decompose complex queries | — |
-| Stock Agent | Fetch stock data & scores | yfinance, PostgreSQL, MongoDB |
-| Risk Agent | Portfolio risk assessment | PostgreSQL, risk calculator |
-| News Agent | News & sentiment | News API, sentiment analyzer |
-| Forecast Agent | Price predictions | ML models, Vector DB |
-| Tax Agent | Tax optimization | PostgreSQL, tax rules |
-| Explainability Agent | Plain language | LLM |
-| Memory Agent | Context retention | Redis, MongoDB |
-| Research Agent | Deep company research | Annual reports, LLM |
+| Agent                | Responsibility            | Tools                         |
+| -------------------- | ------------------------- | ----------------------------- |
+| Planner Agent        | Decompose complex queries | —                             |
+| Stock Agent          | Fetch stock data & scores | yfinance, PostgreSQL, MongoDB |
+| Risk Agent           | Portfolio risk assessment | PostgreSQL, risk calculator   |
+| News Agent           | News & sentiment          | News API, sentiment analyzer  |
+| Forecast Agent       | Price predictions         | ML models, Vector DB          |
+| Tax Agent            | Tax optimization          | PostgreSQL, tax rules         |
+| Explainability Agent | Plain language            | LLM                           |
+| Memory Agent         | Context retention         | Redis, MongoDB                |
+| Research Agent       | Deep company research     | Annual reports, LLM           |
 
 ---
 
@@ -205,13 +205,13 @@ NSE API → Kafka(stock.prices) → PostgreSQL(Price Store)
 
 ### Collections
 
-| Collection | Documents | Purpose |
-|------------|-----------|---------|
-| `stock_reports` | Company research reports | "Tell me about ITC" → relevant chunks |
-| `annual_reports` | AR analysis chunks | "What did CEO say?" → quotes |
-| `news_archive` | Processed news | "Recent ITC news" → relevant articles |
-| `chat_history` | Past conversations | "What did I ask before?" → context |
-| `learning_content` | Lessons, courses | "Explain P/E ratio" → lesson chunks |
+| Collection         | Documents                | Purpose                               |
+| ------------------ | ------------------------ | ------------------------------------- |
+| `stock_reports`    | Company research reports | "Tell me about ITC" → relevant chunks |
+| `annual_reports`   | AR analysis chunks       | "What did CEO say?" → quotes          |
+| `news_archive`     | Processed news           | "Recent ITC news" → relevant articles |
+| `chat_history`     | Past conversations       | "What did I ask before?" → context    |
+| `learning_content` | Lessons, courses         | "Explain P/E ratio" → lesson chunks   |
 
 ### RAG Flow
 
@@ -226,15 +226,16 @@ User Question → Embed (OpenAI) → Vector Search → Top 5 Chunks
 
 ### Supported Languages
 
-| Language | Code | Coverage |
-|----------|------|----------|
-| English | `en` | 100% |
-| Hindi | `hi` | 100% |
-| Hinglish | `hi-en` | 80% |
+| Language | Code    | Coverage |
+| -------- | ------- | -------- |
+| English  | `en`    | 100%     |
+| Hindi    | `hi`    | 100%     |
+| Hinglish | `hi-en` | 80%      |
 
 ### Implementation
 
 **Frontend (Angular):**
+
 ```typescript
 // ngx-translate
 { provide: TranslateLoader, useFactory: HttpLoaderFactory }
@@ -242,12 +243,14 @@ User Question → Embed (OpenAI) → Vector Search → Top 5 Chunks
 ```
 
 **Backend (NestJS):**
+
 ```typescript
 // nestjs-i18n
-i18n.t('error.stock.not_found', { lang, args: { symbol: 'ITC' } })
+i18n.t('error.stock.not_found', { lang, args: { symbol: 'ITC' } });
 ```
 
 **AI Service (Python):**
+
 ```python
 # Response language based on user preference
 response = llm.generate(prompt, language=user.language)
@@ -269,25 +272,25 @@ Client → Nginx → NestJS API → [PostgreSQL / MongoDB / Redis]
 
 ### Rate Limiting
 
-| Tier | Requests/min | Burst |
-|------|-------------|-------|
-| Free | 60 | 10 |
-| Pro | 300 | 50 |
-| Enterprise | 1000 | 100 |
+| Tier       | Requests/min | Burst |
+| ---------- | ------------ | ----- |
+| Free       | 60           | 10    |
+| Pro        | 300          | 50    |
+| Enterprise | 1000         | 100   |
 
 ---
 
 ## Security Architecture
 
-| Layer | Implementation |
-|-------|---------------|
-| Auth | JWT + Refresh Token |
-| Password | bcrypt (12 rounds) |
-| API | Rate limiting, CORS |
-| Data | Encryption at rest, TLS in transit |
-| AI | Input validation, output filtering |
-| Compliance | SEBI disclaimers, DPDP Act |
-| Audit | Every action logged |
+| Layer      | Implementation                     |
+| ---------- | ---------------------------------- |
+| Auth       | JWT + Refresh Token                |
+| Password   | bcrypt (12 rounds)                 |
+| API        | Rate limiting, CORS                |
+| Data       | Encryption at rest, TLS in transit |
+| AI         | Input validation, output filtering |
+| Compliance | SEBI disclaimers, DPDP Act         |
+| Audit      | Every action logged                |
 
 ---
 
@@ -316,4 +319,4 @@ Client → Nginx → NestJS API → [PostgreSQL / MongoDB / Redis]
 
 ---
 
-*This architecture supports all 20 modules with scalability, reliability, and AI-first design.*
+_This architecture supports all 20 modules with scalability, reliability, and AI-first design._

@@ -73,15 +73,15 @@ On successful login:
 
 Every login attempt (success or failure) is recorded:
 
-| Field | Source |
-|-------|--------|
-| userId | Matched user or null (failed) |
-| email | User-entered email |
-| ip | request.ip |
+| Field     | Source                        |
+| --------- | ----------------------------- |
+| userId    | Matched user or null (failed) |
+| email     | User-entered email            |
+| ip        | request.ip                    |
 | userAgent | request.headers['user-agent'] |
-| success | true/false |
-| provider | 'local' or 'google' |
-| createdAt | Auto-timestamp |
+| success   | true/false                    |
+| provider  | 'local' or 'google'           |
+| createdAt | Auto-timestamp                |
 
 Endpoint: `GET /api/auth/login-history?limit=10` (JWT required)
 
@@ -91,18 +91,18 @@ Endpoint: `GET /api/auth/login-history?limit=10` (JWT required)
 
 ### Users Table — New Columns
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| provider | String | 'local' or 'google' |
-| providerId | String? | Google profile ID |
-| failedLoginAttempts | Int | Counter for lockout |
-| lockedUntil | DateTime? | Lock expiry timestamp |
+| Column              | Type      | Purpose               |
+| ------------------- | --------- | --------------------- |
+| provider            | String    | 'local' or 'google'   |
+| providerId          | String?   | Google profile ID     |
+| failedLoginAttempts | Int       | Counter for lockout   |
+| lockedUntil         | DateTime? | Lock expiry timestamp |
 
 ### New Tables
 
-| Table | Purpose |
-|-------|---------|
-| LoginHistory | Audit trail for all login attempts |
+| Table        | Purpose                                    |
+| ------------ | ------------------------------------------ |
+| LoginHistory | Audit trail for all login attempts         |
 | OAuthAccount | Links multiple OAuth providers to one user |
 
 ---
@@ -128,6 +128,7 @@ Quantora/
 ### Render Dashboard (Secrets Only)
 
 Non-sensitive vars in render.yaml, sensitive secrets set in Render Dashboard:
+
 - DATABASE_URL, JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 - MONGODB_URL, OPENAI_API_KEY
 
@@ -137,16 +138,16 @@ Non-sensitive vars in render.yaml, sensitive secrets set in Render Dashboard:
 
 ### Auth Routes (All under /api/auth)
 
-| Method | Path | Guard | Auth | Purpose |
-|--------|------|-------|------|---------|
-| POST | /register | Public | No | Register with email |
-| POST | /login | LocalAuthGuard + Public | No | Login with email |
-| POST | /refresh | Public | No | Refresh tokens |
-| POST | /logout | JwtAuthGuard | Yes | Revoke refresh token |
-| GET | /me | JwtAuthGuard | Yes | Get profile |
-| GET | /verify-email/:token | Public | No | Verify email |
-| POST | /forgot-password | Public | No | Request reset |
-| PATCH | /reset-password | Public | No | Reset password |
-| GET | /google | GoogleAuthGuard + Public | No | Redirect to Google |
-| GET | /google/callback | GoogleAuthGuard + Public | No | Google callback |
-| GET | /login-history | JwtAuthGuard | Yes | Login history |
+| Method | Path                 | Guard                    | Auth | Purpose              |
+| ------ | -------------------- | ------------------------ | ---- | -------------------- |
+| POST   | /register            | Public                   | No   | Register with email  |
+| POST   | /login               | LocalAuthGuard + Public  | No   | Login with email     |
+| POST   | /refresh             | Public                   | No   | Refresh tokens       |
+| POST   | /logout              | JwtAuthGuard             | Yes  | Revoke refresh token |
+| GET    | /me                  | JwtAuthGuard             | Yes  | Get profile          |
+| GET    | /verify-email/:token | Public                   | No   | Verify email         |
+| POST   | /forgot-password     | Public                   | No   | Request reset        |
+| PATCH  | /reset-password      | Public                   | No   | Reset password       |
+| GET    | /google              | GoogleAuthGuard + Public | No   | Redirect to Google   |
+| GET    | /google/callback     | GoogleAuthGuard + Public | No   | Google callback      |
+| GET    | /login-history       | JwtAuthGuard             | Yes  | Login history        |

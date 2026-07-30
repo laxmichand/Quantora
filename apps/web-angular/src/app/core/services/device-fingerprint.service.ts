@@ -190,7 +190,9 @@ export class DeviceFingerprintService {
         const ext = gl.getExtension('WEBGL_debug_renderer_info');
         if (ext) return gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || '';
       }
-    } catch {}
+    } catch {
+      /* WebGL not available */
+    }
     return '';
   }
 
@@ -202,7 +204,9 @@ export class DeviceFingerprintService {
         const ext = gl.getExtension('WEBGL_debug_renderer_info');
         if (ext) return gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '';
       }
-    } catch {}
+    } catch {
+      /* WebGL not available */
+    }
     return '';
   }
 

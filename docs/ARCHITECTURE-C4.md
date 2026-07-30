@@ -32,13 +32,13 @@
 
 **External Systems:**
 
-| System | Purpose | Data |
-|--------|---------|------|
-| Supabase PostgreSQL | Relational data (users, portfolios, goals, subscriptions) | Structured, ACID |
-| MongoDB Atlas | Document data (stock metadata, AI scores, chat logs) | Semi-structured, flexible |
-| Redis | Caching, rate limiting, session store | Key-value, ephemeral |
-| yfinance API | Indian stock market data (NSE/BSE) | Real-time & historical prices |
-| OpenAI API | AI analysis, chat, recommendations (Sprint 5+) | LLM inference |
+| System              | Purpose                                                   | Data                          |
+| ------------------- | --------------------------------------------------------- | ----------------------------- |
+| Supabase PostgreSQL | Relational data (users, portfolios, goals, subscriptions) | Structured, ACID              |
+| MongoDB Atlas       | Document data (stock metadata, AI scores, chat logs)      | Semi-structured, flexible     |
+| Redis               | Caching, rate limiting, session store                     | Key-value, ephemeral          |
+| yfinance API        | Indian stock market data (NSE/BSE)                        | Real-time & historical prices |
+| OpenAI API          | AI analysis, chat, recommendations (Sprint 5+)            | LLM inference                 |
 
 ---
 
@@ -95,15 +95,15 @@
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-| Container | Technology | Port | Purpose |
-|-----------|-----------|------|---------|
-| Angular Frontend | Angular 19.2 + Material | 4200 (dev) | SPA UI for investors |
-| NestJS API | NestJS 10 + Prisma 5.22 | 3000 (dev) | REST API, auth, business logic |
-| FastAPI AI | Python FastAPI | 8000 (dev) | ML/AI inference, data analysis |
-| PostgreSQL | Supabase (managed) | 5432 | Relational data |
-| MongoDB | Atlas (managed) | 27017 | Document data |
-| Redis | Docker / managed | 6379 | Cache, rate limiting |
-| Nginx | Nginx (Docker) | 80 | Reverse proxy, static files |
+| Container        | Technology              | Port       | Purpose                        |
+| ---------------- | ----------------------- | ---------- | ------------------------------ |
+| Angular Frontend | Angular 19.2 + Material | 4200 (dev) | SPA UI for investors           |
+| NestJS API       | NestJS 10 + Prisma 5.22 | 3000 (dev) | REST API, auth, business logic |
+| FastAPI AI       | Python FastAPI          | 8000 (dev) | ML/AI inference, data analysis |
+| PostgreSQL       | Supabase (managed)      | 5432       | Relational data                |
+| MongoDB          | Atlas (managed)         | 27017      | Document data                  |
+| Redis            | Docker / managed        | 6379       | Cache, rate limiting           |
+| Nginx            | Nginx (Docker)          | 80         | Reverse proxy, static files    |
 
 ---
 
@@ -349,5 +349,5 @@
 
 ---
 
-*Template Version: 1.0*
-*Last Updated: 2026-07-27*
+_Template Version: 1.0_
+_Last Updated: 2026-07-27_

@@ -4,6 +4,13 @@ import { randomBytes, createHash } from 'crypto';
 import { RedisService } from '../common/redis/redis.service';
 import { PrismaService } from '../prisma/prisma.service';
 
+const ABSOLUTE_SESSION_TIMEOUT_DAYS = 30;
+const SECONDS_PER_DAY = 86_400;
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+
 export interface TokenPayload {
   sub: string;
   email: string;
@@ -81,8 +88,22 @@ export class TokenService {
           sessionToken,
           accessTokenId: jti,
           refreshTokenId: familyId,
-          expiresAt: new Date(Date.now() + this.refreshExpiryDays * 24 * 60 * 60 * 1000),
-          absoluteTimeout: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 day max
+          expiresAt: new Date(
+            Date.now() +
+              this.refreshExpiryDays *
+                HOURS_PER_DAY *
+                MINUTES_PER_HOUR *
+                SECONDS_PER_MINUTE *
+                MS_PER_SECOND,
+          ),
+          absoluteTimeout: new Date(
+            Date.now() +
+              ABSOLUTE_SESSION_TIMEOUT_DAYS *
+                HOURS_PER_DAY *
+                MINUTES_PER_HOUR *
+                SECONDS_PER_MINUTE *
+                MS_PER_SECOND,
+          ),
         },
       });
       sessionId = session.id;
@@ -129,7 +150,7 @@ export class TokenService {
 
     // Blacklist old access token if rotating
     // Add to Redis active sessions
-    await this.redis.addUserSession(user.id, sessionId, this.refreshExpiryDays * 86400);
+    await this.redis.addUserSession(user.id, sessionId, this.refreshExpiryDays * SECONDS_PER_DAY);
 
     return { accessToken, refreshToken, sessionId };
   }
@@ -205,12 +226,12 @@ export class TokenService {
 
     // Blacklist old token
     if (oldPayload.jti) {
-      await this.redis.blacklistToken(oldPayload.jti, this.refreshExpiryDays * 86400);
+      await this.redis.blacklistToken(oldPayload.jti, this.refreshExpiryDays * SECONDS_PER_DAY);
     }
     await this.redis.markTokenFamily(
       oldPayload.family || session.id,
       this.hashToken(tokenPair.refreshToken),
-      this.refreshExpiryDays * 86400,
+      this.refreshExpiryDays * SECONDS_PER_DAY,
     );
 
     return { tokenPair, reuseDetected };
@@ -240,7 +261,10 @@ export class TokenService {
 
     // Blacklist session's access token
     if (session.accessTokenId) {
-      await this.redis.blacklistToken(session.accessTokenId, this.refreshExpiryDays * 86400);
+      await this.redis.blacklistToken(
+        session.accessTokenId,
+        this.refreshExpiryDays * SECONDS_PER_DAY,
+      );
     }
   }
 

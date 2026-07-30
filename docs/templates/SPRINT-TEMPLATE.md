@@ -59,46 +59,46 @@
 
 ### Who uses it?
 
-| User Type | Frequency | Device |
-|-----------|-----------|--------|
-| [Role] | [Daily/Weekly] | [Mobile/Desktop] |
+| User Type | Frequency      | Device           |
+| --------- | -------------- | ---------------- |
+| [Role]    | [Daily/Weekly] | [Mobile/Desktop] |
 
 ### Business Rules
 
-| # | Rule | Priority |
-|---|------|----------|
+| #     | Rule               | Priority |
+| ----- | ------------------ | -------- |
 | BR-01 | [Rule description] | P0/P1/P2 |
 
 ### Edge Cases
 
-| # | Edge Case | Handling |
-|---|-----------|----------|
+| #     | Edge Case             | Handling           |
+| ----- | --------------------- | ------------------ |
 | EC-01 | [What could go wrong] | [How we handle it] |
 
 ### Failure Scenarios
 
-| # | Scenario | Impact | Recovery |
-|---|----------|--------|----------|
+| #     | Scenario  | Impact   | Recovery   |
+| ----- | --------- | -------- | ---------- |
 | FS-01 | [Failure] | [Impact] | [Recovery] |
 
 ---
 
 ## 3. Functional Requirements
 
-| ID | Requirement | Priority | Status |
-|----|------------|----------|--------|
+| ID    | Requirement               | Priority | Status      |
+| ----- | ------------------------- | -------- | ----------- |
 | FR-01 | [What the system must do] | P0/P1/P2 | [Done/Todo] |
 
 ---
 
 ## 4. Non-Functional Requirements
 
-| ID | Requirement | Target | Measurement |
-|----|------------|--------|-------------|
-| NFR-01 | Response time | <200ms | APM logs |
-| NFR-02 | Availability | 99.9% | Uptime monitor |
-| NFR-03 | Concurrent users | 1000 | Load test |
-| NFR-04 | Data retention | 7 years | DB policy |
+| ID     | Requirement      | Target  | Measurement    |
+| ------ | ---------------- | ------- | -------------- |
+| NFR-01 | Response time    | <200ms  | APM logs       |
+| NFR-02 | Availability     | 99.9%   | Uptime monitor |
+| NFR-03 | Concurrent users | 1000    | Load test      |
+| NFR-04 | Data retention   | 7 years | DB policy      |
 
 ---
 
@@ -111,6 +111,7 @@
 **So that** [benefit]
 
 **Acceptance Criteria:**
+
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
@@ -128,15 +129,18 @@
 **Trigger**: [What starts it]
 
 **Main Flow:**
+
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
 
 **Alternative Flow:**
+
 1. [Step 1]
 2. [Step 2a] → [Step 3]
 
 **Exception Flow:**
+
 1. [Step 1 fails] → [Error handling]
 
 **Postcondition**: [State after]
@@ -145,8 +149,8 @@
 
 ## 7. Acceptance Criteria
 
-| ID | Given | When | Then | Status |
-|----|-------|------|------|--------|
+| ID    | Given          | When     | Then              | Status      |
+| ----- | -------------- | -------- | ----------------- | ----------- |
 | AC-01 | [Precondition] | [Action] | [Expected result] | [PASS/FAIL] |
 
 ---
@@ -215,51 +219,51 @@ sequenceDiagram
 
 ### Tables
 
-| Table | Purpose | Partitioned | Archived |
-|-------|---------|-------------|----------|
-| [table] | [purpose] | [yes/no] | [yes/no] |
+| Table   | Purpose   | Partitioned | Archived |
+| ------- | --------- | ----------- | -------- |
+| [table] | [purpose] | [yes/no]    | [yes/no] |
 
 ### Indexes
 
-| Table | Columns | Type | Purpose |
-|-------|---------|------|---------|
-| [table] | [columns] | [btree/hash/gin] | [why] |
+| Table   | Columns   | Type             | Purpose |
+| ------- | --------- | ---------------- | ------- |
+| [table] | [columns] | [btree/hash/gin] | [why]   |
 
 ### Composite Indexes
 
-| Table | Columns | Purpose |
-|-------|---------|---------|
-| [table] | [col1, col2] | [why] |
+| Table   | Columns      | Purpose |
+| ------- | ------------ | ------- |
+| [table] | [col1, col2] | [why]   |
 
 ### Audit Fields (Every Table)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Primary key |
-| created_at | TIMESTAMP | Creation time |
-| updated_at | TIMESTAMP | Last update |
-| created_by | UUID | Creator user ID |
-| updated_by | UUID | Last modifier |
-| version | INT | Optimistic locking |
-| is_deleted | BOOLEAN | Soft delete |
+| Field      | Type      | Description        |
+| ---------- | --------- | ------------------ |
+| id         | UUID      | Primary key        |
+| created_at | TIMESTAMP | Creation time      |
+| updated_at | TIMESTAMP | Last update        |
+| created_by | UUID      | Creator user ID    |
+| updated_by | UUID      | Last modifier      |
+| version    | INT       | Optimistic locking |
+| is_deleted | BOOLEAN   | Soft delete        |
 
 ### Partition Strategy
 
-| Table | Partition Key | Method | Rationale |
-|-------|--------------|--------|-----------|
-| [table] | [key] | [range/list/hash] | [why] |
+| Table   | Partition Key | Method            | Rationale |
+| ------- | ------------- | ----------------- | --------- |
+| [table] | [key]         | [range/list/hash] | [why]     |
 
 ### Archive Strategy
 
-| Table | Archive After | Destination | Method |
-|-------|--------------|-------------|--------|
-| [table] | [time] | [where] | [how] |
+| Table   | Archive After | Destination | Method |
+| ------- | ------------- | ----------- | ------ |
+| [table] | [time]        | [where]     | [how]  |
 
 ### Backup Strategy
 
-| Database | Frequency | Retention | Method | RTO | RPO |
-|----------|-----------|-----------|--------|-----|-----|
-| [db] | [freq] | [retention] | [pg_dump/snapshot] | [time] | [time] |
+| Database | Frequency | Retention   | Method             | RTO    | RPO    |
+| -------- | --------- | ----------- | ------------------ | ------ | ------ |
+| [db]     | [freq]    | [retention] | [pg_dump/snapshot] | [time] | [time] |
 
 ---
 
@@ -288,12 +292,14 @@ model [TableName] {
 **Description**: [What it does]
 
 **Headers:**
+
 ```
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "field": "value"
@@ -301,6 +307,7 @@ Content-Type: application/json
 ```
 
 **Response 200:**
+
 ```json
 {
   "success": true,
@@ -309,6 +316,7 @@ Content-Type: application/json
 ```
 
 **Response 400:**
+
 ```json
 {
   "success": false,
@@ -320,6 +328,7 @@ Content-Type: application/json
 ```
 
 **Response 401:**
+
 ```json
 {
   "success": false,
@@ -361,44 +370,44 @@ apps/
 
 ### Service Layer
 
-| Service | Responsibility | Dependencies |
-|---------|---------------|--------------|
+| Service   | Responsibility | Dependencies    |
+| --------- | -------------- | --------------- |
 | [Service] | [What it does] | [What it needs] |
 
 ### Guards
 
-| Guard | Purpose | Applied To |
-|-------|---------|------------|
-| [Guard] | [Protection] | [Routes] |
+| Guard   | Purpose      | Applied To |
+| ------- | ------------ | ---------- |
+| [Guard] | [Protection] | [Routes]   |
 
 ### Interceptors
 
-| Interceptor | Purpose | Applied To |
-|-------------|---------|------------|
-| [Interceptor] | [Cross-cutting concern] | [Routes] |
+| Interceptor   | Purpose                 | Applied To |
+| ------------- | ----------------------- | ---------- |
+| [Interceptor] | [Cross-cutting concern] | [Routes]   |
 
 ### DTOs
 
-| DTO | Purpose | Fields |
-|-----|---------|--------|
+| DTO       | Purpose        | Fields   |
+| --------- | -------------- | -------- |
 | [DtoName] | [Input/Output] | [fields] |
 
 ### Validation Rules
 
-| Field | Rules | Error Message |
-|-------|-------|---------------|
-| [field] | [required, min, max, pattern] | [message] |
+| Field   | Rules                         | Error Message |
+| ------- | ----------------------------- | ------------- |
+| [field] | [required, min, max, pattern] | [message]     |
 
 ### Error Handling
 
-| Error Code | HTTP Status | Message | Recovery |
-|------------|-------------|---------|----------|
-| [CODE] | [status] | [message] | [what happens] |
+| Error Code | HTTP Status | Message   | Recovery       |
+| ---------- | ----------- | --------- | -------------- |
+| [CODE]     | [status]    | [message] | [what happens] |
 
 ### Logging
 
-| Event | Level | Data | Retention |
-|-------|-------|------|-----------|
+| Event   | Level             | Data          | Retention  |
+| ------- | ----------------- | ------------- | ---------- |
 | [event] | [info/warn/error] | [what to log] | [how long] |
 
 ---
@@ -407,62 +416,62 @@ apps/
 
 ### Prompt Templates
 
-| ID | Template | Variables | Model | Version |
-|----|----------|-----------|-------|---------|
-| PT-01 | [prompt] | [vars] | [gpt-4/claude] | [v1] |
+| ID    | Template | Variables | Model          | Version |
+| ----- | -------- | --------- | -------------- | ------- |
+| PT-01 | [prompt] | [vars]    | [gpt-4/claude] | [v1]    |
 
 ### Model Routing
 
-| Use Case | Primary Model | Fallback | Rationale |
-|----------|--------------|----------|-----------|
-| [use case] | [model] | [fallback] | [why] |
+| Use Case   | Primary Model | Fallback   | Rationale |
+| ---------- | ------------- | ---------- | --------- |
+| [use case] | [model]       | [fallback] | [why]     |
 
 ### Token Usage & Cost
 
 | Operation | Input Tokens | Output Tokens | Cost/1K | Daily Est. |
-|-----------|-------------|---------------|---------|------------|
-| [op] | [est] | [est] | [cost] | [total] |
+| --------- | ------------ | ------------- | ------- | ---------- |
+| [op]      | [est]        | [est]         | [cost]  | [total]    |
 
 ### Guardrails
 
-| Check | Method | Action on Fail |
-|-------|--------|----------------|
-| [check] | [how] | [what happens] |
+| Check   | Method | Action on Fail |
+| ------- | ------ | -------------- |
+| [check] | [how]  | [what happens] |
 
 ### Hallucination Detection
 
-| Method | Threshold | Action |
-|--------|-----------|--------|
-| [method] | [score] | [fallback] |
+| Method   | Threshold | Action     |
+| -------- | --------- | ---------- |
+| [method] | [score]   | [fallback] |
 
 ### Evaluation
 
-| Dataset | Metric | Target | Current |
-|---------|--------|--------|---------|
+| Dataset   | Metric   | Target   | Current  |
+| --------- | -------- | -------- | -------- |
 | [dataset] | [metric] | [target] | [actual] |
 
 ### A/B Testing
 
-| Experiment | Variant A | Variant B | Metric | Duration |
-|------------|-----------|-----------|--------|----------|
-| [exp] | [control] | [test] | [metric] | [time] |
+| Experiment | Variant A | Variant B | Metric   | Duration |
+| ---------- | --------- | --------- | -------- | -------- |
+| [exp]      | [control] | [test]    | [metric] | [time]   |
 
 ### Caching
 
-| Response Type | TTL | Invalidation |
-|--------------|-----|-------------|
-| [type] | [time] | [trigger] |
+| Response Type | TTL    | Invalidation |
+| ------------- | ------ | ------------ |
+| [type]        | [time] | [trigger]    |
 
 ### Human Feedback
 
-| Feedback Type | Collection | Storage | Usage |
-|--------------|------------|---------|-------|
+| Feedback Type    | Collection   | Storage    | Usage             |
+| ---------------- | ------------ | ---------- | ----------------- |
 | [thumbs up/down] | [UI element] | [DB table] | [improve prompts] |
 
 ### Explainability
 
-| Feature | Output | UI Display |
-|---------|--------|------------|
+| Feature    | Output                  | UI Display  |
+| ---------- | ----------------------- | ----------- |
 | [AI Score] | [confidence, reasoning] | [component] |
 
 ---
@@ -486,33 +495,33 @@ apps/
 
 ### Design Tokens
 
-| Token | Value | Usage |
-|-------|-------|-------|
+| Token   | Value   | Usage        |
+| ------- | ------- | ------------ |
 | [token] | [value] | [where used] |
 
 ### Responsive Breakpoints
 
-| Breakpoint | Width | Layout |
-|------------|-------|--------|
-| Mobile | <640px | [layout] |
-| Tablet | 640-1024px | [layout] |
-| Desktop | >1024px | [layout] |
+| Breakpoint | Width      | Layout   |
+| ---------- | ---------- | -------- |
+| Mobile     | <640px     | [layout] |
+| Tablet     | 640-1024px | [layout] |
+| Desktop    | >1024px    | [layout] |
 
 ### Accessibility
 
-| Requirement | Implementation | Standard |
-|-------------|---------------|----------|
-| Keyboard nav | [how] | WCAG 2.1 AA |
-| Screen reader | [how] | WCAG 2.1 AA |
-| Color contrast | [ratio] | 4.5:1 minimum |
+| Requirement    | Implementation | Standard      |
+| -------------- | -------------- | ------------- |
+| Keyboard nav   | [how]          | WCAG 2.1 AA   |
+| Screen reader  | [how]          | WCAG 2.1 AA   |
+| Color contrast | [ratio]        | 4.5:1 minimum |
 
 ### Loading States
 
-| State | UI | Duration |
-|-------|-----|----------|
-| Initial load | Skeleton | Until data |
-| Refresh | Spinner | Until data |
-| Error | Error card | Until retry |
+| State        | UI         | Duration    |
+| ------------ | ---------- | ----------- |
+| Initial load | Skeleton   | Until data  |
+| Refresh      | Spinner    | Until data  |
+| Error        | Error card | Until retry |
 
 ---
 
@@ -520,8 +529,8 @@ apps/
 
 ### Events
 
-| Event | Producer | Consumer | Trigger |
-|-------|----------|----------|---------|
+| Event        | Producer  | Consumer  | Trigger          |
+| ------------ | --------- | --------- | ---------------- |
 | [event.name] | [service] | [service] | [what causes it] |
 
 ### Message Format
@@ -540,9 +549,9 @@ apps/
 
 ### Retry Policy
 
-| Event | Max Retries | Backoff | Dead Letter |
-|-------|------------|---------|-------------|
-| [event] | [n] | [strategy] | [queue] |
+| Event   | Max Retries | Backoff    | Dead Letter |
+| ------- | ----------- | ---------- | ----------- |
+| [event] | [n]         | [strategy] | [queue]     |
 
 ---
 
@@ -550,53 +559,53 @@ apps/
 
 ### Authentication
 
-| Method | Token Type | Expiry | Refresh |
-|--------|-----------|--------|---------|
+| Method   | Token Type    | Expiry | Refresh  |
+| -------- | ------------- | ------ | -------- |
 | [method] | [JWT/session] | [time] | [yes/no] |
 
 ### Authorization
 
-| Role | Permissions | Resource |
-|------|-------------|----------|
+| Role   | Permissions  | Resource   |
+| ------ | ------------ | ---------- |
 | [role] | [can/cannot] | [resource] |
 
 ### Rate Limiting
 
-| Endpoint | Limit | Window | Burst | Response |
-|----------|-------|--------|-------|----------|
-| [endpoint] | [n] | [time] | [n] | [429] |
+| Endpoint   | Limit | Window | Burst | Response |
+| ---------- | ----- | ------ | ----- | -------- |
+| [endpoint] | [n]   | [time] | [n]   | [429]    |
 
 ### Input Validation
 
-| Endpoint | Field | Rules | Sanitization |
-|----------|-------|-------|-------------|
-| [endpoint] | [field] | [rules] | [method] |
+| Endpoint   | Field   | Rules   | Sanitization |
+| ---------- | ------- | ------- | ------------ |
+| [endpoint] | [field] | [rules] | [method]     |
 
 ### CORS
 
-| Origin | Methods | Credentials |
-|--------|---------|-------------|
-| [origin] | [methods] | [yes/no] |
+| Origin   | Methods   | Credentials |
+| -------- | --------- | ----------- |
+| [origin] | [methods] | [yes/no]    |
 
 ### Security Headers
 
-| Header | Value | Purpose |
-|--------|-------|---------|
-| Content-Security-Policy | [policy] | XSS prevention |
-| X-Frame-Options | DENY | Clickjacking |
+| Header                    | Value            | Purpose           |
+| ------------------------- | ---------------- | ----------------- |
+| Content-Security-Policy   | [policy]         | XSS prevention    |
+| X-Frame-Options           | DENY             | Clickjacking      |
 | Strict-Transport-Security | max-age=31536000 | HTTPS enforcement |
 
 ### Secrets Management
 
-| Secret | Location | Rotation | Access |
-|--------|----------|----------|--------|
-| [secret] | [.env/vault] | [frequency] | [who] |
+| Secret   | Location     | Rotation    | Access |
+| -------- | ------------ | ----------- | ------ |
+| [secret] | [.env/vault] | [frequency] | [who]  |
 
 ### Audit Trail
 
-| Action | Who | What | When | Where |
-|--------|-----|------|------|-------|
-| [action] | [user] | [resource] | [timestamp] | [IP] |
+| Action   | Who    | What       | When        | Where |
+| -------- | ------ | ---------- | ----------- | ----- |
+| [action] | [user] | [resource] | [timestamp] | [IP]  |
 
 ---
 
@@ -650,12 +659,12 @@ CDN
 
 ### What Changes at Each Stage
 
-| Stage | Infrastructure | Code Changes | Cost Est. |
-|-------|---------------|--------------|-----------|
-| 100 | Single server | None | ~$50/mo |
-| 10K | Load balancer | None | ~$200/mo |
-| 100K | K8s + Kafka | Event-driven | ~$2K/mo |
-| 1M | Full distributed | CQRS + ES | ~$20K/mo |
+| Stage | Infrastructure   | Code Changes | Cost Est. |
+| ----- | ---------------- | ------------ | --------- |
+| 100   | Single server    | None         | ~$50/mo   |
+| 10K   | Load balancer    | None         | ~$200/mo  |
+| 100K  | K8s + Kafka      | Event-driven | ~$2K/mo   |
+| 1M    | Full distributed | CQRS + ES    | ~$20K/mo  |
 
 ---
 
@@ -663,26 +672,26 @@ CDN
 
 ### Latency Budget
 
-| Operation | Target | Measurement |
-|-----------|--------|-------------|
-| Page load | <2s | Lighthouse |
-| API response | <200ms | APM |
-| DB query | <50ms | pg_stat |
-| AI response | <5s | Custom metric |
+| Operation    | Target | Measurement   |
+| ------------ | ------ | ------------- |
+| Page load    | <2s    | Lighthouse    |
+| API response | <200ms | APM           |
+| DB query     | <50ms  | pg_stat       |
+| AI response  | <5s    | Custom metric |
 
 ### Resource Budget
 
-| Resource | Target | Current |
-|----------|--------|---------|
-| CPU | <70% | [measure] |
-| Memory | <80% | [measure] |
-| Storage | <80% | [measure] |
-| Bandwidth | <70% | [measure] |
+| Resource  | Target | Current   |
+| --------- | ------ | --------- |
+| CPU       | <70%   | [measure] |
+| Memory    | <80%   | [measure] |
+| Storage   | <80%   | [measure] |
+| Bandwidth | <70%   | [measure] |
 
 ### Optimization Strategies
 
-| Area | Strategy | Impact |
-|------|----------|--------|
+| Area   | Strategy   | Impact                 |
+| ------ | ---------- | ---------------------- |
 | [area] | [strategy] | [expected improvement] |
 
 ---
@@ -691,25 +700,25 @@ CDN
 
 ### Cache Layers
 
-| Layer | Technology | TTL | Invalidation |
-|-------|-----------|-----|-------------|
-| Browser | Service Worker | [time] | [trigger] |
-| CDN | CloudFront | [time] | [trigger] |
-| API | Redis | [time] | [trigger] |
-| DB | Query Cache | [time] | [trigger] |
+| Layer   | Technology     | TTL    | Invalidation |
+| ------- | -------------- | ------ | ------------ |
+| Browser | Service Worker | [time] | [trigger]    |
+| CDN     | CloudFront     | [time] | [trigger]    |
+| API     | Redis          | [time] | [trigger]    |
+| DB      | Query Cache    | [time] | [trigger]    |
 
 ### Cache Keys
 
-| Key Pattern | Data | TTL | Invalidation |
-|-------------|------|-----|-------------|
-| [pattern] | [what] | [time] | [trigger] |
+| Key Pattern | Data   | TTL    | Invalidation |
+| ----------- | ------ | ------ | ------------ |
+| [pattern]   | [what] | [time] | [trigger]    |
 
 ### Cache Stampede Prevention
 
-| Strategy | Implementation |
-|----------|---------------|
-| Lock | [how] |
-| Background refresh | [when] |
+| Strategy           | Implementation |
+| ------------------ | -------------- |
+| Lock               | [how]          |
+| Background refresh | [when]         |
 
 ---
 
@@ -717,53 +726,53 @@ CDN
 
 ### Logging
 
-| Level | When | Retention | Tool |
-|-------|------|-----------|------|
-| DEBUG | Dev only | 7 days | Console |
-| INFO | Normal ops | 30 days | [tool] |
-| WARN | Degraded | 90 days | [tool] |
-| ERROR | Failures | 1 year | [tool] |
-| FATAL | System down | Forever | [tool] |
+| Level | When        | Retention | Tool    |
+| ----- | ----------- | --------- | ------- |
+| DEBUG | Dev only    | 7 days    | Console |
+| INFO  | Normal ops  | 30 days   | [tool]  |
+| WARN  | Degraded    | 90 days   | [tool]  |
+| ERROR | Failures    | 1 year    | [tool]  |
+| FATAL | System down | Forever   | [tool]  |
 
 ### Metrics
 
-| Metric | Type | Labels | Alert |
-|--------|------|--------|-------|
+| Metric   | Type                      | Labels   | Alert       |
+| -------- | ------------------------- | -------- | ----------- |
 | [metric] | [counter/gauge/histogram] | [labels] | [condition] |
 
 ### Tracing
 
-| Operation | Span | Attributes |
-|-----------|------|------------|
-| [op] | [what] | [data] |
+| Operation | Span   | Attributes |
+| --------- | ------ | ---------- |
+| [op]      | [what] | [data]     |
 
 ### Dashboards
 
-| Dashboard | Metrics | Audience | Refresh |
-|-----------|---------|----------|---------|
-| [name] | [metrics] | [who] | [interval] |
+| Dashboard | Metrics   | Audience | Refresh    |
+| --------- | --------- | -------- | ---------- |
+| [name]    | [metrics] | [who]    | [interval] |
 
 ### Alerts
 
-| Alert | Condition | Severity | Action |
-|-------|-----------|----------|--------|
-| [alert] | [condition] | [P1-P4] | [who/what] |
+| Alert   | Condition   | Severity | Action     |
+| ------- | ----------- | -------- | ---------- |
+| [alert] | [condition] | [P1-P4]  | [who/what] |
 
 ---
 
 ## 24. Feature Flags
 
-| Flag | Purpose | Default | Rollout |
-|------|---------|---------|---------|
-| [flag] | [why] | [on/off] | [%] |
+| Flag   | Purpose | Default  | Rollout |
+| ------ | ------- | -------- | ------- |
+| [flag] | [why]   | [on/off] | [%]     |
 
 ### Rollout Strategy
 
-| Phase | % Users | Duration | Rollback |
-|-------|---------|----------|----------|
-| Canary | 1% | 1 day | Auto if errors |
-| Beta | 10% | 3 days | Auto if errors |
-| GA | 100% | — | Manual |
+| Phase  | % Users | Duration | Rollback       |
+| ------ | ------- | -------- | -------------- |
+| Canary | 1%      | 1 day    | Auto if errors |
+| Beta   | 10%     | 3 days   | Auto if errors |
+| GA     | 100%    | —        | Manual         |
 
 ---
 
@@ -771,16 +780,16 @@ CDN
 
 ### Coverage Targets
 
-| Module | Target | Current |
-|--------|--------|---------|
-| Services | 90% | — |
-| Controllers | 85% | — |
-| Utils | 95% | — |
+| Module      | Target | Current |
+| ----------- | ------ | ------- |
+| Services    | 90%    | —       |
+| Controllers | 85%    | —       |
+| Utils       | 95%    | —       |
 
 ### Test Cases
 
-| ID | Test | Input | Expected | Type |
-|----|------|-------|----------|------|
+| ID    | Test   | Input   | Expected | Type                |
+| ----- | ------ | ------- | -------- | ------------------- |
 | UT-01 | [what] | [input] | [output] | [positive/negative] |
 
 ---
@@ -789,15 +798,15 @@ CDN
 
 ### Test Scenarios
 
-| ID | Scenario | Components | Expected |
-|----|----------|-----------|----------|
+| ID    | Scenario   | Components | Expected |
+| ----- | ---------- | ---------- | -------- |
 | IT-01 | [scenario] | [services] | [result] |
 
 ### Test Data
 
-| Scenario | Setup | Teardown |
-|----------|-------|----------|
-| [name] | [seed data] | [cleanup] |
+| Scenario | Setup       | Teardown  |
+| -------- | ----------- | --------- |
+| [name]   | [seed data] | [cleanup] |
 
 ---
 
@@ -805,15 +814,15 @@ CDN
 
 ### API Contracts
 
-| Endpoint | Consumer | Provider | Status |
-|----------|----------|----------|--------|
+| Endpoint   | Consumer   | Provider  | Status     |
+| ---------- | ---------- | --------- | ---------- |
 | [endpoint] | [frontend] | [backend] | [verified] |
 
 ### Schema Validation
 
-| Contract | Schema | Version | Validated |
-|----------|--------|---------|-----------|
-| [name] | [OpenAPI] | [v1] | [yes/no] |
+| Contract | Schema    | Version | Validated |
+| -------- | --------- | ------- | --------- |
+| [name]   | [OpenAPI] | [v1]    | [yes/no]  |
 
 ---
 
@@ -821,17 +830,17 @@ CDN
 
 ### Test Scenarios
 
-| ID | Flow | Steps | Expected | Priority |
-|----|------|-------|----------|----------|
-| E2E-01 | [flow] | [steps] | [result] | P0 |
+| ID     | Flow   | Steps   | Expected | Priority |
+| ------ | ------ | ------- | -------- | -------- |
+| E2E-01 | [flow] | [steps] | [result] | P0       |
 
 ### Browser Coverage
 
 | Browser | Version | Priority |
-|---------|---------|----------|
-| Chrome | Latest | P0 |
-| Safari | Latest | P1 |
-| Firefox | Latest | P2 |
+| ------- | ------- | -------- |
+| Chrome  | Latest  | P0       |
+| Safari  | Latest  | P1       |
+| Firefox | Latest  | P2       |
 
 ---
 
@@ -839,20 +848,20 @@ CDN
 
 ### Test Scenarios
 
-| Scenario | Users | Duration | RPS | Threshold |
-|----------|-------|----------|-----|-----------|
-| Normal | 100 | 10min | 50 | <200ms p95 |
-| Peak | 500 | 5min | 200 | <500ms p95 |
-| Stress | 1000 | 5min | 500 | <1s p95 |
+| Scenario | Users | Duration | RPS | Threshold  |
+| -------- | ----- | -------- | --- | ---------- |
+| Normal   | 100   | 10min    | 50  | <200ms p95 |
+| Peak     | 500   | 5min     | 200 | <500ms p95 |
+| Stress   | 1000  | 5min     | 500 | <1s p95    |
 
 ### Performance Thresholds
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Response time p95 | >200ms | >500ms |
-| Error rate | >1% | >5% |
-| CPU | >70% | >90% |
-| Memory | >80% | >95% |
+| Metric            | Warning | Critical |
+| ----------------- | ------- | -------- |
+| Response time p95 | >200ms  | >500ms   |
+| Error rate        | >1%     | >5%      |
+| CPU               | >70%    | >90%     |
+| Memory            | >80%    | >95%     |
 
 ---
 
@@ -860,18 +869,18 @@ CDN
 
 ### Test Scenarios
 
-| ID | Scenario | Impact | Expected Behavior | Blast Radius |
-|----|----------|--------|-------------------|-------------|
+| ID    | Scenario      | Impact   | Expected Behavior | Blast Radius |
+| ----- | ------------- | -------- | ----------------- | ------------ |
 | CT-01 | [what breaks] | [effect] | [system behavior] | [% affected] |
 
 ### Resilience Patterns
 
-| Pattern | Implementation | Tested |
-|---------|---------------|--------|
-| Circuit Breaker | [how] | [yes/no] |
-| Retry | [how] | [yes/no] |
-| Bulkhead | [how] | [yes/no] |
-| Timeout | [how] | [yes/no] |
+| Pattern         | Implementation | Tested   |
+| --------------- | -------------- | -------- |
+| Circuit Breaker | [how]          | [yes/no] |
+| Retry           | [how]          | [yes/no] |
+| Bulkhead        | [how]          | [yes/no] |
+| Timeout         | [how]          | [yes/no] |
 
 ---
 
@@ -879,21 +888,21 @@ CDN
 
 ### Pipeline Stages
 
-| Stage | Steps | Duration | Fail Action |
-|-------|-------|----------|-------------|
-| Lint | [steps] | [time] | Block |
-| Test | [steps] | [time] | Block |
-| Build | [steps] | [time] | Block |
-| Deploy Staging | [steps] | [time] | Auto |
-| Deploy Prod | [steps] | [time] | Manual |
+| Stage          | Steps   | Duration | Fail Action |
+| -------------- | ------- | -------- | ----------- |
+| Lint           | [steps] | [time]   | Block       |
+| Test           | [steps] | [time]   | Block       |
+| Build          | [steps] | [time]   | Block       |
+| Deploy Staging | [steps] | [time]   | Auto        |
+| Deploy Prod    | [steps] | [time]   | Manual      |
 
 ### Environments
 
-| Environment | Branch | Auto Deploy | Approvals |
-|-------------|--------|-------------|-----------|
-| Dev | feature/* | Yes | None |
-| Staging | main | Yes | None |
-| Prod | release/* | No | Manual |
+| Environment | Branch    | Auto Deploy | Approvals |
+| ----------- | --------- | ----------- | --------- |
+| Dev         | feature/* | Yes         | None      |
+| Staging     | main      | Yes         | None      |
+| Prod        | release/* | No          | Manual    |
 
 ---
 
@@ -901,32 +910,32 @@ CDN
 
 ### Deployment Strategy
 
-| Service | Strategy | Downtime | Rollback |
-|---------|----------|----------|----------|
-| [service] | [blue-green/canary/rolling] | [zero/minutes] | [how] |
+| Service   | Strategy                    | Downtime       | Rollback |
+| --------- | --------------------------- | -------------- | -------- |
+| [service] | [blue-green/canary/rolling] | [zero/minutes] | [how]    |
 
 ### Rollback Plan
 
-| Trigger | Steps | Time to Rollback |
-|---------|-------|-------------------|
-| [condition] | [steps] | [time] |
+| Trigger     | Steps   | Time to Rollback |
+| ----------- | ------- | ---------------- |
+| [condition] | [steps] | [time]           |
 
 ### Infrastructure
 
-| Resource | Provider | Spec | Cost |
-|----------|----------|------|------|
+| Resource   | Provider      | Spec   | Cost   |
+| ---------- | ------------- | ------ | ------ |
 | [resource] | [AWS/GCP/etc] | [size] | [$/mo] |
 
 ---
 
 ## 33. Documentation
 
-| Document | Audience | Location | Status |
-|----------|----------|----------|--------|
-| API Docs | Developers | /api/docs | [status] |
-| User Guide | End users | /docs | [status] |
-| Runbook | Ops | /runbooks | [status] |
-| Architecture | Architects | /docs | [status] |
+| Document     | Audience   | Location  | Status   |
+| ------------ | ---------- | --------- | -------- |
+| API Docs     | Developers | /api/docs | [status] |
+| User Guide   | End users  | /docs     | [status] |
+| Runbook      | Ops        | /runbooks | [status] |
+| Architecture | Architects | /docs     | [status] |
 
 ---
 
@@ -954,31 +963,31 @@ CDN
 
 ### Decisions Made
 
-| Decision | Rationale | Date |
-|----------|-----------|------|
-| [decision] | [why] | [date] |
+| Decision   | Rationale | Date   |
+| ---------- | --------- | ------ |
+| [decision] | [why]     | [date] |
 
 ### Risks Identified
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| [risk] | [impact] | [high/med/low] | [action] |
+| Risk   | Impact   | Probability    | Mitigation |
+| ------ | -------- | -------------- | ---------- |
+| [risk] | [impact] | [high/med/low] | [action]   |
 
 ### Dependencies
 
-| Dependency | Type | Status | Blocker |
-|------------|------|--------|---------|
-| [dep] | [internal/external] | [status] | [yes/no] |
+| Dependency | Type                | Status   | Blocker  |
+| ---------- | ------------------- | -------- | -------- |
+| [dep]      | [internal/external] | [status] | [yes/no] |
 
 ### Velocity
 
-| Metric | Value |
-|--------|-------|
-| Planned Stories | [n] |
-| Completed Stories | [n] |
-| Story Points | [n] |
-| Bugs Found | [n] |
-| Bugs Fixed | [n] |
+| Metric            | Value |
+| ----------------- | ----- |
+| Planned Stories   | [n]   |
+| Completed Stories | [n]   |
+| Story Points      | [n]   |
+| Bugs Found        | [n]   |
+| Bugs Fixed        | [n]   |
 
 ---
 
@@ -1017,5 +1026,5 @@ CDN
 
 ---
 
-*Template Version: 1.0*
-*Last Updated: [DATE]*
+_Template Version: 1.0_
+_Last Updated: [DATE]_

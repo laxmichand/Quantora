@@ -12,6 +12,7 @@
 A sprint task is **Done** when ALL of the following are true:
 
 ### Code Quality
+
 - [x] Code follows coding standards
 - [x] No `any` types in new code
 - [x] All validation uses `class-validator` decorators
@@ -20,12 +21,14 @@ A sprint task is **Done** when ALL of the following are true:
 - [x] NestJS global filters catch unhandled errors
 
 ### Testing
+
 - [x] Service unit tests ≥ 23 passing
 - [x] Controller E2E tests ≥ 26 passing
 - [x] Frontend component tests passing
 - [x] Cover edge cases: duplicate, expired, invalid, not found
 
 ### Security
+
 - [x] JWT validated on every request (global guard)
 - [x] Refresh token rotation active
 - [x] Password hashed with bcrypt(12) + pepper
@@ -36,18 +39,21 @@ A sprint task is **Done** when ALL of the following are true:
 - [x] Password reset prevents email enumeration
 
 ### Documentation
+
 - [x] All auth endpoints documented in Swagger
 - [x] Sprint plan updated (17 sprints)
 - [x] Sprint-02 folder matches Sprint-01 structure (11 files)
 - [x] ADRs documented for key decisions
 
 ### Dev Experience
+
 - [x] `make dev` starts all services
 - [x] Clear startup output with URLs
 - [x] Ctrl+C stops all services cleanly
 - [x] .gitignore excludes IDE files
 
 ### Header
+
 - [x] Ticker strip animates via CSS
 - [x] Search bar renders with focus state
 - [x] Mega-nav dropdown opens on hover

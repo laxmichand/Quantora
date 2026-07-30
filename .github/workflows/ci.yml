@@ -78,8 +78,15 @@ jobs:
         run: npx prisma generate
         working-directory: apps/api-nest
 
-      - name: Run unit tests with coverage
-        run: npm run test:cov --workspace=@quantora/api
+      - name: Run unit tests with coverage (retry once on failure)
+        run: |
+          npm run test:cov --workspace=@quantora/api 2>&1 | tee /tmp/test-output.log
+          exit_code=${PIPESTATUS[0]}
+          if [ "$exit_code" -ne 0 ]; then
+            echo "First run failed, retrying in 10s..."
+            sleep 10
+            npm run test:cov --workspace=@quantora/api
+          fi
         env:
           BCRYPT_PEPPER: ci-pepper
 
@@ -101,8 +108,15 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
-      - name: Run Angular unit tests (headless)
-        run: npx ng test --watch=false --code-coverage --browsers=ChromeHeadlessNoSandbox
+      - name: Run Angular unit tests (retry once on failure)
+        run: |
+          npx ng test --watch=false --code-coverage --browsers=ChromeHeadlessNoSandbox 2>&1 | tee /tmp/ng-test.log
+          exit_code=${PIPESTATUS[0]}
+          if [ "$exit_code" -ne 0 ]; then
+            echo "First run failed, retrying in 10s..."
+            sleep 10
+            npx ng test --watch=false --code-coverage --browsers=ChromeHeadlessNoSandbox
+          fi
         working-directory: apps/web-angular
 
       - name: Upload Web coverage

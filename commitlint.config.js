@@ -5,17 +5,17 @@ module.exports = {
       2,
       'always',
       [
-        'feat',     // New feature
-        'fix',      // Bug fix
-        'docs',     // Documentation
-        'style',    // Formatting
+        'feat', // New feature
+        'fix', // Bug fix
+        'docs', // Documentation
+        'style', // Formatting
         'refactor', // Code restructuring
-        'perf',     // Performance
-        'test',     // Tests
-        'build',    // Build system
-        'ci',       // CI/CD
-        'chore',    // Maintenance
-        'revert',   // Revert
+        'perf', // Performance
+        'test', // Tests
+        'build', // Build system
+        'ci', // CI/CD
+        'chore', // Maintenance
+        'revert', // Revert
       ],
     ],
     'scope-enum': [

@@ -19,6 +19,15 @@ export interface IpInfo {
   networkType?: string;
 }
 
+const LOOPBACK_IPV4 = '127.0.0.1';
+const LOOPBACK_IPV6 = '::1';
+const PRIVATE_192_PREFIX = '192.168.';
+const PRIVATE_10_PREFIX = '10.';
+
+const EARTH_RADIUS_KM = 6371;
+const DEG_TO_RAD_FACTOR = Math.PI / 180;
+const IP_CACHE_TTL_SECONDS = 86_400;
+
 @Injectable()
 export class IpIntelligenceService {
   private readonly logger = new Logger(IpIntelligenceService.name);
@@ -45,10 +54,10 @@ export class IpIntelligenceService {
     const apiKey = process.env.IPAPI_KEY;
     if (
       apiKey &&
-      ip !== '127.0.0.1' &&
-      ip !== '::1' &&
-      !ip.startsWith('192.168.') &&
-      !ip.startsWith('10.')
+      ip !== LOOPBACK_IPV4 &&
+      ip !== LOOPBACK_IPV6 &&
+      !ip.startsWith(PRIVATE_192_PREFIX) &&
+      !ip.startsWith(PRIVATE_10_PREFIX)
     ) {
       try {
         const response = await fetch(`https://ipapi.co/${ip}/json/?key=${apiKey}`);
@@ -74,8 +83,7 @@ export class IpIntelligenceService {
       }
     }
 
-    // Cache for 24 hours
-    await this.redis.cacheSet(`ip:${ip}`, info, 86400);
+    await this.redis.cacheSet(`ip:${ip}`, info, IP_CACHE_TTL_SECONDS);
 
     return info;
   }
@@ -97,7 +105,7 @@ export class IpIntelligenceService {
 
   /** Calculate distance between two lat/lng pairs in km (Haversine) */
   calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-    const R = 6371;
+    const R = EARTH_RADIUS_KM;
     const dLat = this.toRad(lat2 - lat1);
     const dLng = this.toRad(lng2 - lng1);
     const a =
@@ -111,6 +119,6 @@ export class IpIntelligenceService {
   }
 
   private toRad(deg: number): number {
-    return deg * (Math.PI / 180);
+    return deg * DEG_TO_RAD_FACTOR;
   }
 }

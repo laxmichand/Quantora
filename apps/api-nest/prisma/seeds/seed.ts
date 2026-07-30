@@ -1,17 +1,21 @@
 import { PrismaClient } from '@prisma/client';
-import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
-const pepper = process.env.BCRYPT_PEPPER || '';
 
 async function deleteIfExists(model: any) {
-  try { await model.deleteMany(); } catch { /* table may not exist yet */ }
+  try {
+    await model.deleteMany();
+  } catch {
+    /* table may not exist yet */
+  }
 }
 
 async function main() {
-  console.log('Resetting database — creating single user...');
+  console.log('Resetting database — clearing all data...');
 
   await deleteIfExists(prisma.oAuthAccount);
+  await deleteIfExists(prisma.notification);
+  await deleteIfExists(prisma.blockedIp);
   await deleteIfExists(prisma.securityEvent);
   await deleteIfExists(prisma.session);
   await deleteIfExists(prisma.device);
@@ -27,28 +31,7 @@ async function main() {
   await deleteIfExists(prisma.userPreference);
   await deleteIfExists(prisma.user);
 
-  const passwordHash = await argon2.hash('Laxmi@2026' + pepper, {
-    type: argon2.argon2id,
-    memoryCost: 19456,
-    timeCost: 2,
-  });
-
-  const user = await prisma.user.create({
-    data: {
-      email: 'lcdhuvare3010@gmail.com',
-      passwordHash,
-      name: 'Laxmi Chandra',
-      role: 'admin',
-      isEmailVerified: true,
-      isActive: true,
-      preferences: {
-        create: { language: 'en', theme: 'slate' },
-      },
-    },
-  });
-
-  console.log(`Created user: ${user.email} (${user.role})`);
-  console.log('Database seeded successfully!');
+  console.log('Database cleared — ready for fresh registration');
 }
 
 main()

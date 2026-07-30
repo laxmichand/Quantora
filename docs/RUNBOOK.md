@@ -6,13 +6,13 @@
 
 ## Service URLs
 
-| Service | URL | Health Check |
-|---------|-----|-------------|
-| Frontend | https://quantora-web-angular.vercel.app | Open in browser |
-| API | https://quantora-ih3a.onrender.com/api/health | `curl https://quantora-ih3a.onrender.com/api/health` |
-| AI Service | https://quantora-ai-633n.onrender.com/health | `curl https://quantora-ai-633n.onrender.com/health` |
-| Swagger | https://quantora-ih3a.onrender.com/api/docs | Open in browser |
-| Database | Supabase Dashboard | https://supabase.com/dashboard |
+| Service    | URL                                           | Health Check                                         |
+| ---------- | --------------------------------------------- | ---------------------------------------------------- |
+| Frontend   | https://quantora-web-angular.vercel.app       | Open in browser                                      |
+| API        | https://quantora-ih3a.onrender.com/api/health | `curl https://quantora-ih3a.onrender.com/api/health` |
+| AI Service | https://quantora-ai-633n.onrender.com/health  | `curl https://quantora-ai-633n.onrender.com/health`  |
+| Swagger    | https://quantora-ih3a.onrender.com/api/docs   | Open in browser                                      |
+| Database   | Supabase Dashboard                            | https://supabase.com/dashboard                       |
 
 ---
 
@@ -23,6 +23,7 @@
 **Symptoms:** Frontend shows error, API health check fails.
 
 **Steps:**
+
 1. Check Render dashboard for service status
 2. Check Supabase dashboard for database status
 3. Check GitHub Actions for failed deploys
@@ -37,6 +38,7 @@
 **Symptoms:** Frontend loads slowly, API responses delayed.
 
 **Steps:**
+
 1. Check Render metrics (CPU, memory)
 2. Check Supabase query performance
 3. Free tier: services spin down after 15min — cold start is normal
@@ -48,6 +50,7 @@
 **Symptoms:** API returns 500, health check shows DB disconnected.
 
 **Steps:**
+
 1. Check Supabase dashboard → Database → Connection pool
 2. Verify DATABASE_URL in Render env vars
 3. Supabase free tier: max 60 connections
@@ -59,6 +62,7 @@
 **Symptoms:** Frontend not updating after push.
 
 **Steps:**
+
 1. Check Vercel dashboard → Deployments
 2. Check build logs for errors
 3. Common: Angular build failures, missing dependencies
@@ -134,13 +138,13 @@ git push --force origin main
 
 ## Contacts
 
-| Role | Contact |
-|------|---------|
-| Solo Founder | Laxmichandra Dhuvare |
-| GitHub | https://github.com/laxmichand/Quantora |
-| Render Support | https://render.com/support |
-| Supabase Support | https://supabase.com/support |
+| Role             | Contact                                |
+| ---------------- | -------------------------------------- |
+| Solo Founder     | Laxmichandra Dhuvare                   |
+| GitHub           | https://github.com/laxmichand/Quantora |
+| Render Support   | https://render.com/support             |
+| Supabase Support | https://supabase.com/support           |
 
 ---
 
-*Last Updated: 2026-07-27*
+_Last Updated: 2026-07-27_

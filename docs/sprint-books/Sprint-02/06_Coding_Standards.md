@@ -54,13 +54,13 @@ throw new ForbiddenException('Account is deactivated');
 
 ## 4. Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| JWT_SECRET | Yes | 'quantora-dev-secret' | JWT signing key |
-| BCRYPT_PEPPER | Yes | '' | Pepper appended before hash |
-| THROTTLE_WINDOW_MS | No | 60000 | Rate limit window |
-| THROTTLE_MAX | No | 60 | Max requests per window |
-| DATABASE_URL | Yes | — | PostgreSQL connection |
+| Variable           | Required | Default               | Description                 |
+| ------------------ | -------- | --------------------- | --------------------------- |
+| JWT_SECRET         | Yes      | 'quantora-dev-secret' | JWT signing key             |
+| BCRYPT_PEPPER      | Yes      | ''                    | Pepper appended before hash |
+| THROTTLE_WINDOW_MS | No       | 60000                 | Rate limit window           |
+| THROTTLE_MAX       | No       | 60                    | Max requests per window     |
+| DATABASE_URL       | Yes      | —                     | PostgreSQL connection       |
 
 ## 5. NestJS Module Pattern
 

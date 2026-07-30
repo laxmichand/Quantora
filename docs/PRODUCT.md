@@ -50,20 +50,20 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 ### Infrastructure
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Frontend | Angular 17+ + Angular Material | Web application, i18n (Hindi/English) |
-| Backend API | NestJS (Node.js + TypeScript) | Business logic, auth, orchestration |
-| AI Service | Python + FastAPI + LangGraph | ML models, analysis, forecasts, agents |
-| **PostgreSQL** | Relational DB | Users, portfolios, goals, subscriptions, audit logs |
-| **MongoDB** | Document DB | Stocks, news, scores, chat history, research reports |
-| **Redis** | Cache + Sessions | Live prices (TTL), sessions, rate limiting |
-| **Kafka** | Message Queue | Event streaming, data pipeline, real-time sync |
-| **Vector DB** | Pinecone / pgvector | Semantic search, RAG for AI chat |
-| **LLM** | OpenAI / Anthropic | Explanations, chat, summaries, analysis |
-| **LangGraph** | Agent Orchestrator | Multi-agent AI workflow |
-| i18n | Angular i18n + ngx-translate | Hindi, English, Hinglish support |
-| Notifications | Telegram, Email, Push | User alerts, daily reports |
+| Layer          | Technology                     | Purpose                                              |
+| -------------- | ------------------------------ | ---------------------------------------------------- |
+| Frontend       | Angular 17+ + Angular Material | Web application, i18n (Hindi/English)                |
+| Backend API    | NestJS (Node.js + TypeScript)  | Business logic, auth, orchestration                  |
+| AI Service     | Python + FastAPI + LangGraph   | ML models, analysis, forecasts, agents               |
+| **PostgreSQL** | Relational DB                  | Users, portfolios, goals, subscriptions, audit logs  |
+| **MongoDB**    | Document DB                    | Stocks, news, scores, chat history, research reports |
+| **Redis**      | Cache + Sessions               | Live prices (TTL), sessions, rate limiting           |
+| **Kafka**      | Message Queue                  | Event streaming, data pipeline, real-time sync       |
+| **Vector DB**  | Pinecone / pgvector            | Semantic search, RAG for AI chat                     |
+| **LLM**        | OpenAI / Anthropic             | Explanations, chat, summaries, analysis              |
+| **LangGraph**  | Agent Orchestrator             | Multi-agent AI workflow                              |
+| i18n           | Angular i18n + ngx-translate   | Hindi, English, Hinglish support                     |
+| Notifications  | Telegram, Email, Push          | User alerts, daily reports                           |
 
 ---
 
@@ -79,23 +79,23 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 #### Features
 
-| Category | Features |
-|----------|----------|
-| **Market Data** | Live NSE/BSE prices, Historical prices (daily/weekly/monthly), Pre-market & after-market data |
-| **Fundamentals** | Company financials (P&L, Balance Sheet, Cash Flow), Ratio analysis, Peer comparison data |
-| **Corporate Actions** | Dividends, Bonus issues, Stock splits, Rights issues, Mergers & Demergers |
-| **Institutional** | FII/FPI data, DII data, Mutual fund holdings, ETF holdings |
-| **Derivatives** | Options chain, Futures data, Open interest, Max pain |
-| **Macro** | Currency (USD/INR, EUR/INR), Commodities (Gold, Silver, Crude), Bond yields (10Y G-Sec), CPI, WPI, GDP |
-| **Alternative** | Mutual fund NAV, REIT/InvIT data |
+| Category              | Features                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Market Data**       | Live NSE/BSE prices, Historical prices (daily/weekly/monthly), Pre-market & after-market data          |
+| **Fundamentals**      | Company financials (P&L, Balance Sheet, Cash Flow), Ratio analysis, Peer comparison data               |
+| **Corporate Actions** | Dividends, Bonus issues, Stock splits, Rights issues, Mergers & Demergers                              |
+| **Institutional**     | FII/FPI data, DII data, Mutual fund holdings, ETF holdings                                             |
+| **Derivatives**       | Options chain, Futures data, Open interest, Max pain                                                   |
+| **Macro**             | Currency (USD/INR, EUR/INR), Commodities (Gold, Silver, Crude), Bond yields (10Y G-Sec), CPI, WPI, GDP |
+| **Alternative**       | Mutual fund NAV, REIT/InvIT data                                                                       |
 
 #### AI Features
 
-| Feature | Description |
-|---------|-------------|
-| Missing Data Prediction | Impute gaps in historical data using statistical methods |
-| Data Anomaly Detection | Flag unusual data points (e.g., sudden price spike with no news) |
-| Data Quality Scoring | Rate reliability of data sources per stock |
+| Feature                 | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| Missing Data Prediction | Impute gaps in historical data using statistical methods         |
+| Data Anomaly Detection  | Flag unusual data points (e.g., sudden price spike with no news) |
+| Data Quality Scoring    | Rate reliability of data sources per stock                       |
 
 #### Data Sources
 
@@ -108,13 +108,13 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 #### Tech Requirements
 
-| Component | Technology |
-|-----------|-----------|
-| Data Fetcher | Python (yfinance, requests) |
-| Stream Processing | Apache Kafka |
-| Cache | Redis (live prices, TTL-based) |
-| Storage | PostgreSQL (structured), MongoDB (documents) |
-| Scheduler | APScheduler / Celery |
+| Component         | Technology                                   |
+| ----------------- | -------------------------------------------- |
+| Data Fetcher      | Python (yfinance, requests)                  |
+| Stream Processing | Apache Kafka                                 |
+| Cache             | Redis (live prices, TTL-based)               |
+| Storage           | PostgreSQL (structured), MongoDB (documents) |
+| Scheduler         | APScheduler / Celery                         |
 
 ---
 
@@ -124,36 +124,36 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 #### Scoring System
 
-| Score | What It Measures |
-|-------|-----------------|
-| **AI Score** | Overall composite score (0-100) |
-| **Quality Score** | Management quality, governance, accounting quality |
-| **Value Score** | P/E, P/B, EV/EBITDA vs peers and history |
-| **Growth Score** | Revenue growth, earnings growth, market expansion |
-| **Dividend Score** | Yield, payout ratio, consistency, growth |
-| **Risk Score** | Volatility, debt, promoter pledge, litigation |
-| **Technical Score** | Trend, momentum, volume patterns |
-| **Momentum Score** | Price momentum, relative strength |
-| **ESG Score** | Environmental, Social, Governance factors |
+| Score               | What It Measures                                   |
+| ------------------- | -------------------------------------------------- |
+| **AI Score**        | Overall composite score (0-100)                    |
+| **Quality Score**   | Management quality, governance, accounting quality |
+| **Value Score**     | P/E, P/B, EV/EBITDA vs peers and history           |
+| **Growth Score**    | Revenue growth, earnings growth, market expansion  |
+| **Dividend Score**  | Yield, payout ratio, consistency, growth           |
+| **Risk Score**      | Volatility, debt, promoter pledge, litigation      |
+| **Technical Score** | Trend, momentum, volume patterns                   |
+| **Momentum Score**  | Price momentum, relative strength                  |
+| **ESG Score**       | Environmental, Social, Governance factors          |
 
 #### Valuation Models
 
-| Model | Output |
-|-------|--------|
-| DCF (Discounted Cash Flow) | Intrinsic Value |
-| Relative Valuation | Fair Value vs peers |
-| Graham Number | Benjamin Graham's formula |
-| PEG Ratio Analysis | Growth-adjusted value |
+| Model                      | Output                    |
+| -------------------------- | ------------------------- |
+| DCF (Discounted Cash Flow) | Intrinsic Value           |
+| Relative Valuation         | Fair Value vs peers       |
+| Graham Number              | Benjamin Graham's formula |
+| PEG Ratio Analysis         | Growth-adjusted value     |
 
 #### Analysis Features
 
-| Feature | Description |
-|---------|-------------|
-| SWOT Analysis | AI-generated strengths, weaknesses, opportunities, threats |
-| Moat Analysis | Economic moat type and durability assessment |
-| Competitive Analysis | Positioning vs industry peers |
-| Peer Comparison | Side-by-side metrics comparison |
-| Earnings Analysis | Results vs estimates, guidance interpretation |
+| Feature              | Description                                                |
+| -------------------- | ---------------------------------------------------------- |
+| SWOT Analysis        | AI-generated strengths, weaknesses, opportunities, threats |
+| Moat Analysis        | Economic moat type and durability assessment               |
+| Competitive Analysis | Positioning vs industry peers                              |
+| Peer Comparison      | Side-by-side metrics comparison                            |
+| Earnings Analysis    | Results vs estimates, guidance interpretation              |
 
 #### AI Explainability
 
@@ -174,21 +174,21 @@ WHY did ITC's AI Score drop from 78 to 72?
 
 #### Risk Metrics
 
-| Metric | Description |
-|--------|-------------|
-| **VaR (Value at Risk)** | Maximum expected loss over a time period at confidence level |
-| **CVaR (Conditional VaR)** | Average loss beyond VaR threshold |
-| **Beta** | Sensitivity to market movements |
-| **Alpha** | Excess return vs benchmark |
-| **Sharpe Ratio** | Risk-adjusted return |
-| **Sortino Ratio** | Downside risk-adjusted return |
-| **Calmar Ratio** | Return vs maximum drawdown |
-| **Max Drawdown** | Largest peak-to-trough decline |
-| **Portfolio Risk** | Aggregate portfolio-level risk |
-| **Correlation Matrix** | Cross-asset correlation heatmap |
-| **Diversification Score** | How well-diversified the portfolio is |
-| **Stress Score** | Portfolio resilience under stress |
-| **Risk Heatmap** | Visual risk distribution across holdings |
+| Metric                     | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| **VaR (Value at Risk)**    | Maximum expected loss over a time period at confidence level |
+| **CVaR (Conditional VaR)** | Average loss beyond VaR threshold                            |
+| **Beta**                   | Sensitivity to market movements                              |
+| **Alpha**                  | Excess return vs benchmark                                   |
+| **Sharpe Ratio**           | Risk-adjusted return                                         |
+| **Sortino Ratio**          | Downside risk-adjusted return                                |
+| **Calmar Ratio**           | Return vs maximum drawdown                                   |
+| **Max Drawdown**           | Largest peak-to-trough decline                               |
+| **Portfolio Risk**         | Aggregate portfolio-level risk                               |
+| **Correlation Matrix**     | Cross-asset correlation heatmap                              |
+| **Diversification Score**  | How well-diversified the portfolio is                        |
+| **Stress Score**           | Portfolio resilience under stress                            |
+| **Risk Heatmap**           | Visual risk distribution across holdings                     |
 
 #### AI Explainability
 
@@ -209,18 +209,18 @@ assets like gold or debt funds."
 
 #### Built-in Scenarios
 
-| Scenario | Description |
-|----------|-------------|
-| Market Crash | 20-40% broad market decline |
-| COVID Replay | March 2020 crash pattern |
-| 2008 Replay | Global financial crisis pattern |
+| Scenario           | Description                          |
+| ------------------ | ------------------------------------ |
+| Market Crash       | 20-40% broad market decline          |
+| COVID Replay       | March 2020 crash pattern             |
+| 2008 Replay        | Global financial crisis pattern      |
 | Russia-Ukraine War | Geopolitical shock + commodity spike |
-| Fed Rate Hike | Aggressive tightening cycle |
-| Oil Spike | Crude above $120/bbl |
-| Currency Shock | INR depreciation > 5% |
-| High Inflation | CPI above 8% sustained |
-| Banking Crisis | NBFC/Bank contagion risk |
-| Custom Scenario | User-defined parameters |
+| Fed Rate Hike      | Aggressive tightening cycle          |
+| Oil Spike          | Crude above $120/bbl                 |
+| Currency Shock     | INR depreciation > 5%                |
+| High Inflation     | CPI above 8% sustained               |
+| Banking Crisis     | NBFC/Bank contagion risk             |
+| Custom Scenario    | User-defined parameters              |
 
 #### Output
 
@@ -238,24 +238,24 @@ assets like gold or debt funds."
 
 #### News Collection
 
-| Source Type | Examples |
-|-------------|---------|
-| Financial News | Economic Times, MoneyControl, LiveMint |
-| Earnings | Quarterly results, guidance, conference calls |
-| Regulatory | RBI circulars, SEBI orders, government policies |
-| Insider | CEO interviews, management commentary |
-| Global | Fed decisions, geopolitical events |
+| Source Type    | Examples                                        |
+| -------------- | ----------------------------------------------- |
+| Financial News | Economic Times, MoneyControl, LiveMint          |
+| Earnings       | Quarterly results, guidance, conference calls   |
+| Regulatory     | RBI circulars, SEBI orders, government policies |
+| Insider        | CEO interviews, management commentary           |
+| Global         | Fed decisions, geopolitical events              |
 
 #### AI Processing
 
-| Feature | Output |
-|---------|--------|
-| AI Summary | 2-3 sentence summary per article |
-| Sentiment Score | Positive / Negative / Neutral + Confidence % |
-| Fake News Detection | Credibility scoring |
-| Impact Assessment | Which stocks/sectors affected |
-| Timeline View | Chronological event tracking |
-| Earnings Digest | Results summary vs estimates |
+| Feature             | Output                                       |
+| ------------------- | -------------------------------------------- |
+| AI Summary          | 2-3 sentence summary per article             |
+| Sentiment Score     | Positive / Negative / Neutral + Confidence % |
+| Fake News Detection | Credibility scoring                          |
+| Impact Assessment   | Which stocks/sectors affected                |
+| Timeline View       | Chronological event tracking                 |
+| Earnings Digest     | Results summary vs estimates                 |
 
 ---
 
@@ -265,17 +265,17 @@ assets like gold or debt funds."
 
 #### Features
 
-| Feature | Description |
-|---------|-------------|
-| Sector Heatmap | Visual performance comparison |
-| Industry Rotation | Which sectors are in/out of favor |
-| Macro Impact | How macros affect each sector |
-| Commodity Impact | Commodity price to sector correlation |
-| Currency Impact | INR movement to export/import sector effects |
-| Interest Rate Impact | Rate sensitivity by sector |
-| Seasonal Trends | Historical sector seasonality |
-| Sector Leadership | Leading stocks per sector |
-| Sector Ranking | AI-ranked best to worst sectors |
+| Feature              | Description                                  |
+| -------------------- | -------------------------------------------- |
+| Sector Heatmap       | Visual performance comparison                |
+| Industry Rotation    | Which sectors are in/out of favor            |
+| Macro Impact         | How macros affect each sector                |
+| Commodity Impact     | Commodity price to sector correlation        |
+| Currency Impact      | INR movement to export/import sector effects |
+| Interest Rate Impact | Rate sensitivity by sector                   |
+| Seasonal Trends      | Historical sector seasonality                |
+| Sector Leadership    | Leading stocks per sector                    |
+| Sector Ranking       | AI-ranked best to worst sectors              |
 
 #### AI Predictions
 
@@ -291,14 +291,14 @@ assets like gold or debt funds."
 
 #### Forecasts
 
-| Forecast | Output |
-|----------|--------|
-| Price Probability | Probability distribution for price ranges |
-| Range Forecast | Expected price range with confidence |
-| Earnings Probability | Beat / Miss / In-line probabilities |
-| Dividend Forecast | Expected next dividend |
-| Revenue Forecast | Revenue projection |
-| Support/Resistance | Key technical levels |
+| Forecast             | Output                                    |
+| -------------------- | ----------------------------------------- |
+| Price Probability    | Probability distribution for price ranges |
+| Range Forecast       | Expected price range with confidence      |
+| Earnings Probability | Beat / Miss / In-line probabilities       |
+| Dividend Forecast    | Expected next dividend                    |
+| Revenue Forecast     | Revenue projection                        |
+| Support/Resistance   | Key technical levels                      |
 
 #### Core Principle
 
@@ -330,14 +330,14 @@ AI Analysis:
 
 #### Supported Inputs
 
-| Input Type | Support |
-|-----------|---------|
-| Voice | Speech-to-text |
-| Languages | Hindi, English, Hinglish |
-| Images | Chart screenshots, portfolio photos |
-| Charts | Technical chart analysis |
-| Documents | Research reports, annual reports |
-| PDF | Statement uploads |
+| Input Type | Support                             |
+| ---------- | ----------------------------------- |
+| Voice      | Speech-to-text                      |
+| Languages  | Hindi, English, Hinglish            |
+| Images     | Chart screenshots, portfolio photos |
+| Charts     | Technical chart analysis            |
+| Documents  | Research reports, annual reports    |
+| PDF        | Statement uploads                   |
 
 ---
 
@@ -347,20 +347,20 @@ AI Analysis:
 
 #### Features
 
-| Feature | Description |
-|---------|-------------|
-| Portfolio Upload | CSV/Excel/Demat import |
-| Diversification Check | Asset, sector, market cap distribution |
-| Risk Assessment | Portfolio-level risk metrics |
-| Sector Allocation | Pie chart + benchmark comparison |
-| Rebalancing Suggestions | What to buy/sell/hold |
-| Dead Stock Detection | Stocks that are underperforming consistently |
-| Profit/Loss Analysis | Realized and unrealized P&L |
-| Tax Optimization | Tax-loss harvesting opportunities |
-| Benchmark Comparison | vs Nifty 50, Nifty 500, custom |
-| Portfolio Score | Single health score (0-100) |
-| Health Report | Visual health dashboard |
-| AI Recommendations | Actionable improvement suggestions |
+| Feature                 | Description                                  |
+| ----------------------- | -------------------------------------------- |
+| Portfolio Upload        | CSV/Excel/Demat import                       |
+| Diversification Check   | Asset, sector, market cap distribution       |
+| Risk Assessment         | Portfolio-level risk metrics                 |
+| Sector Allocation       | Pie chart + benchmark comparison             |
+| Rebalancing Suggestions | What to buy/sell/hold                        |
+| Dead Stock Detection    | Stocks that are underperforming consistently |
+| Profit/Loss Analysis    | Realized and unrealized P&L                  |
+| Tax Optimization        | Tax-loss harvesting opportunities            |
+| Benchmark Comparison    | vs Nifty 50, Nifty 500, custom               |
+| Portfolio Score         | Single health score (0-100)                  |
+| Health Report           | Visual health dashboard                      |
+| AI Recommendations      | Actionable improvement suggestions           |
 
 ---
 
@@ -370,16 +370,16 @@ AI Analysis:
 
 #### Supported Goals
 
-| Goal | Typical Horizon |
-|------|----------------|
-| Retirement | 15-30 years |
-| Child's Education | 5-18 years |
-| Child's Marriage | 10-20 years |
-| House Purchase | 5-15 years |
-| Emergency Fund | Immediate |
-| Passive Income | 5-10 years |
-| Vacation | 1-5 years |
-| Financial Freedom | 10-25 years |
+| Goal              | Typical Horizon |
+| ----------------- | --------------- |
+| Retirement        | 15-30 years     |
+| Child's Education | 5-18 years      |
+| Child's Marriage  | 10-20 years     |
+| House Purchase    | 5-15 years      |
+| Emergency Fund    | Immediate       |
+| Passive Income    | 5-10 years      |
+| Vacation          | 1-5 years       |
+| Financial Freedom | 10-25 years     |
 
 #### AI Output
 
@@ -398,16 +398,16 @@ AI Analysis:
 
 #### Income Sources
 
-| Source | Risk Level |
-|--------|-----------|
-| Dividend Stocks | Low-Medium |
-| Covered Calls | Medium |
-| REITs | Low-Medium |
-| InvITs | Medium |
-| Corporate Bonds | Low-Medium |
-| Debt Mutual Funds | Low |
-| SWP (Systematic Withdrawal) | Low |
-| Rental Yield | Low (illiquid) |
+| Source                      | Risk Level     |
+| --------------------------- | -------------- |
+| Dividend Stocks             | Low-Medium     |
+| Covered Calls               | Medium         |
+| REITs                       | Low-Medium     |
+| InvITs                      | Medium         |
+| Corporate Bonds             | Low-Medium     |
+| Debt Mutual Funds           | Low            |
+| SWP (Systematic Withdrawal) | Low            |
+| Rental Yield                | Low (illiquid) |
 
 #### Features
 
@@ -425,16 +425,16 @@ AI Analysis:
 
 #### Tracking
 
-| Entity | Data Points |
-|--------|------------|
-| FII/FPI | Monthly/quarterly holdings, buying/selling trends |
-| DII | Mutual fund holdings, insurance company holdings |
-| Promoters | Promoter holding changes, pledge changes |
-| Mutual Funds | Scheme-wise stock holdings |
-| Bulk Deals | Daily bulk deal tracking |
-| Block Deals | Large institutional transactions |
-| Insider Trading | Director/key management personnel trades |
-| Shareholding Pattern | Quarterly shareholding changes |
+| Entity               | Data Points                                       |
+| -------------------- | ------------------------------------------------- |
+| FII/FPI              | Monthly/quarterly holdings, buying/selling trends |
+| DII                  | Mutual fund holdings, insurance company holdings  |
+| Promoters            | Promoter holding changes, pledge changes          |
+| Mutual Funds         | Scheme-wise stock holdings                        |
+| Bulk Deals           | Daily bulk deal tracking                          |
+| Block Deals          | Large institutional transactions                  |
+| Insider Trading      | Director/key management personnel trades          |
+| Shareholding Pattern | Quarterly shareholding changes                    |
 
 #### AI Signals
 
@@ -451,14 +451,14 @@ AI Analysis:
 
 #### Patterns Detected
 
-| Category | Patterns |
-|----------|---------|
-| **Chart Patterns** | Head & Shoulders, Double Top/Bottom, Triangles, Flags, Wedges |
-| **Candlestick** | Doji, Hammer, Engulfing, Morning Star, etc. |
-| **Trendlines** | Support, Resistance, Trend channels |
-| **Breakouts** | Volume-confirmed breakouts and breakdowns |
-| **Indicators** | RSI, MACD, Bollinger Bands, Moving Averages, Volume |
-| **Multi-timeframe** | Daily, Weekly, Monthly alignment |
+| Category            | Patterns                                                      |
+| ------------------- | ------------------------------------------------------------- |
+| **Chart Patterns**  | Head & Shoulders, Double Top/Bottom, Triangles, Flags, Wedges |
+| **Candlestick**     | Doji, Hammer, Engulfing, Morning Star, etc.                   |
+| **Trendlines**      | Support, Resistance, Trend channels                           |
+| **Breakouts**       | Volume-confirmed breakouts and breakdowns                     |
+| **Indicators**      | RSI, MACD, Bollinger Bands, Moving Averages, Volume           |
+| **Multi-timeframe** | Daily, Weekly, Monthly alignment                              |
 
 #### AI Explanation
 
@@ -478,16 +478,16 @@ If it breaks 465 with volume, the target is 490."
 
 #### Content Types
 
-| Type | Description |
-|------|-------------|
-| Lessons | Bite-sized topics |
-| Courses | Structured learning paths |
-| Glossary | Financial terms dictionary |
-| Quiz | Knowledge testing |
-| Flashcards | Quick revision |
-| Daily Learning | Daily fact/concept |
-| Mistake Analysis | Common investor mistakes |
-| Case Studies | Real-world examples |
+| Type             | Description                |
+| ---------------- | -------------------------- |
+| Lessons          | Bite-sized topics          |
+| Courses          | Structured learning paths  |
+| Glossary         | Financial terms dictionary |
+| Quiz             | Knowledge testing          |
+| Flashcards       | Quick revision             |
+| Daily Learning   | Daily fact/concept         |
+| Mistake Analysis | Common investor mistakes   |
+| Case Studies     | Real-world examples        |
 
 #### Engagement
 
@@ -504,17 +504,17 @@ If it breaks 465 with volume, the target is 490."
 
 #### Features
 
-| Feature | Description |
-|---------|-------------|
-| Community Ideas | Share investment theses |
-| Stock Discussions | Threaded discussions per stock |
-| Polls | Sentiment polling |
-| Leaderboards | Top performers (optional) |
-| Model Portfolios | Share and follow portfolios |
-| Success Stories | Inspirational journeys |
-| Challenges | Monthly investment challenges |
-| Social Investing | Follow/copy strategies |
-| Anonymous Portfolios | Share without identity |
+| Feature              | Description                    |
+| -------------------- | ------------------------------ |
+| Community Ideas      | Share investment theses        |
+| Stock Discussions    | Threaded discussions per stock |
+| Polls                | Sentiment polling              |
+| Leaderboards         | Top performers (optional)      |
+| Model Portfolios     | Share and follow portfolios    |
+| Success Stories      | Inspirational journeys         |
+| Challenges           | Monthly investment challenges  |
+| Social Investing     | Follow/copy strategies         |
+| Anonymous Portfolios | Share without identity         |
 
 ---
 
@@ -524,14 +524,14 @@ If it breaks 465 with volume, the target is 490."
 
 #### Features
 
-| Feature | Description |
-|---------|-------------|
-| One-Click Research | Generate full company research report |
-| Annual Report Analysis | AI extracts key insights from AR |
-| Earnings Transcript | AI summarizes management commentary |
-| Patent Analysis | Innovation pipeline assessment |
-| Competitor Analysis | Competitive positioning |
-| Research Reports | 30-50 page AI-generated PDF reports |
+| Feature                | Description                           |
+| ---------------------- | ------------------------------------- |
+| One-Click Research     | Generate full company research report |
+| Annual Report Analysis | AI extracts key insights from AR      |
+| Earnings Transcript    | AI summarizes management commentary   |
+| Patent Analysis        | Innovation pipeline assessment        |
+| Competitor Analysis    | Competitive positioning               |
+| Research Reports       | 30-50 page AI-generated PDF reports   |
 
 ---
 
@@ -541,14 +541,14 @@ If it breaks 465 with volume, the target is 490."
 
 #### Requirements
 
-| Area | Requirement |
-|------|------------|
-| SEBI Compliance | Investment advisor regulations, disclaimers |
-| DPDP Act | Data Protection & Digital Privacy compliance |
-| Consent Management | Explicit user consent for data processing |
-| Audit Logs | Complete audit trail of user actions |
-| Disclaimers | Clear investment risk disclaimers |
-| AI Transparency | Model explainability, bias monitoring |
+| Area               | Requirement                                  |
+| ------------------ | -------------------------------------------- |
+| SEBI Compliance    | Investment advisor regulations, disclaimers  |
+| DPDP Act           | Data Protection & Digital Privacy compliance |
+| Consent Management | Explicit user consent for data processing    |
+| Audit Logs         | Complete audit trail of user actions         |
+| Disclaimers        | Clear investment risk disclaimers            |
+| AI Transparency    | Model explainability, bias monitoring        |
 
 ---
 
@@ -558,17 +558,17 @@ If it breaks 465 with volume, the target is 490."
 
 #### Agent Types
 
-| Agent | Responsibility |
-|-------|---------------|
-| Planner Agent | Task decomposition and planning |
-| Risk Agent | Risk assessment and monitoring |
-| News Agent | News collection and analysis |
-| Portfolio Agent | Portfolio analysis and optimization |
-| Forecast Agent | Predictive modeling |
-| Tax Agent | Tax optimization |
-| Explainability Agent | Plain-language explanations |
-| Research Agent | Deep research tasks |
-| Memory Agent | Context retention across sessions |
+| Agent                | Responsibility                      |
+| -------------------- | ----------------------------------- |
+| Planner Agent        | Task decomposition and planning     |
+| Risk Agent           | Risk assessment and monitoring      |
+| News Agent           | News collection and analysis        |
+| Portfolio Agent      | Portfolio analysis and optimization |
+| Forecast Agent       | Predictive modeling                 |
+| Tax Agent            | Tax optimization                    |
+| Explainability Agent | Plain-language explanations         |
+| Research Agent       | Deep research tasks                 |
+| Memory Agent         | Context retention across sessions   |
 
 ---
 
@@ -578,12 +578,12 @@ If it breaks 465 with volume, the target is 490."
 
 #### Channels
 
-| Channel | Use Case |
-|---------|---------|
-| Telegram | Real-time alerts, daily summaries |
-| WhatsApp | Weekly reports, goal updates |
-| Email | Detailed reports, research |
-| Push Notifications | Price alerts, breaking news |
+| Channel            | Use Case                          |
+| ------------------ | --------------------------------- |
+| Telegram           | Real-time alerts, daily summaries |
+| WhatsApp           | Weekly reports, goal updates      |
+| Email              | Detailed reports, research        |
+| Push Notifications | Price alerts, breaking news       |
 
 #### Alert Types
 
@@ -602,57 +602,57 @@ If it breaks 465 with volume, the target is 490."
 
 #### Features
 
-| Area | Features |
-|------|---------|
-| User Management | User CRUD, roles, permissions |
-| Subscription Management | Plans, billing, payments |
-| AI Usage Monitoring | Token usage, model costs, latency |
-| Revenue Dashboard | MRR, ARR, churn, LTV |
-| Feature Flags | Gradual rollout, A/B testing |
-| Audit Logs | System-wide audit trail |
-| System Health | Uptime, error rates, performance |
-| Product Analytics | User behavior, funnel analysis |
+| Area                    | Features                          |
+| ----------------------- | --------------------------------- |
+| User Management         | User CRUD, roles, permissions     |
+| Subscription Management | Plans, billing, payments          |
+| AI Usage Monitoring     | Token usage, model costs, latency |
+| Revenue Dashboard       | MRR, ARR, churn, LTV              |
+| Feature Flags           | Gradual rollout, A/B testing      |
+| Audit Logs              | System-wide audit trail           |
+| System Health           | Uptime, error rates, performance  |
+| Product Analytics       | User behavior, funnel analysis    |
 
 ---
 
 ## 4. Recommended Build Order
 
-| Phase | Modules | Timeline | Milestone |
-|-------|---------|----------|-----------|
-| **Phase 1 — Foundation** | Data Layer, Auth, Portfolio Upload | Month 1-2 | MVP Launch |
-| **Phase 2 — Core Intelligence** | AI Stock Intelligence, Risk Analytics, Portfolio Doctor | Month 2-4 | Smart Analytics |
-| **Phase 3 — Engagement** | News Intelligence, Ask Quantora, Notifications | Month 4-6 | User Engagement |
-| **Phase 4 — Planning** | Goal Planner, Passive Income Engine | Month 6-8 | Financial Planning |
-| **Phase 5 — Advanced** | Stress Testing, Forecast Engine, Sector Intelligence, Smart Money Tracker | Month 8-11 | Advanced Analytics |
-| **Phase 6 — Growth** | Learning Hub, Community, AI Research Lab | Month 11-14 | Growth & Retention |
-| **Phase 7 — Enterprise** | Compliance, Agent Orchestrator, Admin & Analytics | Month 14-16 | Enterprise Ready |
+| Phase                           | Modules                                                                   | Timeline    | Milestone          |
+| ------------------------------- | ------------------------------------------------------------------------- | ----------- | ------------------ |
+| **Phase 1 — Foundation**        | Data Layer, Auth, Portfolio Upload                                        | Month 1-2   | MVP Launch         |
+| **Phase 2 — Core Intelligence** | AI Stock Intelligence, Risk Analytics, Portfolio Doctor                   | Month 2-4   | Smart Analytics    |
+| **Phase 3 — Engagement**        | News Intelligence, Ask Quantora, Notifications                            | Month 4-6   | User Engagement    |
+| **Phase 4 — Planning**          | Goal Planner, Passive Income Engine                                       | Month 6-8   | Financial Planning |
+| **Phase 5 — Advanced**          | Stress Testing, Forecast Engine, Sector Intelligence, Smart Money Tracker | Month 8-11  | Advanced Analytics |
+| **Phase 6 — Growth**            | Learning Hub, Community, AI Research Lab                                  | Month 11-14 | Growth & Retention |
+| **Phase 7 — Enterprise**        | Compliance, Agent Orchestrator, Admin & Analytics                         | Month 14-16 | Enterprise Ready   |
 
 ---
 
 ## 5. Success Metrics
 
-| Metric | Target (Year 1) |
-|--------|-----------------|
-| Registered Users | 50,000 |
-| Monthly Active Users | 20,000 |
-| Paid Subscribers | 5,000 |
-| AI Queries/Day | 100,000 |
-| DAU/MAU Ratio | > 30% |
-| NPS Score | > 50 |
-| Churn Rate (monthly) | < 5% |
+| Metric               | Target (Year 1) |
+| -------------------- | --------------- |
+| Registered Users     | 50,000          |
+| Monthly Active Users | 20,000          |
+| Paid Subscribers     | 5,000           |
+| AI Queries/Day       | 100,000         |
+| DAU/MAU Ratio        | > 30%           |
+| NPS Score            | > 50            |
+| Churn Rate (monthly) | < 5%            |
 
 ---
 
 ## 6. Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Data source reliability | High | Multiple fallback sources, data validation |
-| AI hallucination | High | Human review layer, confidence thresholds |
-| Regulatory changes | Medium | Modular compliance layer, legal monitoring |
-| Scalability | Medium | Microservices architecture, auto-scaling |
-| User trust (financial advice) | High | Clear disclaimers, explainability, not recommendations |
+| Risk                          | Impact | Mitigation                                             |
+| ----------------------------- | ------ | ------------------------------------------------------ |
+| Data source reliability       | High   | Multiple fallback sources, data validation             |
+| AI hallucination              | High   | Human review layer, confidence thresholds              |
+| Regulatory changes            | Medium | Modular compliance layer, legal monitoring             |
+| Scalability                   | Medium | Microservices architecture, auto-scaling               |
+| User trust (financial advice) | High   | Clear disclaimers, explainability, not recommendations |
 
 ---
 
-*This document serves as the single source of truth for the Quantora product vision and implementation roadmap.*
+_This document serves as the single source of truth for the Quantora product vision and implementation roadmap._

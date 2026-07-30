@@ -16,6 +16,7 @@
 **So that** I can access the platform
 
 **Acceptance Criteria:**
+
 - [x] Email must be valid format
 - [x] Password must be 8+ chars with upper, lower, and digit
 - [x] Name is required (min 2 chars)
@@ -32,6 +33,7 @@
 **So that** I can access my portfolio
 
 **Acceptance Criteria:**
+
 - [x] Invalid credentials → 401 (no enumeration)
 - [x] Unverified email → 403 "Please verify your email"
 - [x] Deactivated account → 403 "Account is deactivated"
@@ -46,6 +48,7 @@
 **So that** my data stays secure
 
 **Acceptance Criteria:**
+
 - [x] All routes require JWT by default
 - [x] `@Public()` decorator exempts specific routes
 - [x] Invalid/expired JWT → 401
@@ -60,6 +63,7 @@
 **So that** I stay logged in
 
 **Acceptance Criteria:**
+
 - [x] Old refresh token gets revoked (rotation)
 - [x] Expired/revoked token → 401
 - [x] Success → new accessToken + refreshToken
@@ -73,6 +77,7 @@
 **So that** users can't access admin features
 
 **Acceptance Criteria:**
+
 - [x] `@Roles('admin')` restricts to admin only
 - [x] Insufficient role → 403
 - [x] No role required → open to authenticated users
@@ -86,6 +91,7 @@
 **So that** I can login
 
 **Acceptance Criteria:**
+
 - [x] Token-based verification link
 - [x] Invalid token → 401
 - [x] Verified email can login
@@ -99,6 +105,7 @@
 **So that** I can regain access
 
 **Acceptance Criteria:**
+
 - [x] Request with email → always 200 (no enumeration)
 - [x] Reset with valid token + new password → 200
 - [x] All existing refresh tokens revoked on reset
@@ -112,6 +119,7 @@
 **So that** I can customize my experience
 
 **Acceptance Criteria:**
+
 - [x] GET `/user/preferences` returns preferences
 - [x] PATCH `/user/preferences` updates allowed fields
 - [x] Auto-created on registration
@@ -125,6 +133,7 @@
 **So that** I can investigate issues
 
 **Acceptance Criteria:**
+
 - [x] Every API call recorded to AuditLog table
 - [x] Logs: action, entity, IP, user-agent, userId
 - [x] Audit failure doesn't crash request
@@ -138,6 +147,7 @@
 **So that** the platform stays responsive
 
 **Acceptance Criteria:**
+
 - [x] 60 requests per minute per IP
 - [x] Exceeding limit → 429
 - [x] In-memory store with periodic cleanup
@@ -151,6 +161,7 @@
 **So that** I can navigate and see prices
 
 **Acceptance Criteria:**
+
 - [x] Animated scrolling stock ticker
 - [x] Search bar with placeholder
 - [x] Navigation links + mega dropdown
@@ -166,6 +177,7 @@
 **So that** I can start coding quickly
 
 **Acceptance Criteria:**
+
 - [x] `make dev` starts NestJS + Angular + FastAPI
 - [x] Clear terminal output with URLs
 - [x] Ctrl+C stops all services

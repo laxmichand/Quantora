@@ -76,7 +76,9 @@ function loadPrefs(id: string): TablePreferences | null {
 function savePrefs(id: string, prefs: TablePreferences): void {
   try {
     localStorage.setItem(PREFS_KEY_PREFIX + id, JSON.stringify(prefs));
-  } catch {}
+  } catch {
+    /* quota exceeded or storage unavailable */
+  }
 }
 
 @Component({

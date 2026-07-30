@@ -427,7 +427,7 @@ db.scores.createIndex({ aiScore: -1 });
 
 // News
 db.news.createIndex({ publishedAt: -1 });
-db.news.createIndex({ "sentiment.label": 1 });
+db.news.createIndex({ 'sentiment.label': 1 });
 db.news.createIndex({ tags: 1 });
 
 // Chat History
@@ -443,4 +443,4 @@ db.smart_money.createIndex({ date: -1, type: 1 });
 
 ---
 
-*Each database serves its strength: PostgreSQL for relationships, MongoDB for flexibility, Redis for speed.*
+_Each database serves its strength: PostgreSQL for relationships, MongoDB for flexibility, Redis for speed._

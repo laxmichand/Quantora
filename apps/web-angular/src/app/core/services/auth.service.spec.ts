@@ -1,15 +1,33 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { AuthService, AuthUser } from './auth.service';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { DeviceFingerprintService } from './device-fingerprint.service';
+
+const TEST_USER: AuthUser = { id: '123', email: 'test@test.com', name: 'Test', role: 'user' };
+const TEST_EMAIL = 'test@test.com';
+const TEST_PASSWORD = 'ValidP@ss1';
+const FINGERPRINT_DATA = {
+  deviceId: 'test-device',
+  deviceName: 'Test',
+  browser: 'Chrome',
+  os: 'Mac',
+};
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
+    const fingerprintSpy = jasmine.createSpyObj('DeviceFingerprintService', [
+      'collect',
+      'getCurrentDeviceId',
+    ]);
+    fingerprintSpy.collect.and.resolveTo(FINGERPRINT_DATA);
+    fingerprintSpy.getCurrentDeviceId.and.returnValue('test-device');
+
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [AuthService],
+      providers: [AuthService, { provide: DeviceFingerprintService, useValue: fingerprintSpy }],
     });
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -28,48 +46,44 @@ describe('AuthService', () => {
     expect(service.currentUser).toBeNull();
   });
 
-  it('should login and store user in memory', () => {
-    const mockResponse = {
-      user: { id: '123', email: 'test@test.com', name: 'Test', role: 'user' },
-    };
-
-    service.login('test@test.com', 'password').subscribe((res) => {
-      expect(res.user.email).toBe('test@test.com');
-    });
+  it('should login and store user in memory', fakeAsync(() => {
+    const mockResponse = { user: TEST_USER };
+    let result: any;
+    service.login(TEST_EMAIL, TEST_PASSWORD).then((r) => (result = r));
+    tick();
 
     const req = httpMock.expectOne('/api/auth/login');
     expect(req.request.method).toBe('POST');
     expect(req.request.withCredentials).toBeTrue();
     req.flush(mockResponse);
 
-    expect(service.currentUser?.email).toBe('test@test.com');
-  });
+    tick();
+    expect(result.user.email).toBe(TEST_EMAIL);
+    expect(service.currentUser?.email).toBe(TEST_EMAIL);
+  }));
 
-  it('should register and store user in memory', () => {
-    const mockResponse = {
-      user: { id: '1', email: 'new@test.com', name: 'New', role: 'user' },
-    };
-
-    service.register('new@test.com', 'Test1234', 'New').subscribe((res) => {
-      expect(res.user.email).toBe('new@test.com');
-    });
+  it('should register and store user in memory', fakeAsync(() => {
+    const mockResponse = { user: TEST_USER };
+    let result: any;
+    service.register(TEST_EMAIL, TEST_PASSWORD, 'Test').then((r) => (result = r));
+    tick();
 
     const req = httpMock.expectOne('/api/auth/register');
     expect(req.request.method).toBe('POST');
     expect(req.request.withCredentials).toBeTrue();
     req.flush(mockResponse);
-  });
+
+    tick();
+    expect(result.user.email).toBe(TEST_EMAIL);
+  }));
 
   it('should logout and clear user', () => {
-    service['currentUserSubject'].next({ id: '1', email: 't@t.com', name: 'T', role: 'user' });
-
+    service['currentUserSubject'].next(TEST_USER);
     service.logout();
-
     const req = httpMock.expectOne('/api/auth/logout');
     expect(req.request.method).toBe('POST');
     expect(req.request.withCredentials).toBeTrue();
     req.flush({ message: 'ok' });
-
     expect(service.currentUser).toBeNull();
   });
 

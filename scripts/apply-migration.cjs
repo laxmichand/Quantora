@@ -10,7 +10,9 @@ async function main() {
   const client = await pool.connect();
   await client.query('SET statement_timeout = 120000');
 
-  let ok = 0, skip = 0, fail = 0;
+  let ok = 0,
+    skip = 0,
+    fail = 0;
 
   // ── ALTER EXISTING TABLES ──
   const alters = [
@@ -62,8 +64,14 @@ async function main() {
 
   console.log('Adding columns to existing tables...');
   for (const stmt of alters) {
-    try { await client.query(stmt); ok++; process.stdout.write('.'); }
-    catch (e) { skip++; process.stdout.write('s'); }
+    try {
+      await client.query(stmt);
+      ok++;
+      process.stdout.write('.');
+    } catch (e) {
+      skip++;
+      process.stdout.write('s');
+    }
   }
 
   // ── DROP old indexes that conflict ──
@@ -74,7 +82,10 @@ async function main() {
     `DROP INDEX IF EXISTS "audit_logs_user_id_idx"`,
   ];
   for (const stmt of drops) {
-    try { await client.query(stmt); process.stdout.write('x'); } catch {}
+    try {
+      await client.query(stmt);
+      process.stdout.write('x');
+    } catch {}
   }
 
   // ── NEW TABLE: devices ──
@@ -125,8 +136,16 @@ async function main() {
       CONSTRAINT "devices_device_id_key" UNIQUE ("device_id"),
       CONSTRAINT "devices_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
     )`;
-  try { await client.query(createDevices); ok++; console.log('\nCreated devices table'); }
-  catch (e) { if (!e.message.includes('already exists')) { fail++; console.error('devices:', e.message); } else skip++; }
+  try {
+    await client.query(createDevices);
+    ok++;
+    console.log('\nCreated devices table');
+  } catch (e) {
+    if (!e.message.includes('already exists')) {
+      fail++;
+      console.error('devices:', e.message);
+    } else skip++;
+  }
 
   // ── NEW TABLE: sessions ──
   const createSessions = `
@@ -152,12 +171,28 @@ async function main() {
       CONSTRAINT "sessions_pkey" PRIMARY KEY ("id"),
       CONSTRAINT "sessions_session_token_key" UNIQUE ("session_token")
     )`;
-  try { await client.query(createSessions); ok++; console.log('Created sessions table'); }
-  catch (e) { if (!e.message.includes('already exists')) { fail++; console.error('sessions:', e.message); } else skip++; }
+  try {
+    await client.query(createSessions);
+    ok++;
+    console.log('Created sessions table');
+  } catch (e) {
+    if (!e.message.includes('already exists')) {
+      fail++;
+      console.error('sessions:', e.message);
+    } else skip++;
+  }
 
   // ── FOREIGN KEY for sessions → devices (separate in case devices wasn't created yet) ──
-  try { await client.query(`ALTER TABLE "sessions" ADD CONSTRAINT IF NOT EXISTS "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE`); } catch {}
-  try { await client.query(`ALTER TABLE "sessions" ADD CONSTRAINT IF NOT EXISTS "sessions_device_id_fkey" FOREIGN KEY ("device_id") REFERENCES "devices"("id") ON DELETE CASCADE`); } catch {}
+  try {
+    await client.query(
+      `ALTER TABLE "sessions" ADD CONSTRAINT IF NOT EXISTS "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE`,
+    );
+  } catch {}
+  try {
+    await client.query(
+      `ALTER TABLE "sessions" ADD CONSTRAINT IF NOT EXISTS "sessions_device_id_fkey" FOREIGN KEY ("device_id") REFERENCES "devices"("id") ON DELETE CASCADE`,
+    );
+  } catch {}
 
   // ── NEW TABLE: security_events ──
   const createEvents = `
@@ -176,9 +211,21 @@ async function main() {
       "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT "security_events_pkey" PRIMARY KEY ("id")
     )`;
-  try { await client.query(createEvents); ok++; console.log('Created security_events table'); }
-  catch (e) { if (!e.message.includes('already exists')) { fail++; console.error('security_events:', e.message); } else skip++; }
-  try { await client.query(`ALTER TABLE "security_events" ADD CONSTRAINT IF NOT EXISTS "security_events_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE`); } catch {}
+  try {
+    await client.query(createEvents);
+    ok++;
+    console.log('Created security_events table');
+  } catch (e) {
+    if (!e.message.includes('already exists')) {
+      fail++;
+      console.error('security_events:', e.message);
+    } else skip++;
+  }
+  try {
+    await client.query(
+      `ALTER TABLE "security_events" ADD CONSTRAINT IF NOT EXISTS "security_events_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE`,
+    );
+  } catch {}
 
   // ── INDEXES ──
   console.log('Creating indexes...');
@@ -226,8 +273,19 @@ async function main() {
     `CREATE INDEX IF NOT EXISTS "security_events_created_at_idx" ON "security_events"("created_at" DESC)`,
   ];
   for (const stmt of indexes) {
-    try { await client.query(stmt); ok++; process.stdout.write('.'); }
-    catch (e) { if (e.message.includes('already exists')) { skip++; process.stdout.write('s'); } else { fail++; console.error(`\nINDEX FAIL: ${e.message.substring(0, 150)}`); } }
+    try {
+      await client.query(stmt);
+      ok++;
+      process.stdout.write('.');
+    } catch (e) {
+      if (e.message.includes('already exists')) {
+        skip++;
+        process.stdout.write('s');
+      } else {
+        fail++;
+        console.error(`\nINDEX FAIL: ${e.message.substring(0, 150)}`);
+      }
+    }
   }
 
   console.log(`\n\nOK: ${ok} | Skipped: ${skip} | Failed: ${fail}`);
@@ -238,4 +296,7 @@ async function main() {
   await pool.end();
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

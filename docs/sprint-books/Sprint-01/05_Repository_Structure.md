@@ -395,4 +395,4 @@ infrastructure/
 
 ---
 
-*This structure scales with the project. New modules go in `apps/*/modules/` and new features in `apps/web-angular/src/app/features/`.*
+_This structure scales with the project. New modules go in `apps/*/modules/` and new features in `apps/web-angular/src/app/features/`._
