@@ -246,7 +246,10 @@ export class DeviceManagementService {
       createdAt: device.createdAt,
       sessions: (device.sessions || []).map((s: any) => ({
         id: s.id,
+        loginTime: s.loginTime,
         lastActivity: s.lastActivity,
+        expiresAt: s.expiresAt,
+        ipAddress: s.ipAddress,
         isCurrent: isCurrent && s.revoked === false,
       })),
     };

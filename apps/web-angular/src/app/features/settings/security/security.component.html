@@ -1,57 +1,62 @@
 <div class="security-page" *ngIf="!loading">
   <div class="page-header">
-    <h1>Security & Devices</h1>
-    <p>Manage your active sessions, trusted devices, and security settings</p>
+    <button mat-icon-button routerLink="/settings" class="back-btn" aria-label="Back to settings">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-text">
+      <h1>Devices</h1>
+      <p>Manage your trusted devices and active sessions</p>
+    </div>
   </div>
 
   <!-- ═══════ Current Device Card ═══════ -->
-  <div class="current-device-card" *ngIf="currentSession">
+  <div class="current-device-card" *ngIf="currentDevice">
     <div class="device-icon-wrap">
       <mat-icon>{{ deviceIcon }}</mat-icon>
     </div>
     <div class="device-info">
       <div class="device-name-row">
-        <strong>{{ currentSession.device.deviceName || 'Unknown Device' }}</strong>
+        <strong>{{ currentDevice.deviceName || 'Unknown Device' }}</strong>
         <span class="badge current-badge">Current</span>
-        <span class="badge trusted-badge" *ngIf="currentSession.device.trustedDevice">Trusted</span>
+        <span class="badge trusted-badge" *ngIf="currentDevice.trustedDevice">Trusted</span>
       </div>
       <div class="device-details">
-        <span>{{ currentSession.device.browser }} {{ currentSession.device.browserVersion }}</span>
+        <span>{{ currentDevice.browser }} {{ currentDevice.browserVersion }}</span>
         <span>·</span>
-        <span>{{ currentSession.device.os }} {{ currentSession.device.osVersion }}</span>
+        <span>{{ currentDevice.os }} {{ currentDevice.osVersion }}</span>
       </div>
       <div class="device-location">
         <mat-icon>location_on</mat-icon>
         <span
-          >{{ currentSession.device.city || 'Unknown' }},
-          {{ currentSession.device.country || 'Unknown' }}</span
+          >{{ currentDevice.city || 'Unknown' }},
+          {{ currentDevice.country || 'Unknown' }}</span
         >
-        <span class="ip" *ngIf="currentSession.device.publicIp"
-          >· {{ currentSession.device.publicIp }}</span
+        <span class="ip" *ngIf="currentDevice.publicIp"
+          >· {{ currentDevice.publicIp }}</span
         >
       </div>
       <div class="device-time">
         <mat-icon>schedule</mat-icon>
         <span>Active now</span>
         <span class="sep">·</span>
-        <span>{{ currentSession.device.loginCount || 1 }} logins</span>
+        <span>{{ currentDevice.loginCount || 1 }} logins</span>
         <span class="sep">·</span>
-        <span>Signed in {{ timeAgo(currentSession.loginTime) }}</span>
+        <span>Signed in {{ timeAgo(currentSessionLoginTime) }}</span>
       </div>
       <div class="device-actions">
         <button mat-stroked-button (click)="onLogoutCurrent()">
           <mat-icon>logout</mat-icon> Logout
         </button>
-        <button mat-stroked-button (click)="onRenameDevice(currentSession.device.id)">
+        <button mat-stroked-button (click)="onRenameDevice(currentDevice.id)">
           <mat-icon>edit</mat-icon> Rename
         </button>
         <button
           mat-stroked-button
-          [color]="currentSession.device.trustedDevice ? 'warn' : 'primary'"
-          (click)="onTrustDevice(currentSession.device.id, !currentSession.device.trustedDevice)"
+          [color]="currentDevice.trustedDevice ? 'warn' : 'primary'"
+          (click)="onTrustDevice(currentDevice.id, !currentDevice.trustedDevice)"
         >
-          <mat-icon>{{ currentSession.device.trustedDevice ? 'block' : 'verified_user' }}</mat-icon>
-          {{ currentSession.device.trustedDevice ? 'Untrust' : 'Trust' }}
+          <mat-icon>{{ currentDevice.trustedDevice ? 'block' : 'verified_user' }}</mat-icon>
+          {{ currentDevice.trustedDevice ? 'Untrust' : 'Trust' }}
         </button>
       </div>
     </div>
@@ -61,6 +66,9 @@
   <div class="section-card" *ngIf="otherDevices.length > 0">
     <div class="section-header">
       <h2>Other Devices ({{ otherDevices.length }})</h2>
+      <a mat-stroked-button routerLink="/settings/devices" class="view-all-link">
+        <mat-icon>open_in_new</mat-icon> View All
+      </a>
     </div>
     <div class="device-list">
       <div class="device-item" *ngFor="let device of otherDevices">
@@ -91,6 +99,7 @@
           <button
             mat-icon-button
             matTooltip="Logout"
+            *ngIf="device.sessions?.[0]?.id"
             (click)="onLogoutSession(device.sessions[0].id)"
           >
             <mat-icon>logout</mat-icon>
@@ -115,209 +124,21 @@
       <mat-icon>devices_other</mat-icon> Logout All Devices
     </button>
   </div>
-
-  <!-- ═══════ Active Sessions Table ═══════ -->
-  <div class="section-card" *ngIf="sessions.length > 0">
-    <div class="section-header">
-      <h2>Active Sessions ({{ sessions.length }})</h2>
-    </div>
-    <table class="sessions-table">
-      <thead>
-        <tr>
-          <th>Device</th>
-          <th>Browser / OS</th>
-          <th>Location</th>
-          <th>Signed In</th>
-          <th>Last Active</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let s of sessions">
-          <td>
-            <div class="session-device">
-              <mat-icon>{{ s.deviceType === 'mobile' ? 'smartphone' : 'computer' }}</mat-icon>
-              <span>{{ s.deviceName }}</span>
-              <span class="badge current-badge" *ngIf="s.isCurrent">Current</span>
-            </div>
-          </td>
-          <td>{{ s.browser }} · {{ s.os }}</td>
-          <td>{{ s.location }}</td>
-          <td>{{ formatDate(s.loginTime) }}</td>
-          <td>{{ timeAgo(s.lastActivity) }}</td>
-          <td>
-            <button
-              mat-stroked-button
-              color="warn"
-              *ngIf="!s.isCurrent"
-              (click)="onLogoutSession(s.id)"
-            >
-              Revoke
-            </button>
-            <span *ngIf="s.isCurrent">(current)</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ═══════ Login History ═══════ -->
-  <div class="section-card" *ngIf="loginHistory.length > 0">
-    <div class="section-header">
-      <h2>Login History</h2>
-    </div>
-    <div class="history-list">
-      <div class="history-item" *ngFor="let h of loginHistory">
-        <mat-icon [class.success]="h.success" [class.fail]="!h.success">
-          {{ h.success ? 'check_circle' : 'cancel' }}
-        </mat-icon>
-        <div class="history-meta">
-          <div class="history-action">
-            <strong>{{ h.success ? 'Login successful' : 'Login failed' }}</strong>
-            <span *ngIf="h.failureReason"> — {{ h.failureReason }}</span>
-          </div>
-          <div class="history-details">
-            <span>{{ h.browser }} on {{ h.os }}</span>
-            <span>·</span>
-            <span>{{ h.city || 'Unknown' }}, {{ h.country || 'Unknown' }}</span>
-            <span>·</span>
-            <span>{{ h.ipAddress }}</span>
-            <span class="badge risk-{{ h.riskLevel }}" *ngIf="h.riskLevel !== 'low'">{{
-              h.riskLevel
-            }}</span>
-          </div>
-        </div>
-        <span class="history-time">{{ timeAgo(h.createdAt) }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════ Security Events ═══════ -->
-  <div class="section-card" *ngIf="securityEvents.length > 0">
-    <div class="section-header">
-      <h2>Security Alerts</h2>
-    </div>
-    <div class="events-list">
-      <div class="event-item" *ngFor="let e of securityEvents">
-        <mat-icon [color]="severityColor(e.severity)">
-          {{ e.severity === 'critical' ? 'gpp_bad' : e.severity === 'high' ? 'warning' : 'info' }}
-        </mat-icon>
-        <div class="event-meta">
-          <strong>{{ formatEventType(e.eventType) }}</strong>
-          <span>{{ e.description }}</span>
-        </div>
-        <div class="event-extra">
-          <span class="badge severity-{{ e.severity }}">{{ e.severity }}</span>
-          <span>{{ timeAgo(e.createdAt) }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════ MFA Section ═══════ -->
-  <div class="section-card">
-    <div class="section-header">
-      <h2>Two-Factor Authentication (2FA)</h2>
-    </div>
-    <div class="mfa-status">
-      <mat-icon>{{ mfaEnabled ? 'verified_user' : 'no_encryption' }}</mat-icon>
-      <div class="mfa-info">
-        <strong>{{ mfaEnabled ? 'MFA is enabled' : 'MFA is not enabled' }}</strong>
-        <p>
-          {{
-            mfaEnabled
-              ? 'Your account is protected with two-factor authentication.'
-              : 'Add an extra layer of security to your account.'
-          }}
-        </p>
-      </div>
-      <button
-        mat-raised-button
-        [color]="mfaEnabled ? 'warn' : 'primary'"
-        (click)="mfaEnabled ? (showMfaDisable = true) : onSetupMfa()"
-      >
-        {{ mfaEnabled ? 'Disable' : 'Enable' }}
-      </button>
-    </div>
-
-    <!-- MFA Setup -->
-    <div class="mfa-setup-panel" *ngIf="showMfaSetup && mfaSetupData">
-      <h3>Set up Authenticator App</h3>
-      <ol>
-        <li>Install an authenticator app (Google Authenticator, Authy, etc.)</li>
-        <li>Scan the QR code or enter the secret key manually</li>
-        <li>Enter the verification code from the app</li>
-      </ol>
-      <div class="qr-section">
-        <img [src]="mfaSetupData.qrCode" alt="MFA QR Code" class="qr-code" />
-        <div class="secret-key">
-          <strong>Secret Key:</strong>
-          <code>{{ mfaSetupData.secret }}</code>
-        </div>
-      </div>
-      <div class="backup-codes" *ngIf="mfaSetupData.backupCodes.length">
-        <strong>Backup Codes (save these):</strong>
-        <div class="codes">
-          <code *ngFor="let code of mfaSetupData.backupCodes">{{ code }}</code>
-        </div>
-      </div>
-      <div class="verify-section">
-        <mat-form-field>
-          <input
-            matInput
-            placeholder="Verification code"
-            [(ngModel)]="mfaVerifyCode"
-            maxlength="6"
-          />
-        </mat-form-field>
-        <div class="verify-actions">
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="onVerifyMfaSetup()"
-            [disabled]="mfaVerifyCode.length < 6"
-          >
-            Verify & Enable
-          </button>
-          <button mat-stroked-button (click)="cancelMfaSetup()">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MFA Disable -->
-    <div class="mfa-disable-panel" *ngIf="showMfaDisable">
-      <h3>Disable Two-Factor Authentication</h3>
-      <mat-form-field>
-        <input
-          matInput
-          type="password"
-          placeholder="Current password"
-          [(ngModel)]="mfaDisablePassword"
-        />
-      </mat-form-field>
-      <mat-form-field>
-        <input
-          matInput
-          placeholder="Authenticator code or backup code"
-          [(ngModel)]="mfaDisableCode"
-        />
-      </mat-form-field>
-      <div class="verify-actions">
-        <button
-          mat-raised-button
-          color="warn"
-          (click)="onDisableMfa()"
-          [disabled]="!mfaDisablePassword || !mfaDisableCode"
-        >
-          Disable
-        </button>
-        <button mat-stroked-button (click)="showMfaDisable = false">Cancel</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="loading-state" *ngIf="loading">
-  <mat-icon>hourglass_top</mat-icon>
-  <p>Loading security information...</p>
+  <div class="skeleton-device-card">
+    <div class="skeleton-icon"></div>
+    <div class="skeleton-lines">
+      <div class="skeleton-line w-60"></div>
+      <div class="skeleton-line w-40"></div>
+      <div class="skeleton-line w-50"></div>
+      <div class="skeleton-line w-30"></div>
+    </div>
+  </div>
+  <div class="skeleton-action-bar">
+    <div class="skeleton-btn"></div>
+    <div class="skeleton-btn"></div>
+    <div class="skeleton-btn"></div>
+  </div>
 </div>

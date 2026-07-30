@@ -1,1 +1,119 @@
-/* Security component styles — defined in parent or global */
+.current-device-card {
+  border: 2px solid var(--color-primary, #6366f1);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  background: var(--color-surface);
+  margin-bottom: 24px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-primary-light, #a5b4fc));
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  .device-icon-wrap {
+    background: var(--color-primary, #6366f1);
+    color: #fff;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .back-btn {
+    flex-shrink: 0;
+  }
+
+  .header-text {
+    flex: 1;
+  }
+}
+
+.view-all-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.loading-state {
+  padding: 24px;
+}
+
+.skeleton-device-card {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  margin-bottom: 24px;
+}
+
+.skeleton-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-border);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: var(--color-border);
+  animation: shimmer 1.5s infinite;
+}
+
+.w-60 { width: 60%; }
+.w-50 { width: 50%; }
+.w-40 { width: 40%; }
+.w-30 { width: 30%; }
+
+.skeleton-action-bar {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.skeleton-btn {
+  height: 40px;
+  width: 160px;
+  border-radius: 8px;
+  background: var(--color-border);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}

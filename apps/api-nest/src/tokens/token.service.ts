@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, createHash } from 'crypto';
 import { RedisService } from '../common/redis/redis.service';
@@ -79,6 +79,26 @@ export class TokenService {
       });
       sessionToken = session.sessionToken;
     } else {
+      // Enforce max 2 active sessions per user — revoke oldest if at limit
+      const activeSessions = await this.prisma.session.findMany({
+        where: {
+          userId: user.id,
+          revoked: false,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (activeSessions.length >= 2) {
+        const toRevoke = activeSessions.slice(0, activeSessions.length - 1);
+        for (const s of toRevoke) {
+          await this.prisma.session.update({
+            where: { id: s.id },
+            data: { revoked: true, logoutReason: 'session_limit_exceeded', logoutTime: new Date() },
+          });
+          await this.redis.removeUserSession(user.id, s.id);
+        }
+      }
+
       // Create new session
       sessionToken = this.generateJti();
       const session = await this.prisma.session.create({
@@ -169,24 +189,24 @@ export class TokenService {
     try {
       oldPayload = (await this.jwtService.verifyAsync(oldRefreshToken)) as TokenPayload;
       if (oldPayload.type !== 'refresh') {
-        throw new Error('Not a refresh token');
-      }
-    } catch {
-      // Try to find by hash in DB
-      const hash = this.hashToken(oldRefreshToken);
-      const session = await this.prisma.session.findFirst({
-        where: { refreshTokenHash: hash, revoked: false },
-      });
-      if (session) {
-        // The old token is still valid in DB — revoke this session
-        await this.prisma.session.update({
-          where: { id: session.id },
-          data: { revoked: true, logoutReason: 'token_reuse' },
-        });
-        await this.redis.removeUserSession(user.id, session.id);
-      }
-      throw new Error('Invalid refresh token');
+      throw new UnauthorizedException('Not a refresh token');
     }
+  } catch {
+    // Try to find by hash in DB
+    const hash = this.hashToken(oldRefreshToken);
+    const session = await this.prisma.session.findFirst({
+      where: { refreshTokenHash: hash, revoked: false },
+    });
+    if (session) {
+      // The old token is still valid in DB — revoke this session
+      await this.prisma.session.update({
+        where: { id: session.id },
+        data: { revoked: true, logoutReason: 'token_reuse' },
+      });
+      await this.redis.removeUserSession(user.id, session.id);
+    }
+    throw new UnauthorizedException('Invalid refresh token');
+  }
 
     // Check for reuse: look up session by old refresh token hash
     const oldHash = this.hashToken(oldRefreshToken);
@@ -206,7 +226,7 @@ export class TokenService {
       });
       await this.redis.clearUserSessions(oldPayload.sub);
 
-      throw new Error('Token reuse detected — all sessions revoked');
+      throw new UnauthorizedException('Token reuse detected — all sessions revoked');
     }
 
     // Store previous hash for detection

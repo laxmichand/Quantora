@@ -34,6 +34,12 @@ const routes: Routes = [
     loadChildren: () => import('./features/ai-chat/ai-chat.module').then((m) => m.AiChatModule),
   },
   {
+    path: 'security',
+    canActivate: [AuthGuard],
+    loadChildren: () =>
+      import('./features/settings/security/security.module').then((m) => m.SecurityModule),
+  },
+  {
     path: 'settings',
     canActivate: [AuthGuard],
     loadChildren: () => import('./features/settings/settings.module').then((m) => m.SettingsModule),

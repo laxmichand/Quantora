@@ -115,7 +115,7 @@
             <a class="profile-item" routerLink="/settings"
               ><mat-icon>settings</mat-icon><span>Settings</span></a
             >
-            <a class="profile-item" routerLink="/settings" [queryParams]="{ tab: 'security' }"
+            <a class="profile-item" routerLink="/security"
               ><mat-icon>security</mat-icon><span>Security</span></a
             >
             <div class="profile-divider"></div>
@@ -227,8 +227,7 @@
         </a>
         <a
           class="drawer-item"
-          routerLink="/settings"
-          [queryParams]="{ tab: 'security' }"
+          routerLink="/security"
           (click)="mobileMenuOpen = false"
         >
           <mat-icon>security</mat-icon> Security
