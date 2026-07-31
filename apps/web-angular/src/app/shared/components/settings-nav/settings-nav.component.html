@@ -1,18 +1,10 @@
 <nav class="settings-nav">
-  <a routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-    <mat-icon>settings</mat-icon>
-    <span>General</span>
-  </a>
-  <a routerLink="/settings/devices" routerLinkActive="active">
-    <mat-icon>devices</mat-icon>
-    <span>Devices &amp; Sessions</span>
-  </a>
-  <a routerLink="/security" routerLinkActive="active">
-    <mat-icon>security</mat-icon>
-    <span>Security</span>
-  </a>
-  <a routerLink="/settings/subscription" routerLinkActive="active">
-    <mat-icon>workspace_premium</mat-icon>
-    <span>Subscription</span>
+  <a
+    [routerLink]="tabs[tab].route"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: tabs[tab].exact }"
+  >
+    <mat-icon>{{ tabs[tab].icon }}</mat-icon>
+    <span>{{ tabs[tab].label }}</span>
   </a>
 </nav>
