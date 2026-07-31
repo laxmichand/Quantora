@@ -309,7 +309,7 @@ PUT  /api/user/preferences     → { success, preferences }
 
 ---
 
-## Sprint 3 — Social Login & Account Security
+## Sprint 3 — Social Login & Account Security ✅ COMPLETE
 
 **Goal:** Google login works. Account lockout active. Login history tracked.
 
@@ -1479,6 +1479,8 @@ model Comment {
 | **15** | Data Provider Standardization & API Gateway | 2 weeks  | Provider Interface, Unified API, Fallback Chain |
 | **16** | Community & Learning                        | 2 weeks  | Lessons, Posts, Sharing                         |
 | **17** | Production Readiness                        | 2 weeks  | Deploy, Monitor, Secure                         |
+
+**Shipped so far:** Sprints 1–3 ✅ (see `docs/CHANGELOG.md`). Sprint 4 was executed as a full-stack version upgrade + Security Center sprint; the planned Sprint 4 (Market Data Platform) remains open.
 
 ---
 

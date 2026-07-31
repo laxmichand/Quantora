@@ -59,7 +59,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 | 1      | Engineering Foundation                                      | Complete |
 | 2      | Identity & Security                                         | Complete |
 | 3      | Google OAuth + Landing Page + Auth Security + Responsive UI | Complete |
-| 4      | Full Stack Version Upgrade                                  | Complete |
+| 4      | Full Stack Version Upgrade + Security Center                    | Complete |
 | 5      | Data Ingestion & Analysis                                   | Next     |
 | 6      | Passive Income & Portfolio                                  | Planned  |
 | 7      | AI-Powered Features                                         | Planned  |
@@ -75,7 +75,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 | 17     | Premium & Notifications                                     | Planned  |
 | 18     | Production Readiness                                        | Planned  |
 
-**Current:** Sprint 4 complete — Full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24). Sprint 5 — Data Ingestion & Analysis — up next.
+**Current:** Sprint 4 complete — full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24) + Security Center. Sprint 5 — Data Ingestion & Analysis — up next.
 
 ---
 
@@ -163,6 +163,19 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - Dashboard + Portfolio already using app-data-table
 - Global utility CSS classes (badges, stock-name-cell, sector-tag, etc.)
 - 280 lines duplicate table CSS removed
+
+#### Security Center
+
+- `/settings/security` — device & session management (rename, trust/untrust, revoke, log out everywhere)
+- Trusted devices, login/account history, security alerts, account risk score
+- Adaptive MFA settings (MFA, biometric, risk-based, new-device alerts, TOR blocking)
+- Settings page restructured to match (centered, header + user chip)
+
+#### One-Command Local Dev
+
+- `npm start` runs API + frontend (+ AI when Python ≤3.12); `npm run stop` / `npm run status`
+- `npm run dev:api` / `dev:web` / `dev:ai` for individual services
+- Auto `.env` handling, npm install, port pre-checks, health-wait loops
 
 #### Test Results
 

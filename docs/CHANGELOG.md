@@ -4,6 +4,49 @@ All notable changes to Quantora.
 
 ---
 
+## [0.4.0] — 2026-07-31
+
+### Sprint 4 — Full Stack Upgrade + Security Center
+
+**Goal:** Upgrade the entire stack (Node 24, Angular 22, NestJS 11, TypeScript 6, Prisma 6) and ship the Security Center plus a one-command local dev workflow.
+**Status:** ✅ Complete
+
+### Added
+
+#### Security Center (`/settings/security`)
+
+- Device & session management — list all devices, rename, trust/untrust, revoke individual sessions, log out all other devices / log out everywhere
+- Active sessions with current-device detection, masked IP, browser/OS/location metadata
+- Trusted devices with auto-expiring trust window
+- Login & account history table (logins, failures, token rotation, MFA, password changes)
+- Security alerts timeline from the risk engine
+- Account risk score + adaptive MFA settings (MFA, biometric, risk-based MFA, new-device alerts, TOR blocking)
+- Session policy display (idle timeout, lifetime, refresh rotation, trusted window)
+- Loading skeleton with stat placeholders
+
+#### Settings Page
+
+- Restructured to match the Security Center layout: centered (max-width 1160px), page header with title/subtitle and user chip
+- Appearance (theme grid) and Language (EN/HI) cards preserved
+
+#### Local Development (one command)
+
+- `npm start` — starts NestJS (:3000) + Angular (:4200) + FastAPI (:8000 when Python ≤3.12)
+- `npm run stop` / `npm run status` — stop / check services
+- `npm run dev:api` / `dev:web` / `dev:ai` — individual services
+- `scripts/dev.sh` rewritten: auto `.env` check/copy, npm install if `node_modules` missing, port pre-checks, health-wait loops
+- Database stays hosted (Supabase) — no local DB/Redis needed
+
+#### Stack Upgrade
+
+- Node.js 22 → 24, Angular 19 → 22 (built-in Vite builder), NestJS 10 → 11, TypeScript 5 → 6, Prisma 5 → 6, zone.js 0.15 → 0.16
+
+### Fixed
+
+- **Security Center stuck on loading skeleton** — the component's view is created with `CheckAlways` cleared, so zone change detection never re-checked it after HTTP responses. `ChangeDetectorRef.markForCheck()` is now called in each `loadAll()` callback so the view refreshes when data arrives.
+
+---
+
 ## [0.1.0] — 2026-07-27
 
 ### Sprint 1 — Engineering Foundation

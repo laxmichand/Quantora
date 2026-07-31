@@ -16,6 +16,38 @@
 
 ---
 
+## Local Development
+
+One command runs the whole stack (NestJS API + Angular frontend, plus FastAPI if your Python is ≤3.12). The database is hosted on Supabase — no local DB or Redis setup is needed.
+
+```bash
+npm start          # start everything, press Ctrl+C to stop
+npm run stop       # stop services started by npm start
+npm run status     # check what's running
+```
+
+Individual pieces:
+
+```bash
+npm run dev:api    # NestJS on :3000
+npm run dev:web    # Angular on :4200
+npm run dev:ai     # FastAPI on :8000
+```
+
+**First run only:**
+
+1. `npm install` (auto-run by `npm start` if `node_modules` is missing)
+2. `cp .env.example .env`, then fill in real values (database URL, JWT secret, etc.)
+3. Seed demo users: `npm run db:seed -w apps/api-nest` (or `cd apps/api-nest && npx prisma db seed`)
+
+**Troubleshooting**
+
+- Ports already in use → `npm run stop`, then `npm start`
+- API never becomes healthy → check `apps/api-nest` logs, verify `.env`
+- AI service not starting → local Python must be ≤3.12 (`brew install python@3.12`)
+
+---
+
 ## Incident Response
 
 ### P1: All Services Down
@@ -147,4 +179,4 @@ git push --force origin main
 
 ---
 
-_Last Updated: 2026-07-27_
+_Last Updated: 2026-07-31_
