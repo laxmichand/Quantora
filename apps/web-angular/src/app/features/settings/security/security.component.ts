@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { DeviceService, DeviceInfo } from '../../../core/services/device.service';
@@ -47,6 +47,8 @@ export class SecurityComponent implements OnInit {
     torBlocking: true,
   };
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   constructor(
     public authService: AuthService,
     private deviceService: DeviceService,
@@ -88,22 +90,28 @@ export class SecurityComponent implements OnInit {
         this.devices = devices.map((d) => ({ ...d, sessions: d.sessions || [] }));
         this.currentDevice = this.devices.find((d) => d.sessions.some((s) => s.isCurrent)) || null;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
 
     this.securityService.getLoginHistory(20).subscribe({
       next: (h) => {
         this.loginHistory = h;
+        this.cdr.markForCheck();
       },
+      error: () => {},
     });
 
     this.securityService.getSecurityEvents().subscribe({
       next: (e) => {
         this.securityEvents = e;
+        this.cdr.markForCheck();
       },
+      error: () => {},
     });
   }
 
