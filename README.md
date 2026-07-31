@@ -193,15 +193,31 @@ Quantora/
 
 ## Local Development
 
-```bash
-# Install dependencies
-npm install
+One command starts the whole stack (NestJS API + Angular frontend, and FastAPI if your Python is ≤3.12). Database is hosted (Supabase), so no local DB setup is needed.
 
-# Start all services (Docker for DBs, npm for apps)
-docker compose up -d        # Redis
-npm run dev:api             # NestJS on :3000
-npm run dev:web             # Angular on :4200
-npm run dev:ai              # FastAPI on :8000
+```bash
+npm start          # start everything, press Ctrl+C to stop
+npm run stop       # stop services started by npm start
+npm run status     # check what's running
+```
+
+Running individual pieces:
+
+```bash
+npm run dev:api    # NestJS on :3000
+npm run dev:web    # Angular on :4200
+npm run dev:ai     # FastAPI on :8000
+```
+
+First run only:
+
+1. `npm install` (automatically handled by `npm start` if missing)
+2. `cp .env.example .env`, then fill in real values (database, JWT secret, etc.)
+
+You can log in with any registered account, or seed demo users first:
+
+```bash
+npm run db:seed -w apps/api-nest
 ```
 
 ---
