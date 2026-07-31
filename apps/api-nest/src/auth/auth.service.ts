@@ -134,10 +134,26 @@ export class AuthService {
       throw err;
     }
 
-    const { accessToken, refreshToken, sessionId } = await this.tokenService.generateTokenPair(
-      user,
-      devicePk,
-    );
+    const { accessToken, refreshToken, sessionId, evictedSessionId } =
+      await this.tokenService.generateTokenPair(user, devicePk, undefined, ip, userAgent);
+
+    if (evictedSessionId) {
+      await this.audit.createSecurityEvent({
+        userId: user.id,
+        eventType: SecurityEventType.SESSION_REVOKED,
+        severity: 'warning',
+        description: 'Oldest session revoked because the active-session limit was reached',
+        deviceId: devicePk,
+        sessionId,
+        ipAddress: ip,
+        metadata: {
+          revokedSessionId: evictedSessionId,
+          newSessionId: sessionId,
+          reason: 'MAX_ACTIVE_SESSIONS_EXCEEDED',
+          deviceId: devicePk,
+        },
+      });
+    }
 
     await this.audit.log({
       userId: user.id,
@@ -427,21 +443,39 @@ export class AuthService {
     }
 
     // ─── Full login — generate tokens ─────────────────────────────────
-    // Reuse existing active session for same device if available
-    const existingSession = await this.prisma.session.findFirst({
-      where: {
-        userId: user.id,
-        deviceId: deviceRecordId,
-        revoked: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { lastActivity: 'desc' },
-    });
+    // Every login creates an independent session. The global limit
+    // (MAX 2 active sessions per user) is enforced atomically inside
+    // generateTokenPair — the oldest active session is evicted if the
+    // user already has 2 active sessions. Sessions are never silently
+    // replaced merely because the login came from another platform.
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       deviceRecordId,
-      existingSession?.id,
+      undefined,
+      ip,
+      userAgent,
     );
+
+    if (tokenPair.evictedSessionId) {
+      await this.audit.createSecurityEvent({
+        userId: user.id,
+        eventType: SecurityEventType.SESSION_REVOKED,
+        severity: 'warning',
+        description: 'Oldest session revoked because the active-session limit was reached',
+        deviceId: deviceRecordId,
+        sessionId: tokenPair.sessionId,
+        ipAddress: ip,
+        country: ipInfo?.country,
+        city: ipInfo?.city,
+        metadata: {
+          revokedSessionId: tokenPair.evictedSessionId,
+          newSessionId: tokenPair.sessionId,
+          reason: 'MAX_ACTIVE_SESSIONS_EXCEEDED',
+          platform: userAgent ? parseUserAgent(userAgent).os : undefined,
+          deviceId: deviceRecordId,
+        },
+      });
+    }
 
     // Record login history
     const isNewDevice = riskResult.factors.some((f) => f.name === 'new_device');
@@ -579,21 +613,33 @@ export class AuthService {
     // Clear MFA challenge
     await this.redis.deleteMfaChallenge(mfaSessionToken);
 
-    // Generate tokens (reuse existing session for same device)
-    const existingSession = await this.prisma.session.findFirst({
-      where: {
-        userId: user.id,
-        deviceId: challenge.deviceRecordId,
-        revoked: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { lastActivity: 'desc' },
-    });
+    // Generate tokens (independent session per login — limit enforced in generateTokenPair)
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       challenge.deviceRecordId,
-      existingSession?.id,
+      undefined,
+      challenge.ip,
+      challenge.userAgent,
     );
+
+    if (tokenPair.evictedSessionId) {
+      await this.audit.createSecurityEvent({
+        userId: user.id,
+        eventType: SecurityEventType.SESSION_REVOKED,
+        severity: 'warning',
+        description: 'Oldest session revoked because the active-session limit was reached',
+        deviceId: challenge.deviceRecordId,
+        sessionId: tokenPair.sessionId,
+        ipAddress: challenge.ip,
+        metadata: {
+          revokedSessionId: tokenPair.evictedSessionId,
+          newSessionId: tokenPair.sessionId,
+          reason: 'MAX_ACTIVE_SESSIONS_EXCEEDED',
+          platform: challenge.userAgent ? parseUserAgent(challenge.userAgent).os : undefined,
+          deviceId: challenge.deviceRecordId,
+        },
+      });
+    }
 
     await this.recordLogin({
       userId: user.id,
@@ -966,7 +1012,29 @@ export class AuthService {
     const tokenPair = await this.tokenService.generateTokenPair(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       'google-oauth',
+      undefined,
+      ip,
+      userAgent,
     );
+
+    if (tokenPair.evictedSessionId) {
+      await this.audit.createSecurityEvent({
+        userId: user.id,
+        eventType: SecurityEventType.SESSION_REVOKED,
+        severity: 'warning',
+        description: 'Oldest session revoked because the active-session limit was reached',
+        deviceId: 'google-oauth',
+        sessionId: tokenPair.sessionId,
+        ipAddress: ip,
+        metadata: {
+          revokedSessionId: tokenPair.evictedSessionId,
+          newSessionId: tokenPair.sessionId,
+          reason: 'MAX_ACTIVE_SESSIONS_EXCEEDED',
+          platform: userAgent ? parseUserAgent(userAgent).os : undefined,
+          deviceId: 'google-oauth',
+        },
+      });
+    }
 
     return {
       accessToken: tokenPair.accessToken,

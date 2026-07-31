@@ -32,7 +32,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    if (this.client) await this.client.quit();
+    if (!this.client) return;
+    try {
+      if (this.client.status === 'ready') {
+        await this.client.quit();
+      } else {
+        this.client.disconnect();
+      }
+    } catch (err) {
+      this.logger.debug(`Redis shutdown ignored: ${(err as Error).message}`);
+    }
   }
 
   private isConnected(): boolean {

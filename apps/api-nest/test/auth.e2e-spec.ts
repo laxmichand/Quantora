@@ -1,15 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
+import cookieParser from 'cookie-parser';
 import { AppModule } from '../src/app.module';
+
+const PASSWORD = 'TestE2E123';
+
+function cookieValue(res: request.Response, name: string): string | undefined {
+  const raw = (res.headers['set-cookie'] || []) as string[];
+  const hit = raw.find((c) => c.startsWith(`${name}=`));
+  if (!hit) return undefined;
+  return hit.slice(name.length + 1).split(';')[0];
+}
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
-  let accessToken: string;
-  let refreshToken: string;
   const testEmail = `e2e-${Date.now()}@test.com`;
-  const testPassword = 'TestE2E123';
   const testName = 'E2E User';
+  let agent: request.Agent;
+  let refreshToken: string | undefined;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -18,10 +27,12 @@ describe('Auth (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
+    app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
     );
     await app.init();
+    agent = request.agent(app.getHttpServer());
   }, 30000);
 
   afterAll(async () => {
@@ -41,25 +52,21 @@ describe('Auth (e2e)', () => {
 
   describe('POST /api/auth/register', () => {
     it('should register a new user', () => {
-      return request(app.getHttpServer())
+      return agent
         .post('/api/auth/register')
-        .send({ email: testEmail, password: testPassword, name: testName })
+        .send({ email: testEmail, password: PASSWORD, name: testName })
         .expect(201)
         .expect((res) => {
-          expect(res.body.accessToken).toBeDefined();
-          expect(res.body.refreshToken).toBeDefined();
           expect(res.body.user.email).toBe(testEmail);
           expect(res.body.user.name).toBe(testName);
           expect(res.body.user.role).toBe('user');
-          accessToken = res.body.accessToken;
-          refreshToken = res.body.refreshToken;
         });
     });
 
     it('should reject duplicate email', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
-        .send({ email: testEmail, password: testPassword, name: testName })
+        .send({ email: testEmail, password: PASSWORD, name: testName })
         .expect(409)
         .expect((res) => {
           expect(res.body.message).toContain('already registered');
@@ -76,23 +83,21 @@ describe('Auth (e2e)', () => {
     it('should reject invalid email', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
-        .send({ email: 'not-an-email', password: testPassword, name: 'Bad Email' })
+        .send({ email: 'not-an-email', password: PASSWORD, name: 'Bad Email' })
         .expect(400);
     });
   });
 
   describe('POST /api/auth/login', () => {
     it('should login with valid credentials', () => {
-      return request(app.getHttpServer())
+      return agent
         .post('/api/auth/login')
-        .send({ email: testEmail, password: testPassword })
+        .send({ email: testEmail, password: PASSWORD })
         .expect(200)
         .expect((res) => {
-          expect(res.body.accessToken).toBeDefined();
-          expect(res.body.refreshToken).toBeDefined();
           expect(res.body.user.email).toBe(testEmail);
-          accessToken = res.body.accessToken;
-          refreshToken = res.body.refreshToken;
+          refreshToken = cookieValue(res, '_qtr');
+          expect(refreshToken).toBeDefined();
         });
     });
 
@@ -109,16 +114,15 @@ describe('Auth (e2e)', () => {
     it('should reject non-existent user', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
-        .send({ email: 'nobody@test.com', password: testPassword })
+        .send({ email: 'nobody@test.com', password: PASSWORD })
         .expect(401);
     });
   });
 
   describe('GET /api/auth/me', () => {
     it('should return user profile with valid token', () => {
-      return request(app.getHttpServer())
+      return agent
         .get('/api/auth/me')
-        .set('Authorization', `Bearer ${accessToken}`)
         .expect(200)
         .expect((res) => {
           expect(res.body.email).toBe(testEmail);
@@ -140,25 +144,18 @@ describe('Auth (e2e)', () => {
   });
 
   describe('POST /api/auth/refresh', () => {
-    it('should refresh tokens', () => {
-      return request(app.getHttpServer())
+    it('should refresh tokens and rotate the refresh token', () => {
+      return agent
         .post('/api/auth/refresh')
-        .send({ refreshToken })
         .expect(200)
         .expect((res) => {
-          expect(res.body.accessToken).toBeDefined();
-          expect(res.body.refreshToken).toBeDefined();
-          expect(res.body.accessToken).not.toBe(accessToken);
-          accessToken = res.body.accessToken;
-          refreshToken = res.body.refreshToken;
+          expect(cookieValue(res, '_qta')).toBeDefined();
+          expect(cookieValue(res, '_qtr')).toBeDefined();
         });
     });
 
-    it('should reject revoked (old) refresh token', () => {
-      return request(app.getHttpServer())
-        .post('/api/auth/refresh')
-        .send({ refreshToken: 'revoked-token' })
-        .expect(401);
+    it('should reject a missing refresh token', () => {
+      return request(app.getHttpServer()).post('/api/auth/refresh').expect(401);
     });
   });
 
@@ -186,21 +183,55 @@ describe('Auth (e2e)', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should logout successfully', () => {
-      return request(app.getHttpServer())
+      return agent
         .post('/api/auth/logout')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ refreshToken })
         .expect(200)
         .expect((res) => {
           expect(res.body.message).toContain('Logged out');
         });
     });
 
-    it('should reject revoked refresh token after logout', () => {
+    it('should reject the revoked refresh token after logout', () => {
       return request(app.getHttpServer())
         .post('/api/auth/refresh')
-        .send({ refreshToken })
+        .set('Cookie', `_qtr=${refreshToken}`)
         .expect(401);
+    });
+  });
+
+  describe('Refresh token reuse', () => {
+    let reuseAgent: request.Agent;
+    let originalRefreshToken: string | undefined;
+
+    beforeAll(async () => {
+      const email = `reuse-${Date.now()}@test.com`;
+      reuseAgent = request.agent(app.getHttpServer());
+      await reuseAgent
+        .post('/api/auth/register')
+        .send({ email, password: PASSWORD, name: 'Reuse' })
+        .timeout(30000)
+        .expect(201);
+      const loginRes = await reuseAgent
+        .post('/api/auth/login')
+        .send({ email, password: PASSWORD })
+        .timeout(30000)
+        .expect(200);
+      originalRefreshToken = cookieValue(loginRes, '_qtr');
+    });
+
+    it('should accept the first rotation of a refresh token', () => {
+      return reuseAgent.post('/api/auth/refresh').expect(200);
+    });
+
+    it('should reject reuse of the rotated (stale) refresh token', () => {
+      return request(app.getHttpServer())
+        .post('/api/auth/refresh')
+        .set('Cookie', `_qtr=${originalRefreshToken}`)
+        .expect(401);
+    });
+
+    it('should invalidate the session after refresh token reuse', () => {
+      return reuseAgent.get('/api/auth/me').expect(401);
     });
   });
 });

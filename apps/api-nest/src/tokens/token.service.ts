@@ -4,7 +4,12 @@ import { randomBytes, createHash } from 'crypto';
 import { RedisService } from '../common/redis/redis.service';
 import { PrismaService } from '../prisma/prisma.service';
 
+const MAX_ACTIVE_SESSIONS = 2;
 const ABSOLUTE_SESSION_TIMEOUT_DAYS = 30;
+const ACCESS_TOKEN_EXPIRY_MINUTES = 15;
+const DEFAULT_REFRESH_TOKEN_EXPIRY_DAYS = 7;
+const SESSION_LOCK_TIMEOUT_MS = 20_000;
+const SESSION_LOCK_MAX_WAIT_MS = 20_000;
 const SECONDS_PER_DAY = 86_400;
 const HOURS_PER_DAY = 24;
 const MINUTES_PER_HOUR = 60;
@@ -28,13 +33,18 @@ export interface TokenPair {
   accessToken: string;
   refreshToken: string;
   sessionId: string;
+  /** Set when an existing session was evicted to make room for the new session. */
+  evictedSessionId?: string;
 }
 
 @Injectable()
 export class TokenService {
   private readonly logger = new Logger(TokenService.name);
-  private readonly refreshExpiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY_DAYS || '7', 10);
-  private readonly accessExpiryMinutes = 15;
+  private readonly refreshExpiryDays = parseInt(
+    process.env.REFRESH_TOKEN_EXPIRY_DAYS || `${DEFAULT_REFRESH_TOKEN_EXPIRY_DAYS}`,
+    10,
+  );
+  private readonly accessExpiryMinutes = ACCESS_TOKEN_EXPIRY_MINUTES;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -58,75 +68,98 @@ export class TokenService {
     user: { id: string; email: string; name: string; role: string },
     deviceId: string,
     existingSessionId?: string,
+    ip?: string,
+    userAgent?: string,
   ): Promise<TokenPair> {
     const jti = this.generateJti();
     const familyId = this.generateFamilyId();
+    const now = new Date();
 
     // Create or reuse session
     let sessionId = existingSessionId;
     let sessionToken: string;
+    let evictedSessionId: string | undefined;
+    let previousAccessTokenId: string | undefined;
 
     if (sessionId) {
-      // Update existing session
-      const session = await this.prisma.session.update({
+      // Rotate within an existing session (e.g. token refresh). Never applies
+      // the session limit here — we are not creating a new session.
+      const existing = await this.prisma.session.findUnique({
+        where: { id: sessionId },
+        select: { sessionToken: true, accessTokenId: true },
+      });
+      if (!existing) throw new UnauthorizedException('Session not found');
+      previousAccessTokenId = existing.accessTokenId ?? undefined;
+      sessionToken = existing.sessionToken;
+
+      await this.prisma.session.update({
         where: { id: sessionId },
         data: {
           accessTokenId: jti,
           refreshTokenId: familyId,
           refreshTokenHash: null,
-          lastActivity: new Date(),
+          lastActivity: now,
+          ipAddress: ip || undefined,
+          userAgent: userAgent || undefined,
         },
       });
-      sessionToken = session.sessionToken;
     } else {
-      // Enforce max 2 active sessions per user — revoke oldest if at limit
-      const activeSessions = await this.prisma.session.findMany({
-        where: {
-          userId: user.id,
-          revoked: false,
-          expiresAt: { gt: new Date() },
-        },
-        orderBy: { createdAt: 'asc' },
-      });
-      if (activeSessions.length >= 2) {
-        const toRevoke = activeSessions.slice(0, activeSessions.length - 1);
-        for (const s of toRevoke) {
-          await this.prisma.session.update({
-            where: { id: s.id },
-            data: { revoked: true, logoutReason: 'session_limit_exceeded', logoutTime: new Date() },
-          });
-          await this.redis.removeUserSession(user.id, s.id);
-        }
-      }
+      // Create a brand-new session, enforcing the global per-user limit.
+      // The transaction + row lock serialize concurrent logins for the same
+      // user so the invariant ACTIVE_SESSIONS(userId) <= 2 always holds.
+      const created = await this.prisma.$transaction(
+        async (tx) => {
+          await tx.$queryRaw`SELECT id FROM "users" WHERE id = ${user.id} FOR UPDATE`;
 
-      // Create new session
-      sessionToken = this.generateJti();
-      const session = await this.prisma.session.create({
-        data: {
-          userId: user.id,
-          deviceId,
-          sessionToken,
-          accessTokenId: jti,
-          refreshTokenId: familyId,
-          expiresAt: new Date(
-            Date.now() +
-              this.refreshExpiryDays *
-                HOURS_PER_DAY *
-                MINUTES_PER_HOUR *
-                SECONDS_PER_MINUTE *
-                MS_PER_SECOND,
-          ),
-          absoluteTimeout: new Date(
-            Date.now() +
-              ABSOLUTE_SESSION_TIMEOUT_DAYS *
-                HOURS_PER_DAY *
-                MINUTES_PER_HOUR *
-                SECONDS_PER_MINUTE *
-                MS_PER_SECOND,
-          ),
+          const activeSessions = await tx.session.findMany({
+            where: {
+              userId: user.id,
+              revoked: false,
+              expiresAt: { gt: now },
+              OR: [{ absoluteTimeout: null }, { absoluteTimeout: { gt: now } }],
+            },
+            orderBy: [{ lastActivity: 'asc' }, { createdAt: 'asc' }],
+          });
+
+          let evicted: { id: string; accessTokenId: string | null } | null = null;
+          if (activeSessions.length >= MAX_ACTIVE_SESSIONS) {
+            // Oldest active session first — evict exactly ONE.
+            evicted = activeSessions[0];
+            await tx.session.update({
+              where: { id: evicted.id },
+              data: { revoked: true, logoutReason: 'session_limit_exceeded', logoutTime: now },
+            });
+          }
+
+          const newSessionToken = this.generateJti();
+          const session = await tx.session.create({
+            data: {
+              userId: user.id,
+              deviceId,
+              sessionToken: newSessionToken,
+              accessTokenId: jti,
+              refreshTokenId: familyId,
+              expiresAt: this.sessionExpiry(now),
+              absoluteTimeout: this.absoluteTimeout(now),
+              ipAddress: ip || undefined,
+              userAgent: userAgent || undefined,
+            },
+          });
+
+          return { session, evicted };
         },
-      });
-      sessionId = session.id;
+        {
+          // Concurrent logins for the same user serialize on the user row
+          // lock; allow the queued transactions enough time to acquire it.
+          timeout: SESSION_LOCK_TIMEOUT_MS,
+          maxWait: SESSION_LOCK_MAX_WAIT_MS,
+        },
+      );
+
+      sessionId = created.session.id;
+      sessionToken = created.session.sessionToken;
+      evictedSessionId = created.evicted?.id;
+      previousAccessTokenId = created.evicted?.accessTokenId ?? undefined;
     }
 
     // Build access token
@@ -168,11 +201,24 @@ export class TokenService {
       },
     });
 
-    // Blacklist old access token if rotating
+    // Invalidate the previous access token so a rotated/replaced token cannot
+    // be used any longer.
+    if (previousAccessTokenId) {
+      await this.redis.blacklistToken(
+        previousAccessTokenId,
+        this.refreshExpiryDays * SECONDS_PER_DAY,
+      );
+    }
+
+    // Drop an evicted session from the Redis active-session set.
+    if (evictedSessionId) {
+      await this.redis.removeUserSession(user.id, evictedSessionId);
+    }
+
     // Add to Redis active sessions
     await this.redis.addUserSession(user.id, sessionId!, this.refreshExpiryDays * SECONDS_PER_DAY);
 
-    return { accessToken, refreshToken, sessionId: sessionId! };
+    return { accessToken, refreshToken, sessionId: sessionId!, evictedSessionId };
   }
 
   async rotateRefreshToken(
@@ -192,18 +238,15 @@ export class TokenService {
         throw new UnauthorizedException('Not a refresh token');
       }
     } catch {
-      // Try to find by hash in DB
+      // Signature/expiry verification failed. If the token still matches a
+      // stored hash it belongs to a real session — revoke ONLY that session.
       const hash = this.hashToken(oldRefreshToken);
       const session = await this.prisma.session.findFirst({
         where: { refreshTokenHash: hash, revoked: false },
+        select: { id: true },
       });
       if (session) {
-        // The old token is still valid in DB — revoke this session
-        await this.prisma.session.update({
-          where: { id: session.id },
-          data: { revoked: true, logoutReason: 'token_reuse' },
-        });
-        await this.redis.removeUserSession(user.id, session.id);
+        await this.revokeSession(session.id, 'token_reuse');
       }
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -215,18 +258,23 @@ export class TokenService {
     });
 
     if (!session) {
-      // Token was already rotated — reuse detected
-      reuseDetected = true;
-      this.logger.warn(`Refresh token reuse detected for user ${oldPayload.sub}`);
-
-      // Revoke ALL sessions for this user as security measure
-      await this.prisma.session.updateMany({
-        where: { userId: oldPayload.sub, revoked: false },
-        data: { revoked: true, logoutReason: 'token_reuse_detected' },
+      // Token was already rotated. If it matches a previous hash, this is a
+      // genuine reuse of THAT session's token — revoke only that session.
+      // Other sessions (other platforms/devices) remain valid.
+      const reusedSession = await this.prisma.session.findFirst({
+        where: { previousRefreshTokenHash: oldHash, revoked: false },
+        select: { id: true },
       });
-      await this.redis.clearUserSessions(oldPayload.sub);
 
-      throw new UnauthorizedException('Token reuse detected — all sessions revoked');
+      if (reusedSession) {
+        reuseDetected = true;
+        this.logger.warn(
+          `Refresh token reuse detected for session ${reusedSession.id} (user ${oldPayload.sub})`,
+        );
+        await this.revokeSession(reusedSession.id, 'token_reuse');
+      }
+
+      throw new UnauthorizedException('Refresh token has expired or already been used');
     }
 
     // Store previous hash for detection
@@ -242,7 +290,7 @@ export class TokenService {
     });
 
     // Generate new token pair (reuses same session)
-    const tokenPair = await this.generateTokenPair(user, deviceId, session.id);
+    const tokenPair = await this.generateTokenPair(user, deviceId, session.id, ip, userAgent);
 
     // Blacklist old token
     if (oldPayload.jti) {
@@ -298,6 +346,14 @@ export class TokenService {
       where.id = { not: exceptSessionId };
     }
 
+    // Resolve the affected sessions BEFORE revoking them so their access
+    // tokens can be blacklisted (a post-revoke query with revoked: false
+    // would return nothing).
+    const sessions = await this.prisma.session.findMany({
+      where: { ...where },
+      select: { id: true, accessTokenId: true },
+    });
+
     const result = await this.prisma.session.updateMany({
       where,
       data: {
@@ -306,6 +362,14 @@ export class TokenService {
         logoutTime: new Date(),
       },
     });
+
+    // Blacklist every revoked session's access token so a 401 follows
+    // immediately instead of lingering for the access-token lifetime.
+    for (const s of sessions) {
+      if (s.accessTokenId) {
+        await this.redis.blacklistToken(s.accessTokenId, this.refreshExpiryDays * SECONDS_PER_DAY);
+      }
+    }
 
     await this.redis.clearUserSessions(userId, exceptSessionId);
 
@@ -339,8 +403,14 @@ export class TokenService {
   }
 
   async getActiveSessions(userId: string): Promise<any[]> {
+    const now = new Date();
     return this.prisma.session.findMany({
-      where: { userId, revoked: false, expiresAt: { gt: new Date() } },
+      where: {
+        userId,
+        revoked: false,
+        expiresAt: { gt: now },
+        OR: [{ absoluteTimeout: null }, { absoluteTimeout: { gt: now } }],
+      },
       orderBy: { lastActivity: 'desc' },
       include: {
         device: {
@@ -359,5 +429,27 @@ export class TokenService {
         },
       },
     });
+  }
+
+  private sessionExpiry(from: Date): Date {
+    return new Date(
+      from.getTime() +
+        this.refreshExpiryDays *
+          HOURS_PER_DAY *
+          MINUTES_PER_HOUR *
+          SECONDS_PER_MINUTE *
+          MS_PER_SECOND,
+    );
+  }
+
+  private absoluteTimeout(from: Date): Date {
+    return new Date(
+      from.getTime() +
+        ABSOLUTE_SESSION_TIMEOUT_DAYS *
+          HOURS_PER_DAY *
+          MINUTES_PER_HOUR *
+          SECONDS_PER_MINUTE *
+          MS_PER_SECOND,
+    );
   }
 }

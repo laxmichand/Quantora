@@ -23,15 +23,6 @@ curl https://quantora-ih3a.onrender.com/api/health
 
 # AI Service
 curl https://quantora-ai-633n.onrender.com/health
-```
-
-### Test Credentials (seeded)
-
-| Account | Email                | Password   |
-| ------- | -------------------- | ---------- |
-| Admin   | `admin@quantora.com` | `admin123` |
-| Demo    | `demo@quantora.com`  | `demo123`  |
-| Test    | `test@test.com`      | `Test1234` |
 
 Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 

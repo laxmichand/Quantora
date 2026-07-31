@@ -38,8 +38,26 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
     }
 
-    // Attach session and device info to request
-    if (payload.sid) (req as any).sessionId = payload.sid;
+    // Enforce that the session this token belongs to is still active. After a
+    // second login pushes the oldest session out (or a session is revoked from
+    // the session manager), its tokens must stop working immediately rather
+    // than lingering for the remainder of the access-token lifetime.
+    if (payload.sid) {
+      const session = await this.prisma.session.findUnique({
+        where: { id: payload.sid },
+        select: { id: true, revoked: true, accessTokenId: true },
+      });
+      if (!session || session.revoked) {
+        throw new UnauthorizedException('Session is no longer active');
+      }
+      // A token is only valid for the session it was issued to.
+      if (payload.jti && session.accessTokenId !== payload.jti) {
+        throw new UnauthorizedException('Token does not match the active session');
+      }
+      (req as any).sessionId = payload.sid;
+    }
+
+    // Attach device info to request
     if (payload.did) (req as any).deviceId = payload.did;
 
     return {
