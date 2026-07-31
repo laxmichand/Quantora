@@ -71,8 +71,9 @@ export class SecurityComponent implements OnInit {
   }
 
   get activeAlerts(): number {
-    return this.securityEvents.filter((e) => e.severity === 'high' || e.severity === 'critical')
-      .length;
+    return this.securityEvents.filter(
+      (e) => !e.acknowledged && (e.severity === 'high' || e.severity === 'critical'),
+    ).length;
   }
 
   get trustedDevices(): DeviceInfo[] {
@@ -80,7 +81,11 @@ export class SecurityComponent implements OnInit {
   }
 
   get recentEvents(): SecurityEvent[] {
-    return this.securityEvents.slice(0, 3);
+    return this.securityEvents.filter((e) => !e.acknowledged).slice(0, 3);
+  }
+
+  get visibleSecurityEvents(): SecurityEvent[] {
+    return this.securityEvents.filter((e) => !e.acknowledged);
   }
 
   private loadAll(): void {
@@ -230,6 +235,17 @@ export class SecurityComponent implements OnInit {
       'Done',
       { duration: 2000 },
     );
+  }
+
+  dismissEvent(e: SecurityEvent): void {
+    this.securityService.acknowledgeEvent(e.id).subscribe({
+      next: () => {
+        e.acknowledged = true;
+        this.cdr.markForCheck();
+        this.snackBar.open('Event dismissed', 'Done', { duration: 2000 });
+      },
+      error: () => this.snackBar.open('Failed to dismiss event', 'Dismiss', { duration: 3000 }),
+    });
   }
 
   private settingLabel(key: keyof SecuritySettings): string {

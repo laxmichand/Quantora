@@ -13,6 +13,7 @@ import { DeviceManagementModule } from './device-management/device-management.mo
 import { SessionsModule } from './sessions/sessions.module';
 import { RiskEngineModule } from './risk-engine/risk-engine.module';
 import { SecurityAuditModule } from './security-audit/security-audit.module';
+import { LoginHistoryModule } from './login-history/login-history.module';
 import { AdminModule } from './admin/admin.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -34,6 +35,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     SessionsModule,
     RiskEngineModule,
     SecurityAuditModule,
+    LoginHistoryModule,
     AdminModule,
   ],
   controllers: [AppController],

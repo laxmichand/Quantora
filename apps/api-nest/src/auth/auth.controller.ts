@@ -11,6 +11,7 @@ import {
   Res,
   Query,
   Req,
+  Param,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -248,6 +249,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Get security events' })
   async getSecurityEvents(@CurrentUser() user: UserPayload) {
     return this.authService.getSecurityEvents(user.sub);
+  }
+
+  @Post('security-events/:id/acknowledge')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Acknowledge a security event (dismiss it)' })
+  async acknowledgeSecurityEvent(@CurrentUser() user: UserPayload, @Param('id') id: string) {
+    await this.authService.acknowledgeSecurityEvent(id, user.sub);
+    return { acknowledged: true };
   }
 
   // ─── Cookies ──────────────────────────────────────────────

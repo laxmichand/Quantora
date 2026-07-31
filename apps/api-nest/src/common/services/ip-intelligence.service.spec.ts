@@ -14,8 +14,6 @@ describe('IpIntelligenceService', () => {
   let service: IpIntelligenceService;
   let redis: any;
 
-  const originalKey = process.env.IPAPI_KEY;
-
   beforeEach(async () => {
     jest.resetModules();
     mockGeoip.mockReset();
@@ -33,34 +31,27 @@ describe('IpIntelligenceService', () => {
     service = module.get<IpIntelligenceService>(IpIntelligenceService);
   });
 
-  afterAll(() => {
-    if (originalKey === undefined) delete process.env.IPAPI_KEY;
-    else process.env.IPAPI_KEY = originalKey;
-  });
-
   it('returns cached result without re-lookup', async () => {
     redis.cacheGet.mockResolvedValue({
       ip: '8.8.8.8',
-      country: 'US',
+      country: 'United States',
       isVpn: false,
       isProxy: false,
       isTor: false,
     });
     const info = await service.lookup('8.8.8.8');
-    expect(info.country).toBe('US');
+    expect(info.country).toBe('United States');
     expect(geoip.lookup).not.toHaveBeenCalled();
   });
 
   it('skips geo resolution for loopback/private IPs', async () => {
-    delete process.env.IPAPI_KEY;
     const info = await service.lookup('127.0.0.1');
     expect(info.country).toBeUndefined();
     expect(geoip.lookup).not.toHaveBeenCalled();
     expect(redis.cacheSet).toHaveBeenCalledWith('ip:127.0.0.1', info, expect.any(Number));
   });
 
-  it('fills offline geo from geoip-lite when no IPAPI key is configured', async () => {
-    delete process.env.IPAPI_KEY;
+  it('fills offline geo from geoip-lite and maps country code to full name', async () => {
     mockGeoip.mockReturnValue({
       country: 'US',
       region: 'CA',
@@ -70,7 +61,8 @@ describe('IpIntelligenceService', () => {
     });
 
     const info = await service.lookup('8.8.8.8');
-    expect(info.country).toBe('US');
+    expect(info.country).toBe('United States');
+    expect(info.countryCode).toBe('US');
     expect(info.state).toBe('CA');
     expect(info.city).toBe('Mountain View');
     expect(info.latitude).toBe(37.386);
@@ -80,65 +72,26 @@ describe('IpIntelligenceService', () => {
     expect(info.isp).toBeUndefined();
   });
 
-  it('enriches with ipapi.co data (full country name, ISP, VPN/TOR flags) when a key is set', async () => {
-    process.env.IPAPI_KEY = 'test-key';
-    mockGeoip.mockReturnValue({
-      country: 'DE',
-      region: 'BE',
-      city: 'Berlin',
-      ll: [52.52, 13.405],
-      timezone: 'Europe/Berlin',
-    });
+  it('falls back to the raw country code when the name is unknown', async () => {
+    mockGeoip.mockReturnValue({ country: 'XX', region: 'R', city: 'Nowhere' });
 
-    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
-      json: async () => ({
-        country_name: 'Germany',
-        country_code: 'DE',
-        region: 'Berlin',
-        city: 'Berlin',
-        postal: '10115',
-        latitude: 52.52,
-        longitude: 13.405,
-        timezone: 'Europe/Berlin',
-        org: 'Example ISP',
-        network: 'cable',
-        security: { is_vpn: true, is_proxy: false, is_tor: false },
-      }),
-    } as any);
-
-    try {
-      const info = await service.lookup('8.8.8.8');
-      expect(fetchMock).toHaveBeenCalledWith('https://ipapi.co/8.8.8.8/json/?key=test-key');
-      expect(info.country).toBe('Germany');
-      expect(info.countryCode).toBe('DE');
-      expect(info.postalCode).toBe('10115');
-      expect(info.isp).toBe('Example ISP');
-      expect(info.networkType).toBe('cable');
-      expect(info.isVpn).toBe(true);
-      expect(info.isTor).toBe(false);
-      expect(redis.cacheSet).toHaveBeenCalled();
-    } finally {
-      fetchMock.mockRestore();
-    }
+    const info = await service.lookup('8.8.8.8');
+    expect(info.country).toBe('XX');
   });
 
-  it('falls back to offline geo when the ipapi call fails', async () => {
-    process.env.IPAPI_KEY = 'test-key';
+  it('keeps VPN/proxy/TOR flags off for clean public IPs', async () => {
     mockGeoip.mockReturnValue({
-      country: 'US',
-      region: 'CA',
-      ll: [37.386, -122.0838],
+      country: 'IN',
+      region: 'AP',
+      city: 'Vijayawada',
+      ll: [16.5136, 80.6297],
+      timezone: 'Asia/Kolkata',
     });
 
-    const fetchMock = jest.spyOn(global, 'fetch').mockRejectedValue(new Error('network down'));
-
-    try {
-      const info = await service.lookup('8.8.8.8');
-      expect(info.country).toBe('US');
-      expect(info.state).toBe('CA');
-      expect(info.isVpn).toBe(false);
-    } finally {
-      fetchMock.mockRestore();
-    }
+    const info = await service.lookup('49.207.200.123');
+    expect(info.country).toBe('India');
+    expect(info.isVpn).toBe(false);
+    expect(info.isProxy).toBe(false);
+    expect(info.isTor).toBe(false);
   });
 });

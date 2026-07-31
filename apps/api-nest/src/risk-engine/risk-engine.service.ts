@@ -47,6 +47,7 @@ const SCORE_TOR = 20;
 const SCORE_PROXY = 10;
 const SCORE_RAPID_ATTEMPTS = 10;
 const SCORE_FAILED_ATTEMPTS_IP = 10;
+const SCORE_NEW_IP = 5;
 
 const TRAVEL_DISTANCE_KM_MIN = 1_000;
 const TRAVEL_TIME_HOURS_MAX = 2;
@@ -320,6 +321,22 @@ export class RiskEngineService {
 
   private async evaluateBehavioralAnomaly(ctx: RiskContext): Promise<RiskFactor[]> {
     const factors: RiskFactor[] = [];
+
+    // First login from this IP address
+    if (ctx.ip) {
+      const previousLogin = await this.prisma.loginHistory.findFirst({
+        where: { userId: ctx.userId, success: true, ipAddress: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        select: { ipAddress: true },
+      });
+      if (previousLogin?.ipAddress && previousLogin.ipAddress !== ctx.ip) {
+        factors.push({
+          name: 'new_ip',
+          score: SCORE_NEW_IP,
+          detail: 'Login from a new IP address',
+        });
+      }
+    }
 
     // Rapid login attempts
     const recentAttempts = await this.prisma.loginHistory.count({

@@ -205,6 +205,15 @@
 
               <div class="tl-when">
                 {{ timeAgo(e.createdAt) }}
+                <button
+                  mat-icon-button
+                  class="tl-dismiss"
+                  title="Dismiss event"
+                  aria-label="Dismiss event"
+                  (click)="dismissEvent(e)"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
               </div>
             </div>
           </div>
@@ -543,10 +552,10 @@
 
           <p class="card-sub">Suspicious activity detected by the risk engine.</p>
 
-          <div class="timeline" *ngIf="securityEvents.length > 0; else noAlerts">
+          <div class="timeline" *ngIf="visibleSecurityEvents.length > 0; else noAlerts">
             <div
               class="tl-item"
-              *ngFor="let e of securityEvents"
+              *ngFor="let e of visibleSecurityEvents"
               [class.warn]="e.severity !== 'info'"
               [class.bad]="e.severity === 'critical' || e.severity === 'high'"
             >
@@ -560,6 +569,15 @@
 
               <div class="tl-when">
                 {{ timeAgo(e.createdAt) }}
+                <button
+                  mat-icon-button
+                  class="tl-dismiss"
+                  title="Dismiss event"
+                  aria-label="Dismiss event"
+                  (click)="dismissEvent(e)"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
               </div>
             </div>
           </div>

@@ -13,6 +13,10 @@ dotenv.config({ path: resolve(process.cwd(), '..', '..', '.env') });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Trust the proxy's X-Forwarded-For so req.ip reflects the real client
+  // (Angular dev proxy, Vercel, Render, nginx all forward this header).
+  app.getHttpAdapter().getInstance().set('trust proxy', true);
+
   app.use(helmet());
   app.use(cookieParser());
 

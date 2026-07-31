@@ -40,6 +40,12 @@ const MFA_SETUP_TTL = 600;
 const BACKUP_CODE_COUNT = 8;
 const BACKUP_CODE_BYTES = 4;
 
+const LOGIN_HISTORY_RETENTION_DAYS = 30;
+const LOGIN_HISTORY_MAX_ENTRIES = 20;
+
+const loginHistoryCutoff = () =>
+  new Date(Date.now() - LOGIN_HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+
 /** Request headers that describe the device/client, captured server-side. */
 export interface DeviceRequestHeaders {
   acceptLanguage?: string;
@@ -67,9 +73,20 @@ interface RecordLoginParams {
     city?: string;
     isNewDevice?: boolean;
     isNewCountry?: boolean;
+    isNewIp?: boolean;
     vpnDetected?: boolean;
     proxyDetected?: boolean;
     torDetected?: boolean;
+    deviceName?: string;
+    deviceType?: string;
+    browser?: string;
+    os?: string;
+    timezone?: string;
+    loginMethod?: string;
+    isp?: string;
+    ispOrganization?: string;
+    latitude?: number;
+    longitude?: number;
   };
 }
 
@@ -327,6 +344,27 @@ export class AuthService {
         data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
       }),
     ]);
+
+    // Evaluate risk BEFORE the device is upserted — otherwise the device
+    // already exists and the 'new_device' factor never fires on first login.
+    const riskCtx: RiskContext = {
+      userId: user.id,
+      email: user.email,
+      ip: ip || '',
+      userAgent: userAgent || '',
+      deviceFingerprint: ctx.fingerprint
+        ? this.fingerprintService.hash(ctx.fingerprint)
+        : undefined,
+      deviceId: clientDeviceId,
+      country: ipInfo?.country,
+      city: ipInfo?.city,
+      timezone: ctx.timezone,
+      latitude: ctx.latitude,
+      longitude: ctx.longitude,
+    };
+
+    const riskResult = await this.riskEngine.evaluate(riskCtx);
+
     const device = await this.registerOrUpdateDevice(user.id, {
       deviceId: clientDeviceId,
       fingerprint: ctx.fingerprint,
@@ -338,26 +376,7 @@ export class AuthService {
     });
     const deviceRecordId = device.id;
 
-    // Evaluate risk
-    const riskCtx: RiskContext = {
-      userId: user.id,
-      email: user.email,
-      ip: ip || '',
-      userAgent: userAgent || '',
-      deviceFingerprint: ctx.fingerprint
-        ? this.fingerprintService.hash(ctx.fingerprint)
-        : undefined,
-      deviceId,
-      country: ipInfo?.country,
-      city: ipInfo?.city,
-      timezone: ctx.timezone,
-      latitude: ctx.latitude,
-      longitude: ctx.longitude,
-    };
-
-    const riskResult = await this.riskEngine.evaluate(riskCtx);
-
-    // Update device risk score if device exists
+    // Update device risk score
     if (deviceRecordId) {
       await this.prisma.device.update({
         where: { id: deviceRecordId },
@@ -369,6 +388,9 @@ export class AuthService {
         },
       });
     }
+
+    const isNewDevice = riskResult.factors.some((f) => f.name === 'new_device');
+    const isNewIp = riskResult.factors.some((f) => f.name === 'new_ip');
 
     // Block critical risk
     if (riskResult.blocked) {
@@ -431,7 +453,13 @@ export class AuthService {
             deviceId: deviceRecordId,
             country: ipInfo?.country,
             city: ipInfo?.city,
-            isNewDevice: riskResult.factors.some((f) => f.name === 'new_device'),
+            isNewDevice,
+            isNewIp,
+            timezone: ctx.timezone,
+            isp: ipInfo?.isp,
+            ispOrganization: ipInfo?.organization,
+            latitude: ipInfo?.latitude,
+            longitude: ipInfo?.longitude,
             vpnDetected: ipInfo?.isVpn || false,
             torDetected: ipInfo?.isTor || false,
             proxyDetected: ipInfo?.isProxy || false,
@@ -497,7 +525,6 @@ export class AuthService {
     }
 
     // Record login history
-    const isNewDevice = riskResult.factors.some((f) => f.name === 'new_device');
     await this.recordLogin({
       userId: user.id,
       email: user.email,
@@ -514,7 +541,13 @@ export class AuthService {
         country: ipInfo?.country,
         city: ipInfo?.city,
         isNewDevice,
+        isNewIp,
         isNewCountry: riskResult.factors.some((f) => f.name === 'new_country'),
+        timezone: ctx.timezone,
+        isp: ipInfo?.isp,
+        ispOrganization: ipInfo?.organization,
+        latitude: ipInfo?.latitude,
+        longitude: ipInfo?.longitude,
         vpnDetected: ipInfo?.isVpn || false,
         torDetected: ipInfo?.isTor || false,
         proxyDetected: ipInfo?.isProxy || false,
@@ -962,6 +995,11 @@ export class AuthService {
       extra = {},
     } = params;
     try {
+      // Derive client/device fields server-side from the User-Agent so login
+      // history rows are enriched even when the client sends no fingerprint.
+      const ua = userAgent ? new UAParser(userAgent).getResult() : undefined;
+      const deviceName =
+        [ua?.device?.vendor, ua?.device?.model].filter(Boolean).join(' ') || undefined;
       await this.prisma.loginHistory.create({
         data: {
           userId: typeof userId === 'string' ? userId : null,
@@ -969,17 +1007,28 @@ export class AuthService {
           success,
           provider,
           failureReason,
+          loginMethod: extra.loginMethod || (provider === 'local' ? 'local' : provider),
           ipAddress: ip,
           userAgent,
           deviceId: extra.deviceId,
           sessionId: extra.sessionId,
+          deviceName: extra.deviceName || deviceName,
+          deviceType: extra.deviceType || ua?.device?.type || undefined,
+          browser: extra.browser || ua?.browser?.name || undefined,
+          os: extra.os || ua?.os?.name || undefined,
+          timezone: extra.timezone,
           country: extra.country,
           city: extra.city,
+          isp: extra.isp,
+          ispOrganization: extra.ispOrganization,
+          latitude: extra.latitude,
+          longitude: extra.longitude,
           riskScore: extra.riskScore || 0,
           riskLevel: extra.riskLevel || 'low',
           riskFactors: extra.riskFactors || undefined,
           isNewDevice: extra.isNewDevice || false,
           isNewCountry: extra.isNewCountry || false,
+          isNewIp: extra.isNewIp || false,
           vpnDetected: extra.vpnDetected || false,
           proxyDetected: extra.proxyDetected || false,
           torDetected: extra.torDetected || false,
@@ -1018,6 +1067,45 @@ export class AuthService {
 
   async getSecurityEvents(userId: string) {
     return this.audit.getSecurityEvents(userId);
+  }
+
+  async acknowledgeSecurityEvent(eventId: string, userId: string): Promise<void> {
+    await this.audit.acknowledgeEvent(eventId, userId);
+  }
+
+  /**
+   * Global cleanup of login history:
+   * 1. Removes all entries older than LOGIN_HISTORY_RETENTION_DAYS (30 days)
+   * 2. Keeps only the latest LOGIN_HISTORY_MAX_ENTRIES (20) per user
+   */
+  async cleanupLoginHistory(): Promise<{ deleted: number }> {
+    const cutoff = loginHistoryCutoff();
+
+    // Delete expired entries (older than 30 days)
+    const expired = await this.prisma.loginHistory.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    });
+
+    // For each user, keep only the latest LOGIN_HISTORY_MAX_ENTRIES entries
+    // and delete the rest
+    const overLimit = await this.prisma.$queryRaw<{ id: string }[]>`
+      DELETE FROM login_history lh
+      USING (
+        SELECT id, row_number() OVER (
+          PARTITION BY user_id ORDER BY created_at DESC
+        ) AS rn
+        FROM login_history
+        WHERE user_id IS NOT NULL AND created_at >= ${cutoff}
+      ) ranked
+      WHERE lh.id = ranked.id AND ranked.rn > ${LOGIN_HISTORY_MAX_ENTRIES}
+      RETURNING lh.id
+    `;
+
+    const deleted = expired.count + overLimit.length;
+    if (deleted > 0) {
+      this.logger.log(`Login history cleanup removed ${deleted} records`);
+    }
+    return { deleted };
   }
 
   async googleLogin(

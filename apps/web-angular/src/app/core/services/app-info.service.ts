@@ -18,6 +18,7 @@ export class AppInfoService {
   updateAvailable = false;
 
   private started = false;
+  private lastFocusCheck = 0;
 
   constructor(private http: HttpClient) {}
 
@@ -32,6 +33,11 @@ export class AppInfoService {
     setInterval(() => this.checkForUpdate(), POLL_INTERVAL_MS);
 
     fromEvent(window, 'focus').subscribe(() => {
+      // Refresh on focus, but not more than once a minute — avoids duplicate
+      // health + version requests when the user just switches tabs.
+      const now = Date.now();
+      if (now - this.lastFocusCheck < POLL_INTERVAL_MS) return;
+      this.lastFocusCheck = now;
       this.checkApiHealth();
       this.checkForUpdate();
     });
@@ -48,7 +54,7 @@ export class AppInfoService {
 
   checkForUpdate(): void {
     this.http
-      .get<BuildVersion>(`/version.json?ts=${Date.now()}`, { withCredentials: true })
+      .get<BuildVersion>(`/assets/version.json?ts=${Date.now()}`, { withCredentials: true })
       .pipe(catchError(() => []))
       .subscribe((remote) => {
         if (!remote || !remote.gitSha) return;

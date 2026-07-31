@@ -67,6 +67,16 @@ export class SecurityService {
     return this.http.get<SecurityEvent[]>(`${this.API}/security-events`, { withCredentials: true });
   }
 
+  acknowledgeEvent(eventId: string): Observable<any> {
+    return this.http.post(
+      `${this.API}/security-events/${eventId}/acknowledge`,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
   setupMfa(): Observable<MfaSetupResult> {
     return this.http.post<MfaSetupResult>(`${this.API}/mfa/setup`, {}, { withCredentials: true });
   }
