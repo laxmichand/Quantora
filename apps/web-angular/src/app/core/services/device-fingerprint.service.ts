@@ -45,6 +45,7 @@ export class DeviceFingerprintService {
 
   async collect(): Promise<DeviceFingerprintData> {
     this.storedDeviceId = this.getCurrentDeviceId();
+    const battery = await this.getBatteryInfo();
 
     return {
       deviceId: this.storedDeviceId,
@@ -76,9 +77,9 @@ export class DeviceFingerprintService {
       audioFingerprint: await this.getAudioFingerprint(),
       fontsHash: this.getFontsHash(),
       pluginsHash: this.getPluginsHash(),
-      batterySupported: 'getBattery' in navigator,
-      batteryLevel: undefined,
-      charging: undefined,
+      batterySupported: battery.supported,
+      batteryLevel: battery.level,
+      charging: battery.charging,
       connectionDownlink: (navigator as any).connection?.downlink || undefined,
       effectiveNetworkType: (navigator as any).connection?.effectiveType || undefined,
       userAgent: navigator.userAgent,
@@ -297,6 +298,27 @@ export class DeviceFingerprintService {
       return plugins || '';
     } catch {
       return '';
+    }
+  }
+
+  private async getBatteryInfo(): Promise<{
+    supported: boolean;
+    level?: number;
+    charging?: boolean;
+  }> {
+    try {
+      const nav = navigator as unknown as {
+        getBattery?: () => Promise<{ level: number; charging: boolean }>;
+      };
+      if (typeof nav.getBattery !== 'function') return { supported: false };
+      const battery = await nav.getBattery();
+      return {
+        supported: true,
+        level: typeof battery.level === 'number' ? battery.level : undefined,
+        charging: typeof battery.charging === 'boolean' ? battery.charging : undefined,
+      };
+    } catch {
+      return { supported: false };
     }
   }
 }

@@ -15,7 +15,7 @@ import { TokenService } from '../tokens/token.service';
 import { FingerprintService, DeviceFingerprint } from '../fingerprint/fingerprint.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RiskEngineService, RiskContext } from '../risk-engine/risk-engine.service';
-import { IpIntelligenceService } from '../common/services/ip-intelligence.service';
+import { IpIntelligenceService, IpInfo } from '../common/services/ip-intelligence.service';
 import { SecurityAuditService } from '../security-audit/security-audit.service';
 import { SecurityEventType } from '../security-audit/security-event.constants';
 import { RegisterDto } from './dto/register.dto';
@@ -23,6 +23,7 @@ import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UserPayload } from '../common/interfaces/user-payload.interface';
 import { parseUserAgent } from '../common/utils/user-agent.parser';
+import { UAParser } from 'ua-parser-js';
 import { randomBytes } from 'crypto';
 
 const MAX_FAILED_ATTEMPTS = 5;
@@ -38,6 +39,15 @@ const MFA_RATE_LIMIT_WINDOW_SECONDS = 60;
 const MFA_SETUP_TTL = 600;
 const BACKUP_CODE_COUNT = 8;
 const BACKUP_CODE_BYTES = 4;
+
+/** Request headers that describe the device/client, captured server-side. */
+export interface DeviceRequestHeaders {
+  acceptLanguage?: string;
+  acceptEncoding?: string;
+  acceptHeader?: string;
+  referer?: string;
+  origin?: string;
+}
 
 interface RecordLoginParams {
   userId: string | null;
@@ -71,6 +81,7 @@ export interface LoginContext {
   latitude?: number;
   longitude?: number;
   timezone?: string;
+  headers?: DeviceRequestHeaders;
 }
 
 @Injectable()
@@ -94,6 +105,7 @@ export class AuthService {
     dto: RegisterDto,
     ip?: string,
     userAgent?: string,
+    headers?: DeviceRequestHeaders,
   ): Promise<{ accessToken: string; refreshToken: string; user: AuthResponseDto['user'] }> {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
@@ -120,6 +132,12 @@ export class AuthService {
     this.logger.log(`User registered: ${user.email}`);
 
     // Register/create device record
+    const ipInfo = ip
+      ? await this.ipIntel.lookup(ip).catch((err) => {
+          this.logger.debug('IP intelligence lookup failed during register');
+          return undefined;
+        })
+      : undefined;
     let devicePk: string;
     try {
       const device = await this.registerOrUpdateDevice(user.id, {
@@ -127,6 +145,9 @@ export class AuthService {
         fingerprint: dto.fingerprint,
         ip,
         userAgent,
+        ipInfo,
+        headers,
+        loginMethod: 'local',
       });
       devicePk = device.id;
     } catch (err) {
@@ -293,27 +314,28 @@ export class AuthService {
     }
 
     // ─── Password verified — begin device + risk evaluation ───────────
-    // These three steps are independent — run them concurrently to cut
+    // These steps are independent — run them concurrently to cut
     // round-trips against the database/IP service.
     const clientDeviceId = deviceId || randomBytes(16).toString('hex');
-    const [device, ipInfo] = await Promise.all([
-      (async () => {
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
-        });
-        return this.registerOrUpdateDevice(user.id, {
-          deviceId: clientDeviceId,
-          fingerprint: ctx.fingerprint,
-          ip,
-          userAgent,
-        });
-      })(),
+    const [ipInfo] = await Promise.all([
       this.ipIntel.lookup(ip || '').catch(() => {
         this.logger.debug('IP intelligence lookup failed');
         return undefined;
       }),
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
+      }),
     ]);
+    const device = await this.registerOrUpdateDevice(user.id, {
+      deviceId: clientDeviceId,
+      fingerprint: ctx.fingerprint,
+      ip,
+      userAgent,
+      ipInfo,
+      headers: ctx.headers,
+      loginMethod: 'local',
+    });
     const deviceRecordId = device.id;
 
     // Evaluate risk
@@ -342,9 +364,6 @@ export class AuthService {
         data: {
           riskScore: riskResult.score,
           riskLevel: riskResult.level,
-          country: ipInfo?.country,
-          city: ipInfo?.city,
-          publicIp: ip,
           lastLogin: new Date(),
           loginCount: { increment: 1 },
         },
@@ -823,9 +842,72 @@ export class AuthService {
       fingerprint?: Partial<DeviceFingerprint>;
       ip?: string;
       userAgent?: string;
+      ipInfo?: IpInfo;
+      headers?: DeviceRequestHeaders;
+      loginMethod?: string;
     },
   ) {
     const fingerprintHash = ctx.fingerprint ? this.fingerprintService.hash(ctx.fingerprint) : null;
+
+    // Derive client-identifying fields from the User-Agent server-side.
+    // These are authoritative: anything the browser reports can be spoofed,
+    // but the UA is still the standard cross-client authority.
+    const ua = ctx.userAgent ? new UAParser(ctx.userAgent).getResult() : undefined;
+    const deviceName =
+      [ua?.device?.vendor, ua?.device?.model].filter(Boolean).join(' ') ||
+      ctx.fingerprint?.deviceName ||
+      undefined;
+
+    const payload = {
+      deviceName,
+      deviceType: ua?.device?.type || ctx.fingerprint?.deviceType || undefined,
+      browser: ua?.browser?.name || ctx.fingerprint?.browser || undefined,
+      browserVersion: ua?.browser?.version || ctx.fingerprint?.browserVersion || undefined,
+      engine: ua?.engine?.name || ctx.fingerprint?.engine || undefined,
+      engineVersion: ua?.engine?.version || ctx.fingerprint?.engineVersion || undefined,
+      os: ua?.os?.name || ctx.fingerprint?.os || undefined,
+      osVersion: ua?.os?.version || ctx.fingerprint?.osVersion || undefined,
+      cpuArchitecture: ua?.cpu?.architecture || ctx.fingerprint?.cpuArchitecture || undefined,
+      manufacturer: ua?.device?.vendor || ctx.fingerprint?.manufacturer || undefined,
+      model: ua?.device?.model || ctx.fingerprint?.model || undefined,
+
+      platform: ctx.fingerprint?.platform || undefined,
+      hostname: ctx.fingerprint?.hostname || undefined,
+      hardwareConcurrency: ctx.fingerprint?.hardwareConcurrency ?? undefined,
+      deviceMemory: ctx.fingerprint?.deviceMemory ?? undefined,
+      screenResolution: ctx.fingerprint?.screenResolution || undefined,
+      viewport: ctx.fingerprint?.viewport || undefined,
+      pixelRatio: ctx.fingerprint?.pixelRatio ?? undefined,
+      timezone: ctx.fingerprint?.timezone || undefined,
+      language: ctx.fingerprint?.language || undefined,
+      languages: ctx.fingerprint?.languages?.length ? ctx.fingerprint.languages : undefined,
+
+      webglVendor: ctx.fingerprint?.webglVendor || undefined,
+      webglRenderer: ctx.fingerprint?.webglRenderer || undefined,
+      canvasFingerprint: ctx.fingerprint?.canvasFingerprint || undefined,
+      audioFingerprint: ctx.fingerprint?.audioFingerprint || undefined,
+      fontsHash: ctx.fingerprint?.fontsHash || undefined,
+      pluginsHash: ctx.fingerprint?.pluginsHash || undefined,
+      touchSupport: ctx.fingerprint?.touchSupport ?? undefined,
+      cookiesEnabled: ctx.fingerprint?.cookiesEnabled ?? undefined,
+      localStorage: ctx.fingerprint?.localStorage ?? undefined,
+      sessionStorage: ctx.fingerprint?.sessionStorage ?? undefined,
+      batterySupported: ctx.fingerprint?.batterySupported ?? undefined,
+      batteryLevel: ctx.fingerprint?.batteryLevel ?? undefined,
+      charging: ctx.fingerprint?.charging ?? undefined,
+      connectionDownlink: ctx.fingerprint?.connectionDownlink ?? undefined,
+      effectiveNetworkType: ctx.fingerprint?.effectiveNetworkType || undefined,
+
+      publicIp: ctx.ip || undefined,
+      userAgent: ctx.userAgent || undefined,
+      acceptLanguage: ctx.headers?.acceptLanguage || undefined,
+      acceptEncoding: ctx.headers?.acceptEncoding || undefined,
+      acceptHeader: ctx.headers?.acceptHeader || undefined,
+      referer: ctx.headers?.referer || undefined,
+      origin: ctx.headers?.origin || undefined,
+
+      loginMethod: ctx.loginMethod || 'local',
+    };
 
     return this.prisma.device.upsert({
       where: { deviceId: ctx.deviceId },
@@ -833,50 +915,36 @@ export class AuthService {
         userId,
         deviceId: ctx.deviceId,
         fingerprintHash,
-        deviceName: ctx.fingerprint?.deviceName,
-        deviceType: ctx.fingerprint?.deviceType,
-        browser: ctx.fingerprint?.browser,
-        browserVersion: ctx.fingerprint?.browserVersion,
-        os: ctx.fingerprint?.os,
-        osVersion: ctx.fingerprint?.osVersion,
-        screenResolution: ctx.fingerprint?.screenResolution,
-        timezone: ctx.fingerprint?.timezone,
-        language: ctx.fingerprint?.language,
-        languages: ctx.fingerprint?.languages || [],
-        publicIp: ctx.ip,
-        userAgent: ctx.userAgent,
-        webglVendor: ctx.fingerprint?.webglVendor,
-        webglRenderer: ctx.fingerprint?.webglRenderer,
-        canvasFingerprint: ctx.fingerprint?.canvasFingerprint,
-        audioFingerprint: ctx.fingerprint?.audioFingerprint,
-        hardwareConcurrency: ctx.fingerprint?.hardwareConcurrency,
-        deviceMemory: ctx.fingerprint?.deviceMemory,
-        touchSupport: ctx.fingerprint?.touchSupport || false,
+        ...payload,
+        country: ctx.ipInfo?.country,
+        state: ctx.ipInfo?.state,
+        city: ctx.ipInfo?.city,
+        postalCode: ctx.ipInfo?.postalCode,
+        latitude: ctx.ipInfo?.latitude,
+        longitude: ctx.ipInfo?.longitude,
+        isp: ctx.ipInfo?.isp,
+        networkType: ctx.ipInfo?.networkType,
+        vpnDetected: ctx.ipInfo?.isVpn ?? false,
+        proxyDetected: ctx.ipInfo?.isProxy ?? false,
+        torDetected: ctx.ipInfo?.isTor ?? false,
         firstLogin: new Date(),
         lastLogin: new Date(),
         lastActivity: new Date(),
       },
       update: {
+        ...payload,
         fingerprintHash: fingerprintHash || undefined,
-        deviceName: ctx.fingerprint?.deviceName || undefined,
-        deviceType: ctx.fingerprint?.deviceType || undefined,
-        browser: ctx.fingerprint?.browser || undefined,
-        browserVersion: ctx.fingerprint?.browserVersion || undefined,
-        os: ctx.fingerprint?.os || undefined,
-        osVersion: ctx.fingerprint?.osVersion || undefined,
-        screenResolution: ctx.fingerprint?.screenResolution || undefined,
-        timezone: ctx.fingerprint?.timezone || undefined,
-        language: ctx.fingerprint?.language || undefined,
-        languages: ctx.fingerprint?.languages?.length ? ctx.fingerprint.languages : undefined,
-        publicIp: ctx.ip || undefined,
-        userAgent: ctx.userAgent || undefined,
-        webglVendor: ctx.fingerprint?.webglVendor || undefined,
-        webglRenderer: ctx.fingerprint?.webglRenderer || undefined,
-        canvasFingerprint: ctx.fingerprint?.canvasFingerprint || undefined,
-        audioFingerprint: ctx.fingerprint?.audioFingerprint || undefined,
-        hardwareConcurrency: ctx.fingerprint?.hardwareConcurrency || undefined,
-        deviceMemory: ctx.fingerprint?.deviceMemory || undefined,
-        touchSupport: ctx.fingerprint?.touchSupport ?? undefined,
+        country: ctx.ipInfo?.country || undefined,
+        state: ctx.ipInfo?.state || undefined,
+        city: ctx.ipInfo?.city || undefined,
+        postalCode: ctx.ipInfo?.postalCode || undefined,
+        latitude: ctx.ipInfo?.latitude ?? undefined,
+        longitude: ctx.ipInfo?.longitude ?? undefined,
+        isp: ctx.ipInfo?.isp || undefined,
+        networkType: ctx.ipInfo?.networkType || undefined,
+        vpnDetected: ctx.ipInfo?.isVpn ?? undefined,
+        proxyDetected: ctx.ipInfo?.isProxy ?? undefined,
+        torDetected: ctx.ipInfo?.isTor ?? undefined,
         lastActivity: new Date(),
       },
     });

@@ -61,6 +61,7 @@ const mockSvc = () => ({
   lookup: jest.fn().mockResolvedValue(null),
   getClientIp: jest.fn(),
   collect: jest.fn(),
+  hash: jest.fn().mockReturnValue('mock-fingerprint-hash'),
   get: jest.fn(),
   set: jest.fn(),
   del: jest.fn(),
@@ -202,6 +203,123 @@ describe('AuthService', () => {
       await expect(
         service.register({ email: TEST_EMAIL, password: TEST_PASSWORD, name: TEST_NAME }),
       ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('device enrichment', () => {
+    it('persists server-derived geo/UA/header fields and ignores client geo claims', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        id: TEST_USER_ID,
+        email: 'new@example.com',
+        name: 'New',
+        role: 'user',
+      });
+      prisma.refreshToken.create.mockResolvedValue({});
+      (service as any).ipIntel.lookup.mockResolvedValue({
+        ip: '8.8.8.8',
+        country: 'United States',
+        state: 'California',
+        city: 'Mountain View',
+        postalCode: '94043',
+        latitude: 37.4,
+        longitude: -122.0,
+        isp: 'Example ISP',
+        networkType: 'cable',
+        isVpn: true,
+        isProxy: false,
+        isTor: true,
+      });
+
+      await service.register(
+        {
+          email: 'new@example.com',
+          password: TEST_PASSWORD,
+          name: 'New',
+          fingerprint: {
+            deviceId: 'client-device',
+            browser: 'SpoofedBrowser',
+            browserVersion: '999',
+            engine: 'SpoofedEngine',
+            os: 'SpoofedOS',
+            screenResolution: '1920x1080',
+            canvasFingerprint: 'abc',
+          },
+        },
+        '8.8.8.8',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        {
+          acceptLanguage: 'en-US,en;q=0.9',
+          acceptEncoding: 'gzip, deflate, br',
+          acceptHeader: 'text/html',
+          referer: 'https://example.com/',
+          origin: 'https://example.com',
+        },
+      );
+
+      const [upsertArgs] = prisma.device.upsert.mock.calls[0];
+      const create = upsertArgs.create;
+      expect(create.country).toBe('United States');
+      expect(create.state).toBe('California');
+      expect(create.city).toBe('Mountain View');
+      expect(create.postalCode).toBe('94043');
+      expect(create.latitude).toBe(37.4);
+      expect(create.longitude).toBe(-122.0);
+      expect(create.isp).toBe('Example ISP');
+      expect(create.networkType).toBe('cable');
+      expect(create.vpnDetected).toBe(true);
+      expect(create.proxyDetected).toBe(false);
+      expect(create.torDetected).toBe(true);
+      expect(create.publicIp).toBe('8.8.8.8');
+      expect(create.loginMethod).toBe('local');
+      expect(create.userAgent).toContain('Chrome/126');
+
+      expect(create.browser).toBe('Chrome');
+      expect(create.browserVersion).toBe('126.0.0.0');
+      expect(create.engine).toBe('Blink');
+      expect(create.os).toBe('macOS');
+      expect(create.osVersion).toBe('10.15.7');
+      expect(create.manufacturer).toBe('Apple');
+      expect(create.model).toBe('Macintosh');
+      expect(create.deviceName).toBe('Apple Macintosh');
+      expect(create.deviceType).toBeUndefined();
+
+      expect(create.acceptLanguage).toBe('en-US,en;q=0.9');
+      expect(create.acceptEncoding).toBe('gzip, deflate, br');
+      expect(create.acceptHeader).toBe('text/html');
+      expect(create.referer).toBe('https://example.com/');
+      expect(create.origin).toBe('https://example.com');
+    });
+
+    it('writes IP intelligence into the device row on login and keeps risk update geo-free', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      prisma.refreshToken.create.mockResolvedValue({});
+      (service as any).ipIntel.lookup.mockResolvedValue({
+        ip: '1.2.3.4',
+        country: 'Germany',
+        city: 'Berlin',
+        isVpn: true,
+        isProxy: false,
+        isTor: false,
+      });
+
+      await service.login(
+        { email: TEST_EMAIL, password: TEST_PASSWORD },
+        mockLoginCtx({ ip: '1.2.3.4' }),
+      );
+
+      const [upsertArgs] = prisma.device.upsert.mock.calls[0];
+      expect(upsertArgs.update.country).toBe('Germany');
+      expect(upsertArgs.update.city).toBe('Berlin');
+      expect(upsertArgs.update.vpnDetected).toBe(true);
+      expect(upsertArgs.update.lastActivity).toBeInstanceOf(Date);
+
+      const riskUpdateArgs = prisma.device.update.mock.calls[0][0];
+      expect(riskUpdateArgs.data.country).toBeUndefined();
+      expect(riskUpdateArgs.data.city).toBeUndefined();
+      expect(riskUpdateArgs.data.publicIp).toBeUndefined();
+      expect(riskUpdateArgs.data.riskScore).toBeDefined();
+      expect(riskUpdateArgs.data.riskLevel).toBeDefined();
     });
   });
 

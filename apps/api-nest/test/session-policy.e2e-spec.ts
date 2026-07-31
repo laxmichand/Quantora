@@ -53,7 +53,9 @@ describe('Session policy (e2e)', () => {
   afterAll(async () => {
     try {
       await prisma.user.deleteMany({ where: { email: { startsWith: 'sess-' } } });
-    } catch {}
+    } catch {
+      /* no-op */
+    }
     await app.close();
   });
 

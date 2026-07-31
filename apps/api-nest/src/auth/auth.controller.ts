@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Response, Request as ExpressRequest } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService, DeviceRequestHeaders } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { MfaSetupDto, MfaVerifyDto, MfaDisableDto } from './dto/mfa.dto';
@@ -48,7 +48,12 @@ export class AuthController {
     @Req() req: ExpressRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.register(dto, req.ip, req.headers['user-agent']);
+    const result = await this.authService.register(
+      dto,
+      req.ip,
+      req.headers['user-agent'],
+      this.deviceHeaders(req),
+    );
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     return { user: result.user };
   }
@@ -71,6 +76,7 @@ export class AuthController {
       latitude: dto.latitude,
       longitude: dto.longitude,
       timezone: dto.timezone,
+      headers: this.deviceHeaders(req),
     });
 
     if (result.requiresMfa) {
@@ -268,5 +274,16 @@ export class AuthController {
     res.clearCookie('_qtr', { path: '/api/auth' });
     res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
     res.clearCookie('refreshToken', { path: '/' });
+  }
+
+  private deviceHeaders(req: ExpressRequest): DeviceRequestHeaders {
+    const h = req.headers;
+    return {
+      acceptLanguage: (h['accept-language'] as string) || undefined,
+      acceptEncoding: (h['accept-encoding'] as string) || undefined,
+      acceptHeader: (h['accept'] as string) || undefined,
+      referer: (h['referer'] as string) || (h['referrer'] as string) || undefined,
+      origin: (h['origin'] as string) || undefined,
+    };
   }
 }

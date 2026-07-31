@@ -4,16 +4,24 @@ Kept up to date on every problem/command. Current → Completed → Pending.
 
 ## Current Task
 
-**Device-fingerprint enrichment + anti-tamper (in progress)**
+**Device-fingerprint enrichment + anti-tamper (in progress — backend + client done, not yet committed)**
 
-- Fill `devices` table columns from the correct authority:
-  - **Client (Angular)** sends ONLY browser-exposed fields (UA-derived + sensor fingerprint). Never sends country/state/city/ISP/IP/risk_score — those are server-computed (client could spoof them).
-  - **Backend (NestJS)** derives from request: UA → browser/engine/os/cpu/device; IP → geo/ISP/VPN/proxy/TOR; headers; lifecycle fields.
-  - Columns that browsers can never expose (`private_ip`, `wifi_name`, `hostname`) stay `null`.
-- Reference: `DeviceFingerprintService.collect()` (client) vs `registerOrUpdateDevice()` (server, `auth.service.ts`).
-- NPM candidates: `ua-parser-js` (installed), `device-detector-js`, `geoip-lite`/MaxMind, `@fingerprintjs/fingerprintjs` (client).
+- Server-side enrichment implemented in `registerOrUpdateDevice()` (`auth.service.ts`):
+  - `IpIntelligenceService.lookup(ip)` now persisted into the `Device` row (create + update): country, state, city, postal_code, lat/long, isp, network_type, vpn/proxy/tor_detected, public_ip.
+  - UA parsed server-side with `ua-parser-js` (authoritative over client claims): browser/engine/os (+versions), cpu_architecture, manufacturer/model/device_type/device_name.
+  - Request headers persisted: accept_language, accept_encoding, accept_header, referer, origin; plus login_method.
+  - Post-login risk update reduced to risk_score/risk_level + last_login + login_count (no redundant geo writes).
+- Client (`DeviceFingerprintService.collect()`) now actually captures `batteryLevel`/`charging` via `navigator.getBattery()`; still sends ONLY browser-exposed fields (no geo/IP/risk). `FingerprintService.hash()` already ignores volatile battery fields → hash stays stable.
+- Remaining: e2e geo-field assertions optional (needs IPAPI_KEY/live IP), commit + push.
 
 ## Completed
+
+### Device-fingerprint enrichment + anti-tamper (backend + client)
+
+- **Backend:** `registerOrUpdateDevice()` persists server-derived geo/IP/UA/header/lifecycle fields from `IpInfo`, `UAParser`, and request headers — never trusts client-sent geo/IP/risk. `LoginContext.headers`, `register()` 4th arg, `auth.controller.deviceHeaders()` helper added; risk update refactored.
+- **Client:** `DeviceFingerprintService.collect()` fills `batteryLevel`/`charging` via `navigator.getBattery()` (falls back gracefully); fingerprint payload unchanged in surface — still browser-exposed fields only.
+- **Tests:** `auth.service.spec.ts` +2 (server-authoritative UA override + header/geo persistence on register; IP-intelligence + geo-free risk update on login) → API unit 47/47.
+- **Checks:** `nest build` green, web `tsc --noEmit` + prod `ng build` green, eslint 0 (fixed empty `catch {}` in e2e spec), prettier clean.
 
 ### Session policy — enforce max 2 active sessions per user (committed + pushed)
 
@@ -28,8 +36,9 @@ Kept up to date on every problem/command. Current → Completed → Pending.
 
 ## Pending
 
-- [ ] Implement device-fingerprint server-side enrichment + client field cleanup (see Current Task).
-- [ ] Decide whether to persist ipInfo fields into `Device` row on register/login.
+- [ ] Commit + push device-fingerprint enrichment (auth.service/controller/spec, web device-fingerprint service, session-policy e2e catch fix, task.md).
+- [ ] Optional: e2e test asserting geo/ISP/VPN fields land in the device row (needs real IP / IPAPI_KEY).
+- [ ] Decide offline geo (`geoip-lite`/MaxMind) vs keeping optional IPAPI_KEY only.
 
 ## Commands Run (recent)
 
