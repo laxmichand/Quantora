@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
+import * as geoip from 'geoip-lite';
 
 export interface IpInfo {
   ip: string;
@@ -28,6 +29,15 @@ const EARTH_RADIUS_KM = 6371;
 const DEG_TO_RAD_FACTOR = Math.PI / 180;
 const IP_CACHE_TTL_SECONDS = 86_400;
 
+function isPublicIp(ip: string): boolean {
+  return (
+    ip !== LOOPBACK_IPV4 &&
+    ip !== LOOPBACK_IPV6 &&
+    !ip.startsWith(PRIVATE_192_PREFIX) &&
+    !ip.startsWith(PRIVATE_10_PREFIX)
+  );
+}
+
 @Injectable()
 export class IpIntelligenceService {
   private readonly logger = new Logger(IpIntelligenceService.name);
@@ -39,8 +49,6 @@ export class IpIntelligenceService {
     const cached = await this.redis.cacheGet<IpInfo>(`ip:${ip}`);
     if (cached) return cached;
 
-    // Build a basic IP info from headers/local data
-    // In production, integrate with MaxMind GeoIP, ipapi.co, or ip2location
     const info: IpInfo = {
       ip,
       country: undefined,
@@ -50,27 +58,36 @@ export class IpIntelligenceService {
       isTor: false,
     };
 
-    // Try ipapi.co if configured
+    // Offline GeoLite2-derived baseline (country/state/city/coords/timezone)
+    const isPublic = isPublicIp(ip);
+    if (isPublic) {
+      const geo = geoip.lookup(ip);
+      if (geo) {
+        info.country = geo.country || undefined;
+        info.state = geo.region || undefined;
+        info.city = geo.city || undefined;
+        info.latitude = geo.ll?.[0];
+        info.longitude = geo.ll?.[1];
+        info.timezone = geo.timezone || undefined;
+      }
+    }
+
+    // Enrich with ipapi.co when a key is configured (ISP, network type,
+    // VPN/proxy/TOR detection, postal code, full country name).
     const apiKey = process.env.IPAPI_KEY;
-    if (
-      apiKey &&
-      ip !== LOOPBACK_IPV4 &&
-      ip !== LOOPBACK_IPV6 &&
-      !ip.startsWith(PRIVATE_192_PREFIX) &&
-      !ip.startsWith(PRIVATE_10_PREFIX)
-    ) {
+    if (apiKey && isPublic) {
       try {
         const response = await fetch(`https://ipapi.co/${ip}/json/?key=${apiKey}`);
         const data = (await response.json()) as any;
         if (data && !data.error) {
-          info.country = data.country_name;
+          info.country = data.country_name || info.country;
           info.countryCode = data.country_code;
-          info.state = data.region;
-          info.city = data.city;
+          info.state = data.region || info.state;
+          info.city = data.city || info.city;
           info.postalCode = data.postal;
-          info.latitude = data.latitude;
-          info.longitude = data.longitude;
-          info.timezone = data.timezone;
+          info.latitude = data.latitude ?? info.latitude;
+          info.longitude = data.longitude ?? info.longitude;
+          info.timezone = data.timezone || info.timezone;
           info.isp = data.org;
           info.organization = data.org;
           info.isVpn = data.security?.is_vpn === true;
