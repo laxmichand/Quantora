@@ -823,6 +823,117 @@ body {
 }
 
 // ============================================================
+// Footer — deployment version & API health
+// ============================================================
+.app-footer {
+  flex-shrink: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 24px;
+  font-size: 11.5px;
+  color: var(--subtext);
+  background: var(--toolbar-bg);
+  border-top: 1px solid var(--toolbar-border);
+
+  .footer-left,
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .footer-ver {
+    font-weight: 600;
+    color: var(--heading);
+    cursor: default;
+  }
+
+  .footer-sha {
+    margin-left: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10.5px;
+    color: var(--subtext);
+    background: var(--border-lighter);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  .footer-api {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    text-transform: capitalize;
+
+    &.ok {
+      color: var(--positive);
+    }
+
+    &.down {
+      color: var(--negative);
+    }
+  }
+
+  .footer-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--subtext);
+    flex-shrink: 0;
+
+    .footer-api.ok & {
+      background: var(--positive);
+    }
+
+    .footer-api.down & {
+      background: var(--negative);
+    }
+  }
+
+  .footer-update {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--warning);
+    color: var(--warning);
+    background: var(--warning-bg);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+
+    &:hover {
+      opacity: 0.85;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    height: auto;
+    min-height: 32px;
+    padding: 4px 12px;
+    flex-wrap: wrap;
+
+    .footer-meta {
+      display: none;
+    }
+  }
+}
+
+// ============================================================
 // Cards
 // ============================================================
 .card {

@@ -2,6 +2,7 @@ import { Component, HostListener } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { AuthService } from './core/services/auth.service';
+import { AppInfoService } from './core/services/app-info.service';
 import { TranslateService } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
 
@@ -48,11 +49,13 @@ export class AppComponent {
     public themeService: ThemeService,
     public translate: TranslateService,
     public authService: AuthService,
+    public appInfo: AppInfoService,
     private router: Router,
   ) {
     const saved = localStorage.getItem('quantora_lang') || 'en';
     translate.setDefaultLang('en');
     translate.use(saved);
+    this.appInfo.start();
     this.checkViewport();
 
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {

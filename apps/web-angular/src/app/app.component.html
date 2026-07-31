@@ -256,4 +256,38 @@
   <main class="main-content">
     <router-outlet></router-outlet>
   </main>
+
+  <!-- FOOTER · deployment info -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span
+        class="footer-ver"
+        title="Deployed build — compare with the latest commit on your git branch"
+      >
+        Quantora v{{ appInfo.build.version }}
+        <span class="footer-sha">{{ appInfo.shortSha }}</span>
+      </span>
+      <span class="footer-meta" *ngIf="appInfo.buildTimeLabel">
+        · built {{ appInfo.buildTimeLabel }}</span
+      >
+    </div>
+
+    <div class="footer-right">
+      <span
+        class="footer-api"
+        title="Backend / API status ({{ appInfo.build.gitRef }})"
+        [class.ok]="appInfo.apiStatus === 'ok'"
+        [class.down]="appInfo.apiStatus === 'down'"
+      >
+        <span class="footer-dot"></span>
+        API
+        {{ appInfo.apiStatus === 'ok' ? 'up' : appInfo.apiStatus === 'down' ? 'down' : 'checking' }}
+      </span>
+
+      <button class="footer-update" *ngIf="appInfo.updateAvailable" (click)="appInfo.reload()">
+        <mat-icon>system_update</mat-icon>
+        New version available — reload
+      </button>
+    </div>
+  </footer>
 </div>

@@ -4,11 +4,15 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
+    "prestart": "node scripts/write-version.mjs",
     "build": "ng build",
+    "prebuild": "node scripts/write-version.mjs",
     "build:prod": "ng build --configuration production",
+    "prebuild:prod": "node scripts/write-version.mjs",
     "watch": "ng build --watch --configuration development",
+    "prewatch": "node scripts/write-version.mjs",
     "test": "ng test",
-    "lint": "tsc --noEmit -p tsconfig.app.json",
+    "lint": "node scripts/write-version.mjs && tsc --noEmit -p tsconfig.app.json",
     "test:ci": "ng test --watch=false --code-coverage --browsers=ChromeHeadlessNoSandbox",
     "test:e2e": "playwright test",
     "e2e": "playwright test"
