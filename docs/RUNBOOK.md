@@ -47,6 +47,7 @@ npm run dev:ai     # FastAPI on :8000
 - Ports already in use → `npm run stop`, then `npm start`
 - API never becomes healthy → check `apps/api-nest` logs, verify `.env`
 - AI service not starting → local Python must be ≤3.12 (`brew install python@3.12`)
+- Login feels slow (>3s) → confirm `DATABASE_URL` points to the direct connection on port 5432 with `sslmode=require`; the transaction pooler (port 6543) adds ~750ms per query
 
 ---
 

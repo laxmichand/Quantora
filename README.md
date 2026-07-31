@@ -75,7 +75,7 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 | 17     | Premium & Notifications                                     | Planned  |
 | 18     | Production Readiness                                        | Planned  |
 
-**Current:** Sprint 4 complete — full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24) + Security Center. Sprint 5 — Data Ingestion & Analysis — up next.
+**Current:** Sprint 4 complete — full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24) + Security Center. Post-sprint polish shipped (v0.4.1–0.4.2): ~6x faster login, Subscription & Pricing page with Pro gating, unified settings sidebar. Sprint 5 — Data Ingestion & Analysis — up next.
 
 ---
 
@@ -182,6 +182,33 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 - 27/27 backend tests passing (+5 auth security tests)
 - 22/22 frontend Angular tests passing
 
+### Sprint 4 Post-Launch Polish (v0.4.1–0.4.2)
+
+#### Login Performance Fix
+
+- Root cause: every DB query went through the Supabase transaction pooler (~940ms/query)
+- API now connects directly on port 5432 (`sslmode=require`) → ~180ms/query
+- Login dropped from **~12s → ~2s**; independent login ops (device register, IP intel) parallelized
+- Logged-in users hitting `/auth/login` are redirected straight to `/dashboard`
+
+#### Subscription & Monetization Prep
+
+- New **Subscription & Pricing** page (`/settings/subscription`) — page header with user chip, live ticker strip, current-plan banner, Free/Pro plan cards
+- New `ProGuard` — free users hitting pro-gated routes (e.g. `/ai-chat`) are redirected to the subscription page
+- "Subscription" added to the profile menu and mobile drawer
+- Header ticker now driven by real index data (`MarketDataService.indices`: NIFTY 50, SENSEX, BANK NIFTY, etc.)
+
+#### Settings Sidebar Unification
+
+- New shared `SettingsNavComponent` — sticky left nav card mirroring the Security Center layout
+- Applied to Settings (General), Devices & Sessions, and Subscription pages; each page's sidebar shows only its own tab
+- 220px + flexible grid, collapses to single column under 900px
+
+#### Other Fixes
+
+- `/ai-chat` 502 in local dev — dev proxy rule narrowed from `/ai` to `/ai/`
+- Redis reconnect error spam — ioredis errors swallowed (debug log) while still auto-reconnecting
+
 ---
 
 ## Monorepo Structure
@@ -281,6 +308,8 @@ See [docs/DEPLOY.md](docs/DEPLOY.md) for full deployment guide.
 | [Sprint 1 Book](docs/sprint-books/Sprint-01/)                    | 11 sections + execution report                      |
 | [Sprint 2 Book](docs/sprint-books/Sprint-02/)                    | 12 sections + execution report                      |
 | [Sprint 3 Book](docs/sprint-books/Sprint-03/)                    | 11 sections + execution report                      |
+| [Sprint 4 Report](docs/sprint-books/Sprint-04/SPRINT_4_EXECUTION_REPORT.md) | Sprint 4 execution report               |
+| [Runbook](docs/RUNBOOK.md)                                       | Operational runbook / incident response             |
 
 ---
 
@@ -298,4 +327,4 @@ Key variables:
 ---
 
 _Sprint 1-4: Engineering Foundation + Identity & Security + Google OAuth + Auth Security + Responsive UI + Full Stack Version Upgrade — Complete_
-_Last Updated: July 29, 2026_
+_Last Updated: July 31, 2026_

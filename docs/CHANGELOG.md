@@ -4,6 +4,15 @@ All notable changes to Quantora.
 
 ---
 
+## [0.4.2] — 2026-07-31
+
+### Changed
+
+- **Unified settings sidebar layout** — Settings, Devices & Sessions, and Subscription pages now share a single sticky left-nav component (`SettingsNavComponent`) styled to match the Security Center. Each page's sidebar shows only its own tab (General / Devices & Sessions / Subscription), so the active section is always obvious.
+- The settings/subscription content columns reuse the Security Center's `220px + 1fr` grid, collapsing to a single column under 900px.
+
+---
+
 ## [0.4.0] — 2026-07-31
 
 ### Sprint 4 — Full Stack Upgrade + Security Center
