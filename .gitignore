@@ -104,3 +104,7 @@ dump.rdb
 
 # CI
 ci.report
+
+# env backups (may contain secrets)
+env.txt
+*.env.txt
