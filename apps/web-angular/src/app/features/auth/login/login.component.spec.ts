@@ -7,7 +7,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AuthUser } from '../../../core/services/auth.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -45,5 +47,39 @@ describe('LoginComponent', () => {
   it('should show error for empty fields', () => {
     component.onSubmit();
     expect(component.error).toBe('Please fill in all fields');
+  });
+});
+
+describe('LoginComponent (authenticated redirect)', () => {
+  const TEST_USER: AuthUser = { id: '123', email: 'test@test.com', name: 'Test', role: 'user' };
+
+  it('should redirect to /dashboard when a session is already active', async () => {
+    const authSpy = jasmine.createSpyObj('AuthService', ['handleOAuthCallback'], {
+      currentUser: TEST_USER,
+      isAuthenticated: true,
+    });
+
+    await TestBed.configureTestingModule({
+      declarations: [LoginComponent],
+      imports: [
+        FormsModule,
+        RouterTestingModule,
+        HttpClientTestingModule,
+        TranslateModule.forRoot(),
+        MatIconModule,
+        MatButtonModule,
+      ],
+      providers: [{ provide: AuthService, useValue: authSpy }],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+    expect(authSpy.handleOAuthCallback).not.toHaveBeenCalled();
   });
 });

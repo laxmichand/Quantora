@@ -42,10 +42,12 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('Quantora');
   });
 
-  it('should have stock ticker data', () => {
+  it('should have stock ticker data from market indices', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.stockTicker.length).toBeGreaterThan(0);
+    expect(app.tickerItems.length).toBeGreaterThan(0);
+    expect(app.tickerItems[0].symbol).toBeDefined();
+    expect(typeof app.tickerItems[0].change).toBe('number');
   });
 
   it('should check login state', () => {
