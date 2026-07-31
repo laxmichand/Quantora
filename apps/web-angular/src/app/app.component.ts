@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { AuthService } from './core/services/auth.service';
 import { AppInfoService } from './core/services/app-info.service';
+import { MarketDataService } from './core/services/market-data.service';
 import { TranslateService } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
 
@@ -25,23 +26,13 @@ export class AppComponent {
     return this.authService.isAuthenticated;
   }
 
-  stockTicker = [
-    { symbol: 'NIFTY 50', price: '24,867.50', change: 0.82 },
-    { symbol: 'SENSEX', price: '81,432.10', change: 0.74 },
-    { symbol: 'RELIANCE', price: '2,945.30', change: 1.23 },
-    { symbol: 'TCS', price: '3,812.45', change: -0.56 },
-    { symbol: 'INFY', price: '1,678.90', change: 2.14 },
-    { symbol: 'HDFCBANK', price: '1,723.60', change: 0.38 },
-    { symbol: 'ICICIBANK', price: '1,287.25', change: -0.92 },
-    { symbol: 'BHARTIARTL', price: '1,534.80', change: 1.67 },
-    { symbol: 'SBIN', price: '842.15', change: -0.34 },
-    { symbol: 'ITC', price: '467.90', change: 0.45 },
-    { symbol: 'WIPRO', price: '572.30', change: -1.12 },
-    { symbol: 'TATAMOTORS', price: '978.45', change: 3.21 },
-    { symbol: 'GOLD', price: '72,450', change: 0.28 },
-    { symbol: 'SILVER', price: '94,120', change: -0.15 },
-    { symbol: 'USDINR', price: '83.62', change: -0.08 },
-  ];
+  get tickerItems(): { symbol: string; price: string; change: number }[] {
+    return this.marketData.indices.map((i) => ({
+      symbol: i.name,
+      price: i.value,
+      change: i.change,
+    }));
+  }
 
   private hiddenRoutes = ['', 'auth', 'auth/login', 'auth/register', 'home'];
 
@@ -50,6 +41,7 @@ export class AppComponent {
     public translate: TranslateService,
     public authService: AuthService,
     public appInfo: AppInfoService,
+    public marketData: MarketDataService,
     private router: Router,
   ) {
     const saved = localStorage.getItem('quantora_lang') || 'en';

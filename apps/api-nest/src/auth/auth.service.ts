@@ -277,30 +277,28 @@ export class AuthService {
     }
 
     // ─── Password verified — begin device + risk evaluation ───────────
-
-    // Reset lockout counter
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
-    });
-
-    // Register/update device
+    // These three steps are independent — run them concurrently to cut
+    // round-trips against the database/IP service.
     const clientDeviceId = deviceId || randomBytes(16).toString('hex');
-    const device = await this.registerOrUpdateDevice(user.id, {
-      deviceId: clientDeviceId,
-      fingerprint: ctx.fingerprint,
-      ip,
-      userAgent,
-    });
+    const [device, ipInfo] = await Promise.all([
+      (async () => {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
+        });
+        return this.registerOrUpdateDevice(user.id, {
+          deviceId: clientDeviceId,
+          fingerprint: ctx.fingerprint,
+          ip,
+          userAgent,
+        });
+      })(),
+      this.ipIntel.lookup(ip || '').catch(() => {
+        this.logger.debug('IP intelligence lookup failed');
+        return undefined;
+      }),
+    ]);
     const deviceRecordId = device.id;
-
-    // Get IP intelligence
-    let ipInfo;
-    try {
-      ipInfo = await this.ipIntel.lookup(ip || '');
-    } catch {
-      this.logger.debug('IP intelligence lookup failed');
-    }
 
     // Evaluate risk
     const riskCtx: RiskContext = {

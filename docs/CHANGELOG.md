@@ -47,6 +47,23 @@ All notable changes to Quantora.
 
 ---
 
+## [0.4.1] — 2026-07-31
+
+### Fixed
+
+- **Login takes ~10s (feels broken)** — every DB query went through the Supabase transaction pooler (~940ms/query). Runtime now connects directly to the database on port 5432 (`sslmode=require`), cutting query latency to ~180ms. Login dropped from ~12s to ~2s.
+- **"Already logged in" users still saw the Sign In page** — `/auth/login` now redirects to `/dashboard` when a session is already active.
+- **`/ai-chat` returned 502 in local dev** — the dev proxy rule `/ai` was intercepting `/ai-chat` and forwarding to the (stopped) AI service; narrowed to `/ai/`.
+- **Redis reconnect error spam** — ioredis reconnect attempts emitted unhandled `error` events every ~2s when Redis is down; errors are now swallowed (debug log) while still auto-reconnecting if Redis comes up.
+
+### Added
+
+- **Subscription & Pricing page** (`/settings/subscription`) — page header with user chip, live ticker strip, current-plan banner, and Free/Pro plan cards with feature lists.
+- **Pro feature gating** — new `ProGuard` redirects free users from pro-gated routes (e.g. `/ai-chat`) to the subscription page; "Subscription" added to the profile menu and mobile drawer.
+- **Ticker tape now uses real index data** — the header ticker is driven by `MarketDataService.indices` (NIFTY 50, SENSEX, BANK NIFTY, etc.) instead of a hardcoded list.
+
+---
+
 ## [0.1.0] — 2026-07-27
 
 ### Sprint 1 — Engineering Foundation

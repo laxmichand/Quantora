@@ -2,7 +2,7 @@
   <!-- STOCK TICKER STRIP -->
   <div class="ticker-strip">
     <div class="ticker-track">
-      <div class="ticker-item" *ngFor="let s of stockTicker">
+      <div class="ticker-item" *ngFor="let s of tickerItems">
         <span class="ticker-symbol">{{ s.symbol }}</span>
         <span class="ticker-price">₹{{ s.price }}</span>
         <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
@@ -12,7 +12,7 @@
           {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
         </span>
       </div>
-      <div class="ticker-item" *ngFor="let s of stockTicker">
+      <div class="ticker-item" *ngFor="let s of tickerItems">
         <span class="ticker-symbol">{{ s.symbol }}</span>
         <span class="ticker-price">₹{{ s.price }}</span>
         <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
@@ -117,6 +117,9 @@
             >
             <a class="profile-item" routerLink="/security"
               ><mat-icon>security</mat-icon><span>Security</span></a
+            >
+            <a class="profile-item" routerLink="/settings/subscription"
+              ><mat-icon>workspace_premium</mat-icon><span>Subscription</span></a
             >
             <div class="profile-divider"></div>
             <button class="profile-item danger" (click)="logout()">
@@ -227,6 +230,9 @@
         </a>
         <a class="drawer-item" routerLink="/security" (click)="mobileMenuOpen = false">
           <mat-icon>security</mat-icon> Security
+        </a>
+        <a class="drawer-item" routerLink="/settings/subscription" (click)="mobileMenuOpen = false">
+          <mat-icon>workspace_premium</mat-icon> Subscription
         </a>
         <a class="drawer-item" routerLink="/ai-chat" (click)="mobileMenuOpen = false">
           <mat-icon>smart_toy</mat-icon> AI Chat

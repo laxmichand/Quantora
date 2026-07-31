@@ -7,6 +7,11 @@ const routes: Routes = [
     path: 'devices',
     loadChildren: () => import('./devices/devices.module').then((m) => m.DevicesModule),
   },
+  {
+    path: 'subscription',
+    loadChildren: () =>
+      import('./subscription/subscription.module').then((m) => m.SubscriptionModule),
+  },
 ];
 
 @NgModule({

@@ -20,6 +20,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       lazyConnect: true,
     });
 
+    // Swallow reconnect error events when Redis is down (e.g. local dev without Redis)
+    this.client.on('error', (err) => this.logger.debug(`Redis connection error: ${err.message}`));
+
     try {
       await this.client.connect();
       this.logger.log('Redis connected');

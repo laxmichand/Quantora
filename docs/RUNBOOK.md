@@ -20,6 +20,8 @@
 
 One command runs the whole stack (NestJS API + Angular frontend, plus FastAPI if your Python is ≤3.12). The database is hosted on Supabase — no local DB or Redis setup is needed.
 
+> **DB connection:** the API connects directly to Supabase on port 5432 (`DATABASE_URL` with `sslmode=require`). The direct connection is ~5x faster per query than the transaction pooler (port 6543). If Supabase is under connection pressure, the pooler URL can be restored from the Supabase dashboard.
+
 ```bash
 npm start          # start everything, press Ctrl+C to stop
 npm run stop       # stop services started by npm start

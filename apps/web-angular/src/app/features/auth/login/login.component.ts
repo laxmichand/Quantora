@@ -27,6 +27,11 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (this.authService.isAuthenticated) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get('error');
     if (oauthError) {
