@@ -327,7 +327,7 @@
                   </span>
 
                   <span *ngIf="d.trustedDevice && d.trustedUntil">
-                    🔒 Trust expires {{ d.trustedUntil }}
+                    🔒 Trust expires {{ formatLocaleDate(d.trustedUntil) }}
                   </span>
                 </div>
 
@@ -444,7 +444,9 @@
                 <div class="d-meta">
                   <span *ngIf="deviceLocation(d)"> 📍 {{ deviceLocation(d) }} </span>
 
-                  <span *ngIf="d.trustedUntil"> 🔒 Trust expires {{ d.trustedUntil }} </span>
+                  <span *ngIf="d.trustedUntil">
+                    🔒 Trust expires {{ formatLocaleDate(d.trustedUntil) }}
+                  </span>
 
                   <span> 🕒 Last active {{ timeAgo(d.lastActivity) }} </span>
                 </div>

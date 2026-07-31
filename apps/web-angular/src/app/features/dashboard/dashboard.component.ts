@@ -17,6 +17,7 @@ import { TableColumn } from '../../shared/components/data-table/data-table.compo
 })
 export class DashboardComponent implements OnInit {
   userName = 'Investor';
+  greeting = 'Good morning';
   activeTab: 'gainers' | 'losers' | 'active' = 'gainers';
 
   stats = [
@@ -94,6 +95,7 @@ export class DashboardComponent implements OnInit {
     if (user?.name) {
       this.userName = user.name.split(' ')[0];
     }
+    this.greeting = this.timeGreeting();
     this.indices = this.marketData.indices.slice(0, 6);
     this.sectors = this.marketData.sectors;
     this.gainers = this.marketData.gainers.slice(0, 5);
@@ -111,6 +113,13 @@ export class DashboardComponent implements OnInit {
       case 'active':
         return this.mostActive;
     }
+  }
+
+  private timeGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
   }
 
   trackBySymbol(_index: number, item: StockQuote): string {

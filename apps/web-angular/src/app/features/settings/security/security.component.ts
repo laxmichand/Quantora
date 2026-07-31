@@ -350,6 +350,22 @@ export class SecurityComponent implements OnInit {
     return null as any;
   }
 
+  /** Format a timestamp as a readable dd/mm/yyyy + time string in the user's locale. */
+  formatLocaleDate(date?: string): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return date;
+    const locale = localStorage.getItem('quantora_lang') === 'hi' ? 'hi-IN' : 'en-IN';
+    return new Intl.DateTimeFormat(locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(d);
+  }
+
   timeAgo(date?: string): string {
     if (!date) return 'Just now';
     const now = Date.now();
