@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { TranslateModule } from '@ngx-translate/core';
+import { SharedModule } from '../../shared/shared.module';
 import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsComponent } from './settings.component';
 @NgModule({
@@ -26,6 +27,7 @@ import { SettingsComponent } from './settings.component';
     MatSnackBarModule,
     MatFormFieldModule,
     TranslateModule,
+    SharedModule,
     SettingsRoutingModule,
   ],
 })

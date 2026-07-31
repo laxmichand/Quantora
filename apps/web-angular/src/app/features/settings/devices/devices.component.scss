@@ -1,7 +1,24 @@
 .devices-page {
-  max-width: 900px;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 24px;
+}
+
+.devices-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .devices-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.devices-content {
+  min-width: 0;
 }
 
 .page-header {

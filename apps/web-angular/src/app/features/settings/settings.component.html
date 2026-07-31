@@ -17,80 +17,86 @@
     </div>
   </div>
 
-  <div class="settings-grid">
-    <!-- Appearance -->
-    <div class="settings-card">
-      <div class="card-header">
-        <mat-icon>palette</mat-icon>
-        <div>
-          <h3>{{ 'SETTINGS.APPEARANCE' | translate }}</h3>
-          <p>{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
-        </div>
-      </div>
-      <div class="theme-grid three-col">
-        <button
-          *ngFor="let theme of themes"
-          class="theme-option"
-          [class.active]="currentTheme === theme.name"
-          (click)="onThemeChange(theme.name)"
-        >
-          <div class="theme-preview" [attr.data-preview]="theme.name">
-            <div class="preview-header"></div>
-            <div class="preview-body"></div>
-          </div>
-          <span class="theme-label">{{ theme.label }}</span>
-          <span class="theme-badge" *ngIf="theme.name === 'default'">
-            {{ isSystemDark ? '🌙 Dark' : '☀️ Light' }}
-          </span>
-        </button>
-      </div>
-    </div>
+  <div class="settings-layout">
+    <app-settings-nav></app-settings-nav>
 
-    <!-- Language -->
-    <div class="settings-card">
-      <div class="card-header">
-        <mat-icon>translate</mat-icon>
-        <div>
-          <h3>{{ 'SETTINGS.LANGUAGE' | translate }}</h3>
-          <p>{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
+    <div class="settings-content">
+      <div class="settings-grid">
+        <!-- Appearance -->
+        <div class="settings-card">
+          <div class="card-header">
+            <mat-icon>palette</mat-icon>
+            <div>
+              <h3>{{ 'SETTINGS.APPEARANCE' | translate }}</h3>
+              <p>{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
+            </div>
+          </div>
+          <div class="theme-grid three-col">
+            <button
+              *ngFor="let theme of themes"
+              class="theme-option"
+              [class.active]="currentTheme === theme.name"
+              (click)="onThemeChange(theme.name)"
+            >
+              <div class="theme-preview" [attr.data-preview]="theme.name">
+                <div class="preview-header"></div>
+                <div class="preview-body"></div>
+              </div>
+              <span class="theme-label">{{ theme.label }}</span>
+              <span class="theme-badge" *ngIf="theme.name === 'default'">
+                {{ isSystemDark ? '🌙 Dark' : '☀️ Light' }}
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="lang-options">
-        <button
-          class="lang-option"
-          [class.active]="currentLang === 'en'"
-          (click)="onLangChange('en')"
-        >
-          <span class="lang-flag">EN</span>
-          <div>
-            <span class="lang-name">English</span>
-            <span class="lang-native">English</span>
-          </div>
-        </button>
-        <button
-          class="lang-option"
-          [class.active]="currentLang === 'hi'"
-          (click)="onLangChange('hi')"
-        >
-          <span class="lang-flag">HI</span>
-          <div>
-            <span class="lang-name">Hindi</span>
-            <span class="lang-native">हिन्दी</span>
-          </div>
-        </button>
-      </div>
-    </div>
 
-    <!-- Notifications -->
-    <div class="settings-card">
-      <div class="card-header">
-        <mat-icon>notifications</mat-icon>
-        <div>
-          <h3>{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h3>
-          <p>{{ 'SETTINGS.NOTIFICATIONS_DESC' | translate }}</p>
+        <!-- Language -->
+        <div class="settings-card">
+          <div class="card-header">
+            <mat-icon>translate</mat-icon>
+            <div>
+              <h3>{{ 'SETTINGS.LANGUAGE' | translate }}</h3>
+              <p>{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
+            </div>
+          </div>
+          <div class="lang-options">
+            <button
+              class="lang-option"
+              [class.active]="currentLang === 'en'"
+              (click)="onLangChange('en')"
+            >
+              <span class="lang-flag">EN</span>
+              <div>
+                <span class="lang-name">English</span>
+                <span class="lang-native">English</span>
+              </div>
+            </button>
+            <button
+              class="lang-option"
+              [class.active]="currentLang === 'hi'"
+              (click)="onLangChange('hi')"
+            >
+              <span class="lang-flag">HI</span>
+              <div>
+                <span class="lang-name">Hindi</span>
+                <span class="lang-native">हिन्दी</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-card">
+          <div class="card-header">
+            <mat-icon>notifications</mat-icon>
+            <div>
+              <h3>{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h3>
+              <p>{{ 'SETTINGS.NOTIFICATIONS_DESC' | translate }}</p>
+            </div>
+          </div>
+          <div class="coming-soon">Coming in Sprint 8</div>
         </div>
       </div>
-      <div class="coming-soon">Coming in Sprint 8</div>
     </div>
   </div>
 </div>

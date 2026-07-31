@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.settings-nav {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 10px;
+  height: max-content;
+  position: sticky;
+  top: 16px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--subtext);
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.12s ease;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: currentColor;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: var(--row-hover);
+      color: var(--heading);
+    }
+
+    &.active {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+  }
+}

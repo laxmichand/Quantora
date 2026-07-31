@@ -3,6 +3,23 @@
   margin: 0 auto;
 }
 
+.subscription-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .subscription-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.subscription-content {
+  min-width: 0;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

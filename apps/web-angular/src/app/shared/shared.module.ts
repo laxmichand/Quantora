@@ -10,8 +10,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { RouterModule } from '@angular/router';
 
 import { DataTableComponent } from './components/data-table/data-table.component';
+import { SettingsNavComponent } from './components/settings-nav/settings-nav.component';
 
-const COMPONENTS = [DataTableComponent];
+const COMPONENTS = [DataTableComponent, SettingsNavComponent];
 
 const MATERIAL = [
   CommonModule,

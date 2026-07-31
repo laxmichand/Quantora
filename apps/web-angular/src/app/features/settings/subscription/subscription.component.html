@@ -17,75 +17,81 @@
     </div>
   </div>
 
-  <!-- TICKER STRIP -->
-  <div class="ticker-strip">
-    <div class="ticker-track">
-      <div class="ticker-item" *ngFor="let s of tickerItems">
-        <span class="ticker-symbol">{{ s.symbol }}</span>
-        <span class="ticker-price">₹{{ s.price }}</span>
-        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
-          <mat-icon>{{
-            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
-          }}</mat-icon>
-          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+  <div class="subscription-layout">
+    <app-settings-nav></app-settings-nav>
+
+    <div class="subscription-content">
+      <!-- TICKER STRIP -->
+      <div class="ticker-strip">
+        <div class="ticker-track">
+          <div class="ticker-item" *ngFor="let s of tickerItems">
+            <span class="ticker-symbol">{{ s.symbol }}</span>
+            <span class="ticker-price">₹{{ s.price }}</span>
+            <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+              <mat-icon>{{
+                s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+              }}</mat-icon>
+              {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+            </span>
+          </div>
+          <div class="ticker-item" *ngFor="let s of tickerItems">
+            <span class="ticker-symbol">{{ s.symbol }}</span>
+            <span class="ticker-price">₹{{ s.price }}</span>
+            <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+              <mat-icon>{{
+                s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+              }}</mat-icon>
+              {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CURRENT PLAN -->
+      <div class="current-plan" [class.pro]="isPro">
+        <mat-icon>{{ isPro ? 'workspace_premium' : 'person' }}</mat-icon>
+        <div class="current-plan-info">
+          <span class="plan-label">Current plan</span>
+          <span class="plan-name">{{ currentPlanName }}</span>
+        </div>
+        <span class="plan-status">
+          {{ isPro ? 'Active' : 'Upgrade to unlock Pro features' }}
         </span>
       </div>
-      <div class="ticker-item" *ngFor="let s of tickerItems">
-        <span class="ticker-symbol">{{ s.symbol }}</span>
-        <span class="ticker-price">₹{{ s.price }}</span>
-        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
-          <mat-icon>{{
-            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
-          }}</mat-icon>
-          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
-        </span>
-      </div>
-    </div>
-  </div>
 
-  <!-- CURRENT PLAN -->
-  <div class="current-plan" [class.pro]="isPro">
-    <mat-icon>{{ isPro ? 'workspace_premium' : 'person' }}</mat-icon>
-    <div class="current-plan-info">
-      <span class="plan-label">Current plan</span>
-      <span class="plan-name">{{ currentPlanName }}</span>
-    </div>
-    <span class="plan-status">
-      {{ isPro ? 'Active' : 'Upgrade to unlock Pro features' }}
-    </span>
-  </div>
-
-  <!-- PLANS -->
-  <div class="plans-grid">
-    <div class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
-      <div class="plan-badge" *ngIf="plan.highlight">POPULAR</div>
-      <h3 class="plan-name">{{ plan.name }}</h3>
-      <p class="plan-tagline">{{ plan.tagline }}</p>
-      <div class="plan-price">
-        <span class="price">{{ plan.price }}</span>
-        <span class="period">{{ plan.period }}</span>
+      <!-- PLANS -->
+      <div class="plans-grid">
+        <div class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
+          <div class="plan-badge" *ngIf="plan.highlight">POPULAR</div>
+          <h3 class="plan-name">{{ plan.name }}</h3>
+          <p class="plan-tagline">{{ plan.tagline }}</p>
+          <div class="plan-price">
+            <span class="price">{{ plan.price }}</span>
+            <span class="period">{{ plan.period }}</span>
+          </div>
+          <ul class="plan-features">
+            <li *ngFor="let f of plan.features">
+              <mat-icon>check_circle</mat-icon>
+              {{ f }}
+            </li>
+          </ul>
+          <button
+            class="plan-cta"
+            [class.primary]="plan.highlight"
+            [disabled]="(plan.highlight && isPro) || (!plan.highlight && !isPro)"
+          >
+            {{
+              plan.highlight
+                ? isPro
+                  ? 'Current Plan'
+                  : 'Upgrade to Pro'
+                : isPro
+                  ? 'Downgrade'
+                  : 'Current Plan'
+            }}
+          </button>
+        </div>
       </div>
-      <ul class="plan-features">
-        <li *ngFor="let f of plan.features">
-          <mat-icon>check_circle</mat-icon>
-          {{ f }}
-        </li>
-      </ul>
-      <button
-        class="plan-cta"
-        [class.primary]="plan.highlight"
-        [disabled]="(plan.highlight && isPro) || (!plan.highlight && !isPro)"
-      >
-        {{
-          plan.highlight
-            ? isPro
-              ? 'Current Plan'
-              : 'Upgrade to Pro'
-            : isPro
-              ? 'Downgrade'
-              : 'Current Plan'
-        }}
-      </button>
     </div>
   </div>
 </div>
