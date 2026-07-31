@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ThemeService, Theme } from '../../core/services/theme.service';
 import { TranslateService } from '@ngx-translate/core';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   standalone: false,
@@ -15,6 +16,7 @@ export class SettingsComponent {
   isSystemDark = false;
 
   constructor(
+    public authService: AuthService,
     public themeService: ThemeService,
     private translate: TranslateService,
   ) {

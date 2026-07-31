@@ -1,4 +1,22 @@
 <div class="settings-page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Settings</h1>
+      <p>Manage your preferences, appearance &amp; language</p>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <span class="user-name">
+          {{ authService.currentUser?.name || 'User' }}
+        </span>
+        <span class="user-email">
+          {{ authService.currentUser?.email || '' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
   <div class="settings-grid">
     <!-- Appearance -->
     <div class="settings-card">
