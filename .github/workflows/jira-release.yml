@@ -1,0 +1,63 @@
+name: Jira Release Flow
+
+# Rules 7-10 of the workflow:
+#   7. QA manual pass -> Passed (QA Passed) - NEVER automated, done in Jira UI.
+#   8. QA Passed -> Ready for Release - driven manually, then by this job after
+#      a real production deploy.
+#   9. Prod deploy success -> Released
+#   10. Smoke success -> Closed (issue marked done).
+#
+# This workflow runs AFTER the main CI/CD workflow (which owns the Render/Vercel
+# deploys) completes successfully on main. It only advances issues that are
+# already in "Passed" (QA Passed). It will never mark an issue Passed, and never
+# advance an issue that has not been through a real deploy.
+
+on:
+  workflow_run:
+    workflows: ['CI/CD']
+    types: [completed]
+    branches: [main]
+
+env:
+  JIRA_URL: ${{ secrets.JIRA_URL }}
+  JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+  NODE_VERSION: '24'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  release:
+    name: Prod deploy -> Jira release status
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Collect issue keys from release commits
+        run: |
+          LOG="$(git log --format='%s%n%b' -20 "$GITHUB_SHA")"
+          KEYS="$(node scripts/jira-sync.mjs extract-keys "$LOG" | sort -u)"
+          echo "release_keys=$KEYS" >> "$GITHUB_ENV"
+      - name: Advance QA-passed issues through release
+        env:
+          KEYS: ${{ env.release_keys }}
+        run: |
+          if [ -z "$KEYS" ]; then echo "No Jira keys in main history"; exit 0; fi
+          for key in $KEYS; do
+            # Only advances issues already manually marked Passed (QA Passed).
+            # If the status isn't reachable in the current workflow the helper
+            # logs and moves on - nothing is force-closed.
+            node scripts/jira-sync.mjs transition "$key" "Ready for Release" "CI/CD: prod deploy succeeded on main -> Ready for Release"
+            node scripts/jira-sync.mjs transition "$key" "Released" "CI/CD: release live in production -> Released"
+          done
+      - name: Smoke verification (placeholder - wire to real smoke suite)
+        run: |
+          echo "Smoke check placeholder: verify prod endpoints respond 200 before closing issues."
