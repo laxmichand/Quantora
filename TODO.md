@@ -1,16 +1,23 @@
-# TODO — Sprint 4 (Original Scope) & Ahead
+# TODO — Sprint 4 (Market Data Platform — DhanHQ Edition)
 
-> **Status**: The re-scoped Sprint 4 — "Full Stack Upgrade + Security Center" (MFA, sessions/devices, subscriptions/ProGuard, real index ticker, auth hardening) — shipped in `0.4.3`. The **original** Sprint 4 scope — **Market Data Platform** — is now the open sprint.
+> **Status**: Re-scoped Sprint 4 — "Full Stack Upgrade + Security Center" — shipped in `0.4.3`. The open sprint is now the **original Sprint 4 (Market Data Platform)** as the **DhanHQ Edition** (see `docs/SPRINT-PLAN.md`). Provider is locked to DhanHQ; yfinance is dropped.
 >
 > Verified done (0.4.3): auth register/login/logout/refresh + Google OAuth + MFA + lockout + sessions/devices + security events + language-switcher removal + JWT secret-alignment fix (`d78345e`).
 
-## Original Sprint 4 — Market Data Platform
+## Sprint 4 — DhanHQ Market Data Platform (in order)
 
-- [ ] Stock master + live prices (Kafka `stock.prices` producer/consumer)
-- [ ] Redis price cache (5-min TTL)
-- [ ] Historical OHLCV (1 year) + fundamentals
-- [ ] Daily 3:30 PM IST price-refresh scheduler
-- [ ] Wire the scaffolded `StocksController` routes (`/api/stocks*`)
+- [ ] Gap analysis signed off (done 2026-08-01 — see `docs/SPRINT-PLAN.md` Sprint 4 table)
+- [ ] `MarketDataProvider` abstraction + DhanHQ REST client (`DHAN_CLIENT_ID`, `DHAN_ACCESS_TOKEN` from env only)
+- [ ] Instrument master sync (5,000+ NSE/BSE) + `Stock`/`StockPrice` Prisma models + migration
+- [ ] DhanHQ WebSocket ingestion (bulk subscribe, heartbeat, reconnect, graceful shutdown)
+- [ ] Tick normalizer → Kafka producer → `stock.prices` → idempotent consumer → Redis + PostgreSQL
+- [ ] Redis latest-price cache (`quote:{exchange}:{symbol}`) — per-tick, not 5-min poll
+- [ ] Historical OHLCV (1Y daily) batch sync + unique-constraint dedupe
+- [ ] Fundamentals — verify DhanHQ provides P/E, P/B, ROE, debt; else mark `BLOCKED — DhanHQ capability limitation`
+- [ ] Scheduler (3:30 PM IST, idempotent) for historical/fundamentals sync
+- [ ] Wire `StocksController`: `/market/stocks`, `/market/stocks/:symbol`, `/market/quote/:symbol`, `/market/candles/:symbol`, `/market/fundamentals/:symbol`
+- [ ] Angular stock list (real data) + stock detail/chart (stubs exist, currently mock)
+- [ ] Unit tests + Kafka integration test (tick → normalize → Kafka → consumer → Redis → PG)
 
 ## CI/CD pre-requisites — need GitHub admin (not verifiable from repo)
 
@@ -25,7 +32,14 @@
 - [ ] Unit tests: AuthController methods, Google OAuth callback handler, login-history endpoints (no specs exist)
 - [ ] E2E: assert geo/ISP/VPN fields land in the device row — needs a public IP or a mocked `IpIntelligenceService` (loopback keeps geo null; `IPAPI_KEY` now configured in gitignored `.env`)
 
-## FastAPI AI service (Sprint 6/8 bits — later)
+## Deferred to later sprints (NOT Sprint 4)
 
-- [ ] Implement real AI endpoints (currently only `GET /`, `GET /health`, `GET /api/v1/status`)
-- [ ] `/ai/*` proxy target + Angular AI chat wiring
+- Technical indicators (RSI/MACD/SMA/EMA/ADX/ATR/VWAP/Bollinger) + patterns → Sprint 6/13
+- Universal screener (filter builder, saved screens) → Sprint 13
+- Quantora scoring + AI analysis → Sprint 6/8
+- News intelligence → Sprint 9
+- Full Tickertape feature set → Sprint 13+
+
+## Licensing note
+
+Before public production launch, verify DhanHQ free/developer tier terms for public display/redistribution of live NSE/BSE market data. If the tier does not permit intended public use, treat as a production blocker. Do not bypass licensing restrictions.

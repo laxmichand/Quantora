@@ -24,7 +24,7 @@
 ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
 │   Supabase   │  │   MongoDB    │  │  External APIs   │
 │  PostgreSQL  │  │    Atlas     │  │                  │
-│  (Managed)   │  │  (Managed)   │  │ • yfinance       │
+│  (Managed)   │  │  (Managed)   │  │ • DhanHQ        │
 │              │  │              │  │ • OpenAI (future) │
 │ Users, Port- │  │ Stock data,  │  │ • News APIs      │
 │ folios, Goals│  │ AI scores,   │  │ • Market data    │
@@ -39,7 +39,7 @@
 | Supabase PostgreSQL | Relational data (users, portfolios, goals, subscriptions) | Structured, ACID              |
 | MongoDB Atlas       | Document data *(planned)*        | Semi-structured, flexible     |
 | Redis               | Caching, rate limiting, session store                     | Key-value, ephemeral          |
-| yfinance API        | Indian stock market data (NSE/BSE)                        | Real-time & historical prices |
+| DhanHQ API           | Indian stock market data (NSE/BSE)                        | Real-time & historical prices |
 | OpenAI API          | AI analysis, chat, recommendations (Sprint 5+)            | LLM inference                 |
 
 ---
@@ -289,8 +289,8 @@
 
 ```
 ┌──────────┐     ┌─────────┐     ┌──────────┐     ┌──────────┐     ┌────────┐
-│  Browser  │────▶│  Nginx  │────▶│  NestJS  │────▶│ yfinance │────▶│MongoDB │
-│  Angular  │     │  :80    │     │  :3000   │     │   API    │     │ Atlas  │
+│  Browser  │────▶│  Nginx  │────▶│  NestJS  │────▶│  DhanHQ  │────▶│Redis   │
+│  Angular  │     │  :80    │     │  :3000   │     │   API    │     │ Cache  │
 └──────────┘     └─────────┘     └──────────┘     └──────────┘     └────────┘
      │                │                │                │              │
      │ GET /api/stocks/RELIANCE        │                │              │
@@ -335,8 +335,8 @@
      │                │                │ Forward request│
      │                │                │───────────────▶│
      │                │                │                │
-     │                │                │  Fetch stock   │
-     │                │                │  data (yfinance)│
+      │                │                │  Fetch stock   │
+      │                │                │  data (DhanHQ) │
      │                │                │  Calculate     │
      │                │                │  indicators    │
      │                │                │  Run AI model  │
