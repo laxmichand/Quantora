@@ -126,6 +126,119 @@
   }
 }
 
+/* ─── Live Search Bar ─── */
+.live-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  .header-search {
+    flex: 1;
+    max-width: 420px;
+  }
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--subtext);
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+  &:hover {
+    color: var(--heading);
+  }
+}
+
+.exchange-select {
+  height: 34px;
+  min-width: 86px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-lighter);
+  background: var(--row-hover);
+  color: var(--heading);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
+/* ─── Live Results ─── */
+.live-results {
+  margin-bottom: 20px;
+}
+
+.live-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.live-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.live-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--subtext);
+  mat-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    color: var(--accent);
+  }
+}
+
+.live-empty {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--subtext);
+  background: var(--card-bg);
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+}
+
+.live-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--negative);
+  background: var(--negative-bg);
+  border: 1px solid var(--negative);
+  border-radius: 8px;
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
 /* ─── Tab Pills ─── */
 .tab-pills {
   display: flex;

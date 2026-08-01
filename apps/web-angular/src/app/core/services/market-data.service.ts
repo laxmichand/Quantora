@@ -1,4 +1,6 @@
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 
 export interface IndexData {
   name: string;
@@ -46,8 +48,77 @@ export interface SectorData {
   icon: string;
 }
 
+export interface MarketInstrument {
+  token: string;
+  symbol: string;
+  name: string;
+  expiry: string;
+  strike: string;
+  lotsize: string;
+  instrumenttype: string;
+  exch_seg: string;
+  tick_size: string;
+}
+
+export interface MarketQuote {
+  symbol?: string;
+  tradingSymbol?: string;
+  token?: string;
+  exchange?: string;
+  ltp?: number;
+  lastprice?: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
+  volume?: number;
+  previousclose?: number;
+  netchange?: number;
+  netchangepercent?: number;
+  totalTradingValue?: number;
+  trades?: number;
+  timestamp?: string;
+}
+
+export interface MarketCandle {
+  timestamp: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface InstrumentSearchResult {
+  total: number;
+  instruments: MarketInstrument[];
+}
+
+export interface SingleQuoteResult {
+  found: boolean;
+  symbol: string;
+  quote?: MarketQuote;
+  instrument?: MarketInstrument;
+}
+
+export interface BatchQuoteResult {
+  found: boolean;
+  symbols: string[];
+  quotes: Record<string, MarketQuote>;
+}
+
+export interface CandleResult {
+  found: boolean;
+  symbol: string;
+  interval: string;
+  candles: MarketCandle[];
+  instrument?: MarketInstrument;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MarketDataService {
+  private readonly http = inject(HttpClient);
+  private readonly API_URL = '/api/market';
   private _indices: IndexData[] = [
     { name: 'NIFTY 50', value: '24,867.50', change: 0.82 },
     { name: 'SENSEX', value: '81,432.10', change: 0.74 },
@@ -821,6 +892,49 @@ export class MarketDataService {
       volume: '22.8M',
     },
   ];
+
+  searchInstruments(
+    exchange?: string,
+    query?: string,
+    limit = 50,
+  ): Observable<InstrumentSearchResult> {
+    const params: Record<string, string> = { limit: String(limit) };
+    if (exchange) params['exchange'] = exchange;
+    if (query && query.trim()) params['search'] = query.trim();
+    return this.http.get<InstrumentSearchResult>(`${this.API_URL}/instruments`, { params });
+  }
+
+  getInstrument(
+    symbol: string,
+  ): Observable<{ found: boolean; symbol: string; instrument?: MarketInstrument }> {
+    return this.http.get<{ found: boolean; symbol: string; instrument?: MarketInstrument }>(
+      `${this.API_URL}/instruments/${encodeURIComponent(symbol)}`,
+    );
+  }
+
+  getQuote(symbol: string): Observable<SingleQuoteResult> {
+    return this.http.get<SingleQuoteResult>(`${this.API_URL}/quotes/${encodeURIComponent(symbol)}`);
+  }
+
+  getQuotes(symbols: string[]): Observable<BatchQuoteResult> {
+    return this.http.get<BatchQuoteResult>(`${this.API_URL}/quotes`, {
+      params: { symbols: symbols.join(',') },
+    });
+  }
+
+  getCandles(
+    symbol: string,
+    interval = 'ONE_DAY',
+    fromDate?: string,
+    toDate?: string,
+  ): Observable<CandleResult> {
+    const params: Record<string, string> = { interval };
+    if (fromDate) params['fromDate'] = fromDate;
+    if (toDate) params['toDate'] = toDate;
+    return this.http.get<CandleResult>(`${this.API_URL}/candles/${encodeURIComponent(symbol)}`, {
+      params,
+    });
+  }
 
   get indices(): IndexData[] {
     return this._indices;

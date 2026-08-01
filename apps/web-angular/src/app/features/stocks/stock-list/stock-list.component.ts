@@ -1,6 +1,12 @@
-import { Component, ViewChild, TemplateRef } from '@angular/core';
+import { Component, ViewChild, TemplateRef, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { MarketDataService, StockQuote } from '../../../core/services/market-data.service';
+import { Subject, of } from 'rxjs';
+import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
+import {
+  MarketDataService,
+  MarketInstrument,
+  StockQuote,
+} from '../../../core/services/market-data.service';
 import { TableColumn } from '../../../shared/components/data-table/data-table.component';
 
 @Component({
@@ -9,7 +15,7 @@ import { TableColumn } from '../../../shared/components/data-table/data-table.co
   templateUrl: './stock-list.component.html',
   styleUrls: ['./stock-list.component.scss'],
 })
-export class StockListComponent {
+export class StockListComponent implements OnDestroy {
   activeTab = 'all';
   activeSector = 'All';
 
@@ -20,6 +26,19 @@ export class StockListComponent {
   @ViewChild('slSectorCell', { static: true }) slSectorCell!: TemplateRef<any>;
 
   columns: TableColumn[] = [];
+
+  /* ── Live instrument search ── */
+  searchQuery = '';
+  exchange = 'NSE';
+  exchanges = ['NSE', 'BSE', 'NFO', 'MCX', 'CDS', 'BFO'];
+  liveResults: MarketInstrument[] = [];
+  liveTotal = 0;
+  liveSearching = false;
+  liveError = '';
+  searchActive = false;
+  liveColumns: TableColumn[] = [];
+
+  private search$ = new Subject<void>();
 
   tabs = ['all', 'gainers', 'losers', 'active', '52whigh', '52wlow'];
   tabLabels: Record<string, string> = {
@@ -584,6 +603,99 @@ export class StockListComponent {
         sortable: true,
       },
     ];
+
+    this.liveColumns = [
+      {
+        key: '#',
+        label: '#',
+        width: '30px',
+        cellTemplate: this.slNumCell,
+        sortable: false,
+        hideable: false,
+      },
+      {
+        key: 'symbol',
+        label: this.translate.instant('STOCKS.LIVE_SYMBOL'),
+        cellTemplate: this.slStockCell,
+        sortable: true,
+      },
+      {
+        key: 'exch_seg',
+        label: this.translate.instant('STOCKS.LIVE_EXCHANGE'),
+        sortable: true,
+      },
+      {
+        key: 'token',
+        label: this.translate.instant('STOCKS.LIVE_TOKEN'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'lotsize',
+        label: this.translate.instant('STOCKS.LIVE_LOT'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'tick_size',
+        label: this.translate.instant('STOCKS.LIVE_TICK'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+    ];
+
+    this.search$
+      .pipe(
+        debounceTime(350),
+        switchMap(() => this.runLiveSearch()),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.search$.complete();
+  }
+
+  onSearchChange(): void {
+    this.searchActive = !!this.searchQuery?.trim();
+    this.search$.next();
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchActive = false;
+    this.liveResults = [];
+    this.liveTotal = 0;
+    this.liveError = '';
+  }
+
+  private runLiveSearch() {
+    const q = this.searchQuery?.trim();
+    if (!q) {
+      this.liveResults = [];
+      this.liveTotal = 0;
+      this.liveError = '';
+      return of(null);
+    }
+    this.liveSearching = true;
+    this.liveError = '';
+    return this.marketData.searchInstruments(this.exchange, q, 25).pipe(
+      tap((result) => {
+        this.liveResults = result.instruments;
+        this.liveTotal = result.total;
+        this.liveSearching = false;
+      }),
+      catchError(() => {
+        this.liveResults = [];
+        this.liveTotal = 0;
+        this.liveError = this.translate.instant('STOCKS.LIVE_DATA_ERROR');
+        this.liveSearching = false;
+        return of(null);
+      }),
+    );
   }
 
   get indices() {

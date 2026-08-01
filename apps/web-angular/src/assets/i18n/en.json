@@ -246,7 +246,18 @@
     "MARKET_NEWS": "Market News",
     "NO_MATCH": "No stocks match your filters",
     "NO_STOCKS": "No stocks found",
-    "STOCKS_COUNT": "{{count}} stocks"
+    "STOCKS_COUNT": "{{count}} stocks",
+    "LIVE_SEARCH_PLACEHOLDER": "Search live instruments (e.g. RELIANCE)...",
+    "LIVE_RESULTS": "{{shown}} of {{total}} instruments on {{exchange}}",
+    "NO_LIVE_MATCH": "No instruments match your search",
+    "LIVE_DATA_ERROR": "Live data unavailable right now",
+    "LIVE_SOURCE": "Angel One Scrip Master",
+    "LIVE_CLEAR": "Clear search",
+    "LIVE_SYMBOL": "Symbol",
+    "LIVE_EXCHANGE": "Exchange",
+    "LIVE_TOKEN": "Token",
+    "LIVE_LOT": "Lot",
+    "LIVE_TICK": "Tick"
   },
 
   "PORTFOLIO": {

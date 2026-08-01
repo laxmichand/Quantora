@@ -22,64 +22,132 @@
   </div>
 </div>
 
-<!-- Tab Pills -->
-<div class="tab-pills">
-  <button
-    *ngFor="let tab of tabs"
-    class="pill"
-    [class.active]="activeTab === tab"
-    (click)="setTab(tab)"
+<!-- Live Instrument Search -->
+<div class="live-search">
+  <div class="header-search">
+    <mat-icon>search</mat-icon>
+    <input
+      type="text"
+      [placeholder]="'STOCKS.LIVE_SEARCH_PLACEHOLDER' | translate"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange()"
+      (keydown.escape)="clearSearch()"
+    />
+    <button
+      *ngIf="searchActive"
+      class="search-clear"
+      type="button"
+      [attr.aria-label]="'STOCKS.LIVE_CLEAR' | translate"
+      (click)="clearSearch()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <select
+    class="exchange-select"
+    [(ngModel)]="exchange"
+    (ngModelChange)="onSearchChange()"
+    [title]="'STOCKS.LIVE_EXCHANGE' | translate"
   >
-    <mat-icon>{{ tabIcons[tab] }}</mat-icon>
-    {{ tabLabels[tab] | translate }}
-  </button>
+    <option *ngFor="let ex of exchanges" [value]="ex">{{ ex }}</option>
+  </select>
 </div>
 
-<!-- Sector Filter Chips -->
-<div class="sector-chips">
-  <button
-    *ngFor="let s of sectors"
-    class="chip"
-    [class.active]="activeSector === s"
-    (click)="setSector(s)"
-  >
-    {{ s }}
-  </button>
+<!-- Live Results (only while searching) -->
+<div class="live-results" *ngIf="searchActive">
+  <div class="live-meta">
+    <span class="live-count" *ngIf="!liveSearching">
+      {{
+        'STOCKS.LIVE_RESULTS'
+          | translate: { shown: liveResults.length, total: liveTotal, exchange: exchange }
+      }}
+    </span>
+    <span class="live-source">
+      <mat-icon>verified</mat-icon>
+      {{ 'STOCKS.LIVE_SOURCE' | translate }}
+    </span>
+  </div>
+  <app-data-table
+    *ngIf="liveResults.length > 0"
+    [columns]="liveColumns"
+    [data]="liveResults"
+    [loading]="liveSearching"
+    [config]="{
+      showColumnToggle: false,
+      pageSize: 10,
+      emptyMessage: ('STOCKS.NO_LIVE_MATCH' | translate),
+    }"
+  ></app-data-table>
+  <div class="live-empty" *ngIf="!liveSearching && !liveError && liveResults.length === 0">
+    {{ 'STOCKS.NO_LIVE_MATCH' | translate }}
+  </div>
+  <div class="live-error" *ngIf="liveError">
+    <mat-icon>cloud_off</mat-icon>
+    {{ liveError }}
+  </div>
 </div>
 
-<!-- Stock Table -->
-<app-data-table
-  [columns]="columns"
-  [data]="displayStocks"
-  [config]="{
-    showColumnToggle: false,
-    pageSize: 15,
-    emptyMessage: ('STOCKS.NO_MATCH' | translate),
-  }"
->
-  <ng-template #slNumCell let-row let-i="index">
-    <span class="row-num">{{ i + 1 }}</span>
-  </ng-template>
-  <ng-template #slStockCell let-row>
-    <span class="stock-name-cell">
-      <span class="stock-symbol">{{ row.symbol }}</span>
-      <span class="stock-fullname">{{ row.name }}</span>
-    </span>
-  </ng-template>
-  <ng-template #slChgCell let-row>
-    <span [class.text-green]="row.change > 0" [class.text-red]="row.change < 0">
-      {{ row.change > 0 ? '+' : '' }}{{ row.change }}
-    </span>
-  </ng-template>
-  <ng-template #slPctCell let-row>
-    <span class="change-badge" [class.up]="row.pct > 0" [class.down]="row.pct < 0">
-      {{ row.pct > 0 ? '+' : '' }}{{ row.pct }}%
-    </span>
-  </ng-template>
-  <ng-template #slSectorCell let-row>
-    <span class="sector-tag">{{ row.sector }}</span>
-  </ng-template>
-</app-data-table>
+<!-- Demo content: hidden while searching -->
+<ng-container *ngIf="!searchActive">
+  <!-- Tab Pills -->
+  <div class="tab-pills">
+    <button
+      *ngFor="let tab of tabs"
+      class="pill"
+      [class.active]="activeTab === tab"
+      (click)="setTab(tab)"
+    >
+      <mat-icon>{{ tabIcons[tab] }}</mat-icon>
+      {{ tabLabels[tab] | translate }}
+    </button>
+  </div>
+
+  <!-- Sector Filter Chips -->
+  <div class="sector-chips">
+    <button
+      *ngFor="let s of sectors"
+      class="chip"
+      [class.active]="activeSector === s"
+      (click)="setSector(s)"
+    >
+      {{ s }}
+    </button>
+  </div>
+
+  <!-- Stock Table -->
+  <app-data-table
+    [columns]="columns"
+    [data]="displayStocks"
+    [config]="{
+      showColumnToggle: false,
+      pageSize: 15,
+      emptyMessage: ('STOCKS.NO_MATCH' | translate),
+    }"
+  >
+    <ng-template #slNumCell let-row let-i="index">
+      <span class="row-num">{{ i + 1 }}</span>
+    </ng-template>
+    <ng-template #slStockCell let-row>
+      <span class="stock-name-cell">
+        <span class="stock-symbol">{{ row.symbol }}</span>
+        <span class="stock-fullname">{{ row.name }}</span>
+      </span>
+    </ng-template>
+    <ng-template #slChgCell let-row>
+      <span [class.text-green]="row.change > 0" [class.text-red]="row.change < 0">
+        {{ row.change > 0 ? '+' : '' }}{{ row.change }}
+      </span>
+    </ng-template>
+    <ng-template #slPctCell let-row>
+      <span class="change-badge" [class.up]="row.pct > 0" [class.down]="row.pct < 0">
+        {{ row.pct > 0 ? '+' : '' }}{{ row.pct }}%
+      </span>
+    </ng-template>
+    <ng-template #slSectorCell let-row>
+      <span class="sector-tag">{{ row.sector }}</span>
+    </ng-template>
+  </app-data-table>
+</ng-container>
 
 <!-- Curated Screens -->
 <div class="section-header">

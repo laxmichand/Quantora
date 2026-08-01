@@ -246,7 +246,18 @@
     "MARKET_NEWS": "मार्केट समाचार",
     "NO_MATCH": "आपके फ़िल्टर से मेल खाता कोई स्टॉक नहीं",
     "NO_STOCKS": "कोई स्टॉक नहीं मिला",
-    "STOCKS_COUNT": "{{count}} स्टॉक"
+    "STOCKS_COUNT": "{{count}} स्टॉक",
+    "LIVE_SEARCH_PLACEHOLDER": "लाइव इंस्ट्रूमेंट्स खोजें (जैसे RELIANCE)...",
+    "LIVE_RESULTS": "{{exchange}} पर {{total}} में से {{shown}} इंस्ट्रूमेंट",
+    "NO_LIVE_MATCH": "आपकी खोज से मेल खाता कोई इंस्ट्रूमेंट नहीं",
+    "LIVE_DATA_ERROR": "अभी लाइव डेटा उपलब्ध नहीं है",
+    "LIVE_SOURCE": "एंजल वन स्क्रिप मास्टर",
+    "LIVE_CLEAR": "खोज साफ़ करें",
+    "LIVE_SYMBOL": "सिंबल",
+    "LIVE_EXCHANGE": "एक्सचेंज",
+    "LIVE_TOKEN": "टोकन",
+    "LIVE_LOT": "लॉट",
+    "LIVE_TICK": "टिक"
   },
 
   "PORTFOLIO": {

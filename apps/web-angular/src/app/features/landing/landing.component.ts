@@ -82,7 +82,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     'LANDING.INDEX_FUNDS',
   ];
   activeMfTab = 0;
-  mfData = this.marketData.mutualFunds;
+  mfData: Record<string, any[]> = {
+    'LANDING.EQUITY': this.marketData.mutualFunds['Equity'] ?? [],
+    'LANDING.DEBT': this.marketData.mutualFunds['Debt'] ?? [],
+    'LANDING.HYBRID': this.marketData.mutualFunds['Hybrid'] ?? [],
+    'LANDING.ELSS': this.marketData.mutualFunds['ELSS'] ?? [],
+    'LANDING.INDEX_FUNDS': this.marketData.mutualFunds['Index Funds'] ?? [],
+  };
 
   /* ── News ── */
   newsTabs = [
