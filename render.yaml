@@ -9,7 +9,10 @@ services:
       - key: NODE_ENV
         value: production
       - key: REDIS_URL
-        value: redis://localhost:6379
+        fromService:
+          name: quantora-redis
+          type: redis
+          property: connectionString
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: REFRESH_TOKEN_EXPIRY_DAYS
@@ -23,8 +26,16 @@ services:
     dockerfilePath: ./Dockerfile.python
     envVars:
       - key: REDIS_URL
-        value: redis://localhost:6379
+        fromService:
+          name: quantora-redis
+          type: redis
+          property: connectionString
       - key: ENVIRONMENT
         value: production
     healthCheckPath: /health
     autoDeploy: true
+
+  - type: redis
+    name: quantora-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
