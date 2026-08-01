@@ -1,19 +1,21 @@
-# TODO — Sprint 4 (Market Data Platform — DhanHQ Edition)
+# TODO — Sprint 4 (Market Data Platform — Angel One Edition)
 
-> **Status**: Re-scoped Sprint 4 — "Full Stack Upgrade + Security Center" — shipped in `0.4.3`. The open sprint is now the **original Sprint 4 (Market Data Platform)** as the **DhanHQ Edition** (see `docs/SPRINT-PLAN.md`). Provider is locked to DhanHQ; yfinance is dropped.
+> **Status**: Re-scoped Sprint 4 — "Full Stack Upgrade + Security Center" — shipped in `0.4.3`. The open sprint is now the **original Sprint 4 (Market Data Platform)** as the **Angel One Edition** (see `docs/SPRINT-PLAN.md`). Provider is locked to Angel One; yfinance is dropped.
 >
 > Verified done (0.4.3): auth register/login/logout/refresh + Google OAuth + MFA + lockout + sessions/devices + security events + language-switcher removal + JWT secret-alignment fix (`d78345e`).
+>
+> Migration status (2026-08-01): DhanHQ → Angel One provider code complete (`AngelModule`, auth, REST client, config + specs), `AngelModule` registered in `app.module.ts`, Prisma schema migrated (provider default `"angel"`, scrip-token fields), `.env.example` updated, Jira updated.
 
-## Sprint 4 — DhanHQ Market Data Platform (in order)
+## Sprint 4 — Angel One Market Data Platform (in order)
 
-- [ ] Gap analysis signed off (done 2026-08-01 — see `docs/SPRINT-PLAN.md` Sprint 4 table)
-- [ ] `MarketDataProvider` abstraction + DhanHQ REST client (`DHAN_CLIENT_ID`, `DHAN_ACCESS_TOKEN` from env only)
-- [ ] Instrument master sync (5,000+ NSE/BSE) + `Stock`/`StockPrice` Prisma models + migration
-- [ ] DhanHQ WebSocket ingestion (bulk subscribe, heartbeat, reconnect, graceful shutdown)
+- [x] Gap analysis signed off (done 2026-08-01 — see `docs/SPRINT-PLAN.md` Sprint 4 table)
+- [x] `MarketDataProvider` abstraction + Angel One REST client (`ANGEL_API_KEY`, `ANGEL_CLIENT_CODE`, `ANGEL_PASSWORD`, `ANGEL_TOTP`, `ANGEL_REFRESH_TOKEN` from env only)
+- [x] Instrument master sync (5,000+ NSE/BSE via OpenAPI Scrip Master) + `Stock`/`StockPrice` Prisma models + migration
+- [ ] Angel One smart-stream WebSocket ingestion (bulk subscribe, heartbeat, reconnect, graceful shutdown)
 - [ ] Tick normalizer → Kafka producer → `stock.prices` → idempotent consumer → Redis + PostgreSQL
 - [ ] Redis latest-price cache (`quote:{exchange}:{symbol}`) — per-tick, not 5-min poll
 - [ ] Historical OHLCV (1Y daily) batch sync + unique-constraint dedupe
-- [ ] Fundamentals — verify DhanHQ provides P/E, P/B, ROE, debt; else mark `BLOCKED — DhanHQ capability limitation`
+- [ ] Fundamentals — verify Angel One provides P/E, P/B, ROE, debt; else mark `BLOCKED — Angel One capability limitation`
 - [ ] Scheduler (3:30 PM IST, idempotent) for historical/fundamentals sync
 - [ ] Wire `StocksController`: `/market/stocks`, `/market/stocks/:symbol`, `/market/quote/:symbol`, `/market/candles/:symbol`, `/market/fundamentals/:symbol`
 - [ ] Angular stock list (real data) + stock detail/chart (stubs exist, currently mock)
@@ -42,4 +44,4 @@
 
 ## Licensing note
 
-Before public production launch, verify DhanHQ free/developer tier terms for public display/redistribution of live NSE/BSE market data. If the tier does not permit intended public use, treat as a production blocker. Do not bypass licensing restrictions.
+Before public production launch, verify Angel One free/developer tier terms for public display/redistribution of live NSE/BSE market data. If the tier does not permit intended public use, treat as a production blocker. Do not bypass licensing restrictions.

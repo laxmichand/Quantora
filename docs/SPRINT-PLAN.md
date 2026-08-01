@@ -420,43 +420,43 @@ GET  /auth/login-history       → last 10 login attempts
 
 ---
 
-## Sprint 4 (Original) — Market Data Platform — DhanHQ Edition ⏳ OPEN
+## Sprint 4 (Original) — Market Data Platform — Angel One Edition ⏳ OPEN
 
-**Goal:** Live Indian stock prices for 5,000+ NSE/BSE instruments, 1Y historical daily OHLCV, volume and OI where available — streaming DhanHQ → WebSocket → Kafka → Redis/PostgreSQL, with a stock list + detail/chart UI.
+**Goal:** Live Indian stock prices for 5,000+ NSE/BSE instruments, 1Y historical daily OHLCV, volume and OI where available — streaming Angel One → smart-stream WebSocket → Kafka → Redis/PostgreSQL, with a stock list + detail/chart UI.
 
-> **Provider locked:** DhanHQ only. No Angel One, Upstox, Zerodha/Kite, TrueData, GlobalDatafeeds, EODHD, or any other provider. Small `MarketDataProvider` abstraction keeps DhanHQ isolated from Quantora business logic; future providers may be added later but are NOT implemented now.
+> **Provider: Angel One** (migrated from DhanHQ on 2026-08-01 — provider code, Prisma schema, `.env.example`, and Jira all updated; see `TODO.md`). No Upstox, Zerodha/Kite, TrueData, GlobalDatafeeds, EODHD, or any other provider. Small `MarketDataProvider` abstraction keeps Angel One isolated from Quantora business logic; future providers may be added later but are NOT implemented now.
 >
-> **Cost:** ₹0 wherever practical — Supabase/local PostgreSQL, local/free Redis, Kafka, NestJS, Angular, Prisma, FastAPI. DhanHQ is the only paid-API candidate; treat free developer access, free infra, and public/commercial redistribution rights as separate concerns (see [Licensing](#licensing--production-blocker)).
+> **Cost:** ₹0 wherever practical — Supabase/local PostgreSQL, local/free Redis, Kafka, NestJS, Angular, Prisma, FastAPI. Angel One is the only paid-API candidate; treat free developer access, free infra, and public/commercial redistribution rights as separate concerns (see [Licensing](#licensing--production-blocker)).
 >
-> **Pre-req:** produce the gap analysis (below) BEFORE touching code — inspect `docs/DATABASE.md`, `prisma/schema.prisma`, `apps/api-nest/src/stocks/`, `apps/api-nest/src/common/redis/`, FastAPI services, and the Angular `stocks/` feature.
+> **Pre-req:** produce the gap analysis (below) BEFORE touching code — inspect `docs/DATABASE.md`, `prisma/schema.prisma`, `apps/api-nest/src/stocks/`, `apps/api-nest/src/common/redis/`, FastAPI services, and the Angular `stocks/` feature. Done 2026-08-01; the provider foundation (4.1–4.4) shipped as part of the Angel One migration.
 
 ### Gap Analysis (2026-08-01 — run against current repo)
 
 | Area | Status | Notes | Required Change |
 |---|---|---|---|
-| Stock schema | Missing | No `Stock` model in `prisma/schema.prisma` | Add `Stock` + migration |
-| StockPrice schema | Missing | No `StockPrice` model | Add `StockPrice` + migration |
+| Stock schema | Done | `Stock` model added with scrip-token fields (`scripToken`, `lotSize`, `tickSize`, `instrumentType`, `exchangeSegment`), provider default `"angel"` | Migrated + `db push` applied |
+| StockPrice schema | Done | `StockPrice` model added, provider default `"angel"` | Migrated + `db push` applied |
 | StocksController | Partial (empty) | `apps/api-nest/src/stocks/*` are 0-line stubs, not wired into `AppModule` | Implement + register module |
-| yfinance fetcher | Missing | `apps/ai-fastapi/app/services/stock_service.py` is 0-line stub | **Drop yfinance** — use DhanHQ |
-| MarketDataProvider | Missing | No `market-data/` module | Create abstraction |
-| DhanHQ integration | Missing | No DhanHQ code anywhere | Implement REST + WebSocket |
+| yfinance fetcher | Missing | `apps/ai-fastapi/app/services/stock_service.py` is 0-line stub | **Drop yfinance** — use Angel One |
+| MarketDataProvider | Done | `market-data/` module + `providers/angel/` created | Abstraction + Angel One provider shipped |
+| Angel One integration | Partial | `providers/angel/` auth + REST client + config + specs done (login/refresh, Scrip Master, quote, candles) | REST done; smart-stream WebSocket ingestion pending |
 | Kafka producer | Missing | No `kafka/` dir, no `kafkajs` dep | Add Kafka module + producer |
 | Kafka consumer | Missing | No consumer | Add consumer |
 | Redis cache | Partial | `common/redis/redis.service.ts` exists (used by auth) | Add latest-price quote cache |
-| Historical OHLCV | Missing | Nothing | DhanHQ historical API, batch sync |
-| Fundamentals | Missing | Nothing | Verify DhanHQ availability; else **BLOCKED** |
+| Historical OHLCV | Missing | `getHistoricalOHLCV()`/`getHistoricalCandles()` exist in REST client | Angel One historical API (`/historical/v1/getCandleData`), batch sync |
+| Fundamentals | Missing | Nothing | Verify Angel One availability; else **BLOCKED** |
 | Scheduler | Missing | No `scheduler/` dir | Add 3:30 PM IST sync |
 | Angular stock list | Partial | `stock-list.component.ts` (625 lines) renders **mock** `market-data.service.ts` data | Wire to real API |
 | Angular stock detail/chart | Partial | `stock-detail/`, `stock-chart/`, `stock-filters/`, `stock-metrics/` are 0-line stubs | Implement detail + chart |
-| Unit tests | Missing | No specs for market data | Add |
+| Unit tests | Partial | 36 Angel provider specs (config, auth, REST client) | Add WebSocket/Kafka/scheduler/API specs |
 | Kafka integration tests | Missing | None | Add |
 
 ### Architecture
 
 ```
-DhanHQ
-  │ REST (instrument master, historical, auth)
-  │ WebSocket (live prices, bulk subscribe)
+Angel One
+  │ REST (auth /login + /refresh-token, OpenAPI Scrip Master, quote, historical)
+  │ smart-stream WebSocket (live prices, bulk subscribe)
   ▼
 MarketDataProvider  ── normalizes payload → Quantora internal format
   │
@@ -469,7 +469,7 @@ MarketDataProvider  ── normalizes payload → Quantora internal format
   │
   └── Scheduler (3:30 PM IST, idempotent)
           ├── historical OHLCV (1Y daily) → PostgreSQL
-          └── fundamentals sync (where DhanHQ provides)
+          └── fundamentals sync (where Angel One provides)
 
 API: Redis + PostgreSQL → NestJS `/market/*` → Angular stocks feature
 ```
@@ -478,18 +478,18 @@ API: Redis + PostgreSQL → NestJS `/market/*` → Angular stocks feature
 
 | #     | Task | Files | Done When |
 | ----- | ---- | ----- | --------- |
-| 4.1   | `MarketDataProvider` abstraction | `apps/api-nest/src/market-data/` | Interface: instrument master, live prices, historical OHLCV, quotes; DhanHQ isolated behind it |
-| 4.2   | DhanHQ auth + REST client | `apps/api-nest/src/market-data/providers/dhan/` | Client ID/access token from env only (`DHAN_CLIENT_ID`, `DHAN_ACCESS_TOKEN`), never exposed |
-| 4.3   | Instrument master sync (5,000+ NSE/BSE) | Same + `prisma/schema.prisma` | DhanHQ instrument list synced to `Stock` table; DhanHQ instrument id mapped to Quantora stock |
-| 4.4   | `Stock` + `StockPrice` schema + migration | `prisma/schema.prisma` + migration | Models created (reuse planned Sprint-4 schema; add `provider`, `exchange`, `symbol`, index on timestamp) |
-| 4.5   | DhanHQ WebSocket ingestion | `apps/api-nest/src/market-data/dhan-websocket.service.ts` | Bulk-subscribe 5,000+ instruments; single pipeline; heartbeat/reconnect/duplicate/stale/malformed handling; graceful shutdown; never crashes API |
+| 4.1   | `MarketDataProvider` abstraction | `apps/api-nest/src/market-data/` | Interface: instrument master, live prices, historical OHLCV, quotes; provider isolated behind it — **DONE** |
+| 4.2   | Angel One auth + REST client | `apps/api-nest/src/market-data/providers/angel/` | Credentials from env only (`ANGEL_API_KEY`, `ANGEL_CLIENT_CODE`, `ANGEL_PASSWORD`, `ANGEL_TOTP`, `ANGEL_REFRESH_TOKEN`), never exposed — **DONE** |
+| 4.3   | Instrument master sync (5,000+ NSE/BSE) | Same + `prisma/schema.prisma` | Angel One OpenAPI Scrip Master synced to `Stock` table; scrip token mapped to Quantora stock (client fetch **DONE**, DB sync pending) |
+| 4.4   | `Stock` + `StockPrice` schema + migration | `prisma/schema.prisma` + migration | Models created (provider default `"angel"`, `exchange`, `symbol`, scrip-token fields, index on timestamp); `db push` applied — **DONE** |
+| 4.5   | Angel One smart-stream WebSocket ingestion | `apps/api-nest/src/market-data/angel-websocket.service.ts` | Bulk-subscribe 5,000+ instruments; single pipeline; heartbeat/reconnect/duplicate/stale/malformed handling; graceful shutdown; never crashes API |
 | 4.6   | Tick normalizer | Same | Exchange, symbol, instrumentId, ltp, open, high, low, previousClose, change, changePercent, volume, timestamp, provider, sourceTimestamp (+ bid/ask/OI where available) |
 | 4.7   | Kafka producer (`stock.prices`) | `apps/api-nest/src/kafka/` | Ticks published; no new topics |
 | 4.8   | Kafka consumer (idempotent) | Same | Writes Redis latest-price cache + PostgreSQL; duplicate ticks deduped |
 | 4.9   | Redis latest-price cache | `apps/api-nest/src/common/redis/` | `quote:{exchange}:{symbol}` updated on every valid tick; stale-data mechanism configurable; NOT a 5-min poll cache |
 | 4.10  | PostgreSQL persistence | Prisma | Durable prices: stockId, exchange, symbol, price, open, high, low, previousClose, volume, timestamp, provider; indexes for latest + historical queries |
-| 4.11  | Historical OHLCV (1Y daily) | `apps/api-nest/src/market-data/` | DhanHQ historical API; batch-oriented; unique constraint prevents duplicates |
-| 4.12  | Fundamentals sync | `apps/api-nest/src/market-data/` | P/E, P/B, ROE, debt **only if DhanHQ provides them**; otherwise mark **BLOCKED — DhanHQ capability limitation** (do not fabricate, do not use yfinance) |
+| 4.11  | Historical OHLCV (1Y daily) | `apps/api-nest/src/market-data/` | Angel One historical API (`/historical/v1/getCandleData`); batch-oriented; unique constraint prevents duplicates |
+| 4.12  | Fundamentals sync | `apps/api-nest/src/market-data/` | P/E, P/B, ROE, debt **only if Angel One provides them**; otherwise mark **BLOCKED — Angel One capability limitation** (do not fabricate, do not use yfinance) |
 | 4.13  | Scheduler (3:30 PM IST) | `apps/api-nest/src/scheduler/` | Daily historical/fundamentals sync; idempotent; NOT used for live prices |
 | 4.14  | Market API | `apps/api-nest/src/stocks/stocks.controller.ts` | `GET /market/stocks` (paginated), `/market/stocks/:symbol`, `/market/quote/:symbol`, `/market/candles/:symbol`, `/market/fundamentals/:symbol` |
 | 4.15  | Angular stock list (real data) | `apps/web-angular/src/app/features/stocks/stock-list/` | Search, symbol, company, exchange, latest price, change %, volume from API |
@@ -507,8 +507,13 @@ model Stock {
   exchange        String   // NSE, BSE
   sector          String
   industry        String?
-  instrumentId    String?  @map("instrument_id")   // DhanHQ instrument identifier
-  provider        String   @default("dhan")
+  instrumentId    String?  @map("instrument_id") // provider instrument id (Angel One OpenAPI scrip token)
+  scripToken      String?  @map("scrip_token") // Angel One OpenAPI scrip token
+  lotSize         Int?     @map("lot_size") // Angel One OpenAPI lot size
+  tickSize        Decimal? @map("tick_size") // Angel One OpenAPI tick size
+  instrumentType  String?  @map("instrument_type") // Angel One OpenAPI instrument type
+  exchangeSegment String?  @map("exchange_segment") // Angel One OpenAPI exch_seg
+  provider        String   @default("angel")
   marketCap       Decimal? @map("market_cap")
   currentPrice    Decimal? @map("current_price")
   pe              Decimal? @map("pe")
@@ -539,7 +544,7 @@ model StockPrice {
   previousClose  Decimal?  @map("previous_close")
   volume         BigInt?
   oi             BigInt?
-  provider       String    @default("dhan")
+  provider       String    @default("angel")
   timestamp      DateTime
   createdAt      DateTime  @default(now()) @map("created_at")
 
@@ -560,13 +565,13 @@ quote:{exchange}:{symbol}   → { ltp, open, high, low, prevClose, change, chang
 
 ### Definition of Done
 
-- [ ] DhanHQ-only pipeline, no other provider
+- [ ] Angel One-only pipeline, no other provider
 - [ ] 5,000+ NSE/BSE instruments via WebSocket bulk subscription (no per-symbol polling)
 - [ ] Live ticks: WebSocket → normalize → Kafka `stock.prices` → consumer → Redis + PostgreSQL
 - [ ] Historical OHLCV (1Y daily) batch-synced, no duplicates
-- [ ] Fundamentals present **or** explicitly reported `BLOCKED — DhanHQ capability limitation`
+- [ ] Fundamentals present **or** explicitly reported `BLOCKED — Angel One capability limitation`
 - [ ] Scheduler runs idempotent 3:30 PM IST sync (historical/fundamentals only)
-- [ ] `/market/*` API paginated; DhanHQ credentials never exposed
+- [ ] `/market/*` API paginated; Angel One credentials never exposed
 - [ ] Angular stock list + detail/chart wired to real API
 - [ ] Unit + Kafka integration tests green
 - [ ] `npm run lint`, typecheck, unit + integration tests pass
@@ -585,11 +590,11 @@ quote:{exchange}:{symbol}   → { ltp, open, high, low, prevClose, change, chang
 
 ### Licensing — Production Blocker
 
-DhanHQ free/developer access ≠ public redistribution rights. Before Quantora's public production launch, verify DhanHQ's **current** pricing, API limits, exchange-data licensing, and public display/redistribution terms for live NSE/BSE market data.
+Angel One free/developer access ≠ public redistribution rights. Before Quantora's public production launch, verify Angel One's **current** pricing, API limits, exchange-data licensing, and public display/redistribution terms for live NSE/BSE market data.
 
 - If the free/developer tier does **not** permit the intended public/commercial use → treat as a **production blocker** (do not ship live-market data publicly without clearance).
 - Do NOT bypass licensing restrictions.
-- Internal/dev-only use of the DhanHQ pipeline is fine.
+- Internal/dev-only use of the Angel One pipeline is fine.
 
 ---
 
@@ -1578,7 +1583,7 @@ model Comment {
 | **16** | Community & Learning                        | 2 weeks  | Lessons, Posts, Sharing                         |
 | **17** | Production Readiness                        | 2 weeks  | Deploy, Monitor, Secure                         |
 
-**Shipped so far:** Sprints 1–3 ✅ and Sprint 4 (re-scoped: full-stack upgrade + Security Center) ✅ — see `docs/CHANGELOG.md`. Early deliveries from later sprints: MFA/2FA (Sprint 8), session & device management (Sprint 8), subscription/ProGuard + notifications/admin/risk-engine scaffolding (Sprint 17). The original **Sprint 4 (Market Data Platform)** is now the open sprint as the **DhanHQ Edition** — provider locked to DhanHQ, 5,000+ NSE/BSE instruments via WebSocket → Kafka → Redis/PostgreSQL. See [Sprint 4 (Original)](#sprint-4-original--market-data-platform--dhanhq-edition--open) above. Out-of-scope items (technical engine, screener, scoring, patterns) are mapped to Sprints 6/8/9/13.
+**Shipped so far:** Sprints 1–3 ✅ and Sprint 4 (re-scoped: full-stack upgrade + Security Center) ✅ — see `docs/CHANGELOG.md`. Early deliveries from later sprints: MFA/2FA (Sprint 8), session & device management (Sprint 8), subscription/ProGuard + notifications/admin/risk-engine scaffolding (Sprint 17). The original **Sprint 4 (Market Data Platform)** is now the open sprint as the **Angel One Edition** — provider locked to Angel One (migrated from DhanHQ 2026-08-01), 5,000+ NSE/BSE instruments via smart-stream WebSocket → Kafka → Redis/PostgreSQL. See [Sprint 4 (Original)](#sprint-4-original--market-data-platform--angel-one-edition--open) above. Out-of-scope items (technical engine, screener, scoring, patterns) are mapped to Sprints 6/8/9/13.
 
 ---
 

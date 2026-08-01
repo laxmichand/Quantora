@@ -24,7 +24,7 @@
 ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
 │   Supabase   │  │   MongoDB    │  │  External APIs   │
 │  PostgreSQL  │  │    Atlas     │  │                  │
-│  (Managed)   │  │  (Managed)   │  │ • DhanHQ        │
+│  (Managed)   │  │  (Managed)   │  │ • Angel One     │
 │              │  │              │  │ • OpenAI (future) │
 │ Users, Port- │  │ Stock data,  │  │ • News APIs      │
 │ folios, Goals│  │ AI scores,   │  │ • Market data    │
@@ -39,7 +39,7 @@
 | Supabase PostgreSQL | Relational data (users, portfolios, goals, subscriptions) | Structured, ACID              |
 | MongoDB Atlas       | Document data *(planned)*        | Semi-structured, flexible     |
 | Redis               | Caching, rate limiting, session store                     | Key-value, ephemeral          |
-| DhanHQ API           | Indian stock market data (NSE/BSE)                        | Real-time & historical prices |
+| Angel One API        | Indian stock market data (NSE/BSE)                        | Real-time & historical prices |
 | OpenAI API          | AI analysis, chat, recommendations (Sprint 5+)            | LLM inference                 |
 
 ---
@@ -289,7 +289,7 @@
 
 ```
 ┌──────────┐     ┌─────────┐     ┌──────────┐     ┌──────────┐     ┌────────┐
-│  Browser  │────▶│  Nginx  │────▶│  NestJS  │────▶│  DhanHQ  │────▶│Redis   │
+│  Browser  │────▶│  Nginx  │────▶│  NestJS  │────▶│Angel One │────▶│Redis   │
 │  Angular  │     │  :80    │     │  :3000   │     │   API    │     │ Cache  │
 └──────────┘     └─────────┘     └──────────┘     └──────────┘     └────────┘
      │                │                │                │              │
@@ -336,7 +336,7 @@
      │                │                │───────────────▶│
      │                │                │                │
       │                │                │  Fetch stock   │
-      │                │                │  data (DhanHQ) │
+      │                │                │  data (Angel) │
      │                │                │  Calculate     │
      │                │                │  indicators    │
      │                │                │  Run AI model  │

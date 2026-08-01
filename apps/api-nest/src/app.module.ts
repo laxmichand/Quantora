@@ -15,7 +15,7 @@ import { RiskEngineModule } from './risk-engine/risk-engine.module';
 import { SecurityAuditModule } from './security-audit/security-audit.module';
 import { LoginHistoryModule } from './login-history/login-history.module';
 import { AdminModule } from './admin/admin.module';
-import { DhanModule } from './market-data/providers/dhan/dhan.module';
+import { AngelModule } from './market-data/providers/angel/angel.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { ThrottlerGuard } from './common/guards/throttler.guard';
@@ -38,7 +38,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     SecurityAuditModule,
     LoginHistoryModule,
     AdminModule,
-    DhanModule,
+    AngelModule,
   ],
   controllers: [AppController],
   providers: [

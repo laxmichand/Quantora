@@ -682,8 +682,13 @@ model Stock {
   exchange         String // NSE, BSE
   sector           String
   industry         String?
-  instrumentId     String?   @map("instrument_id") // DhanHQ instrument identifier
-  provider         String    @default("dhan")
+  instrumentId     String?   @map("instrument_id") // provider instrument id (Angel One OpenAPI scrip token)
+  scripToken       String?   @map("scrip_token") // Angel One OpenAPI scrip token
+  lotSize          Int?      @map("lot_size") // Angel One OpenAPI lot size
+  tickSize         Decimal?  @map("tick_size") // Angel One OpenAPI tick size
+  instrumentType   String?   @map("instrument_type") // Angel One OpenAPI instrument type
+  exchangeSegment  String?   @map("exchange_segment") // Angel One OpenAPI exch_seg
+  provider         String    @default("angel")
   marketCap        Decimal?  @map("market_cap")
   currentPrice     Decimal?  @map("current_price")
   pe               Decimal?  @map("pe")
@@ -714,7 +719,7 @@ model StockPrice {
   previousClose Decimal?  @map("previous_close")
   volume        BigInt?
   oi            BigInt?
-  provider      String    @default("dhan")
+  provider      String    @default("angel")
   timestamp     DateTime
   createdAt     DateTime  @default(now()) @map("created_at")
 

@@ -111,7 +111,7 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 #### Data Sources
 
-- DhanHQ (primary market-data provider, NSE/BSE)
+- Angel One (primary market-data provider, NSE/BSE)
 - NSE India APIs
 - BSE India APIs
 - MoneyControl / Tickertape (scraping where APIs unavailable)
@@ -122,7 +122,7 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 | Component         | Technology                                   |
 | ----------------- | -------------------------------------------- |
-| Data Fetcher      | DhanHQ (REST + WebSocket)                      |
+| Data Fetcher      | Angel One (REST + smart-stream WebSocket)                |
 | Stream Processing | Apache Kafka                                 |
 | Cache             | Redis (live prices, TTL-based)               |
 | Storage           | PostgreSQL (structured)         |

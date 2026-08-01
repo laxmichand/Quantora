@@ -190,7 +190,7 @@ NSE API → Kafka(stock.prices) → PostgreSQL(Price Store)
 | Agent                | Responsibility            | Tools                         |
 | -------------------- | ------------------------- | ----------------------------- |
 | Planner Agent        | Decompose complex queries | —                             |
-| Stock Agent          | Fetch stock data & scores | DhanHQ, PostgreSQL, Redis |
+| Stock Agent          | Fetch stock data & scores | Angel One, PostgreSQL, Redis |
 | Risk Agent           | Portfolio risk assessment | PostgreSQL, risk calculator   |
 | News Agent           | News & sentiment          | News API, sentiment analyzer  |
 | Forecast Agent       | Price predictions         | ML models, Vector DB          |
