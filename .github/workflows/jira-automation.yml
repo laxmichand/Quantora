@@ -5,15 +5,15 @@ name: Jira Automation
 # (Jira Cloud cannot add statuses/transitions via API):
 #
 #   Backlog/To Do -> In Progress -> Code Review -> In QA (QA Testing)
-#   -> QA Failed (returns to In Progress) -> Passed (QA Passed, manual)
-#   -> Ready for Release -> Released -> Closed
+#   -> QA Failed -> Passed (QA Passed, manual) -> Ready for Release -> Released -> Closed
 #
 # Rules implemented:
 #   1. Branch/commit with a Jira key -> To Do -> In Progress
 #   2. PR opened/reopened/ready -> In Progress -> Code Review
 #   3. PR approved + required CI green -> Code Review -> In QA (QA Testing)
 #   4. CI failure -> comment on the Jira issue, stay in place
-#   5. Issue moved to "QA Failed" -> auto-return to In Progress (hourly sweep)
+#   5. Issues in "QA Failed" stay there; returning them to In Progress is done
+#      manually by the user (never auto-returned).
 #   6. New commits pushed to PR -> back to Code Review (re-review before QA)
 #   7. QA manual pass (Jira UI -> Passed) is never automated
 #   8/9/10. Release flow lives in jira-release.yml (after real prod deploy).
@@ -33,9 +33,6 @@ on:
     types: [submitted]
   check_suite:
     types: [completed]
-  schedule:
-    # Hourly sweep for rule 5 (QA Failed -> In Progress)
-    - cron: '0 * * * *'
   workflow_dispatch:
 
 env:
@@ -247,33 +244,4 @@ jobs:
             else
               echo "Skip $key (status: $CURRENT)"
             fi
-          done
-
-  # Rule 5: hourly sweep - QA Failed issues return to In Progress.
-  qa-failed-sweep:
-    name: QA Failed -> In Progress (sweep)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Find and return QA Failed issues
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ -z "$JIRA_API_TOKEN" ]; then echo "JIRA_API_TOKEN not set; skipping sweep"; exit 0; fi
-          curl -s -u "$JIRA_USERNAME:$JIRA_API_TOKEN" -H "Accept: application/json" \
-            -X POST "$JIRA_URL/rest/api/2/search" -H "Content-Type: application/json" \
-            -d '{"jql":"project = QUAN AND status = \"QA Failed\" ORDER BY updated DESC","maxResults":50,"fields":["key"]}' \
-            | node -e '
-              const chunks = [];
-              process.stdin.on("data", c => chunks.push(c));
-              process.stdin.on("end", () => {
-                const data = JSON.parse(Buffer.concat(chunks).toString());
-                (data.issues || []).forEach(i => console.log(i.key));
-              });
-            ' | while read -r key; do
-              node scripts/jira-sync.mjs transition "$key" "In Progress" "CI/CD: QA failed - returned to In Progress for fixes"
           done
