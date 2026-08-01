@@ -1,446 +1,202 @@
 # Quantora — Database Design
 
-> **PostgreSQL + MongoDB + Redis — Right tool for the right data.**
+> **Stack**: PostgreSQL (Supabase) + Prisma ORM + Redis (session/rate-limit/blacklist caching).
+> Source of truth: `apps/api-nest/prisma/schema.prisma`. `DATABASE_URL` comes from the root `.env`.
 
 ---
 
-## PostgreSQL Schemas
+## Overview
 
-### Users Table
-
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  phone VARCHAR(20),
-  role VARCHAR(20) DEFAULT 'user', -- user, pro, admin
-  language VARCHAR(10) DEFAULT 'en', -- en, hi, hi-en
-  telegram_chat_id VARCHAR(50),
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Portfolios Table
-
-```sql
-CREATE TABLE portfolios (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  name VARCHAR(100) NOT NULL DEFAULT 'My Portfolio',
-  benchmark VARCHAR(20) DEFAULT 'NIFTY_50',
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Holdings Table
-
-```sql
-CREATE TABLE holdings (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  portfolio_id UUID REFERENCES portfolios(id) ON DELETE CASCADE,
-  stock_symbol VARCHAR(20) NOT NULL,
-  quantity INTEGER NOT NULL,
-  avg_buy_price DECIMAL(10,2) NOT NULL,
-  added_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Goals Table
-
-```sql
-CREATE TABLE goals (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  name VARCHAR(100) NOT NULL,
-  target_amount DECIMAL(15,2) NOT NULL,
-  current_amount DECIMAL(15,2) DEFAULT 0,
-  deadline DATE NOT NULL,
-  type VARCHAR(30) NOT NULL, -- retirement, education, house, emergency, etc.
-  sip_amount DECIMAL(10,2),
-  risk_tolerance VARCHAR(20) DEFAULT 'moderate', -- conservative, moderate, aggressive
-  status VARCHAR(20) DEFAULT 'active', -- active, completed, paused
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Subscriptions Table
-
-```sql
-CREATE TABLE subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  plan VARCHAR(20) NOT NULL DEFAULT 'free', -- free, pro, enterprise
-  status VARCHAR(20) DEFAULT 'active',
-  start_date TIMESTAMP DEFAULT NOW(),
-  end_date TIMESTAMP,
-  payment_method VARCHAR(30),
-  amount DECIMAL(10,2),
-  currency VARCHAR(3) DEFAULT 'INR',
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Alerts Table
-
-```sql
-CREATE TABLE alerts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  type VARCHAR(30) NOT NULL, -- price_target, volume, news, portfolio, goal
-  stock_symbol VARCHAR(20),
-  condition VARCHAR(20) NOT NULL, -- above, below, percent_change
-  threshold DECIMAL(10,2),
-  is_active BOOLEAN DEFAULT true,
-  last_triggered_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Watchlists Table
-
-```sql
-CREATE TABLE watchlists (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  name VARCHAR(100) NOT NULL DEFAULT 'My Watchlist',
-  stock_symbols TEXT[], -- array of stock symbols
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Audit Logs Table
-
-```sql
-CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
-  action VARCHAR(50) NOT NULL,
-  entity VARCHAR(50) NOT NULL,
-  entity_id VARCHAR(50),
-  details JSONB,
-  ip_address INET,
-  user_agent TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX idx_audit_user ON audit_logs(user_id);
-CREATE INDEX idx_audit_created ON audit_logs(created_at);
-```
+- **Primary store**: PostgreSQL via Prisma. Every table has `created_at` / `updated_at`, and most business tables carry `created_by`, `updated_by`, `version`, and soft-delete `is_deleted`.
+- **Redis** (`REDIS_URL`): revoked-JWT blacklist, session TTL cache, rate-limit counters. Optional — the app degrades gracefully when Redis is down (Postgres sessions stay authoritative).
+- No MongoDB. Early docs describing MongoDB collections are obsolete.
 
 ---
 
-## MongoDB Collections
+## Tables (Prisma models)
 
-### Stocks Collection
+### users
 
-```javascript
-{
-  _id: ObjectId,
-  symbol: "ITC",                    // unique, indexed
-  name: "ITC Limited",
-  exchange: "NSE",
-  sector: "FMCG",
-  industry: "Cigarettes & Tobacco",
-  marketCap: 575000000000,          // in INR
-  currentPrice: 462.50,
-  pe: 25.3,
-  pb: 7.8,
-  roe: 28.5,
-  dividendYield: 3.2,
-  beta: 0.32,
-  fiftyTwoWeekHigh: 500.00,
-  fiftyTwoWeekLow: 390.00,
-  fundamentals: {
-    revenue: { q1: 19000, q2: 18500, q3: 19200, q4: 19800 },  // crores
-    profit: { q1: 5200, q2: 4900, q3: 5100, q4: 5400 },
-    debtToEquity: 0.05,
-    promoterHolding: 0.0,
-    promoterPledge: 0.0,
-    eps: 18.25,
-    bookValue: 59.30
-  },
-  createdAt: ISODate,
-  updatedAt: ISODate
-}
+Auth identity, OAuth, lockout, MFA.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID (pk) | |
+| `email` | text (unique) | |
+| `password_hash` | text? | argon2id, peppered |
+| `name` | text | |
+| `phone` | text? | |
+| `role` | text | `user`, `pro`, `admin` |
+| `is_active` | bool | |
+| `is_email_verified` | bool | |
+| `email_verify_token` | text? | |
+| `provider` | text? | `local`, `google` |
+| `provider_id` | text? | |
+| `failed_login_attempts` | int | lockout counter |
+| `locked_until` | timestamp? | 5 fails → 15 min |
+| `mfa_enabled` / `mfa_secret` / `mfa_method` / `mfa_phone` / `backup_codes` | | TOTP MFA |
+| `last_login_at` | timestamp? | |
+| `created_by` / `updated_by` / `version` / `is_deleted` | | audit columns |
+
+Indexes: `email`, `role`, `(provider, provider_id)`, `is_deleted`.
+
+### devices
+
+Rich device fingerprint (browser, OS, screen, canvas/audio/fonts, network, geo, VPN/proxy/TOR), trust, risk.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID (pk) | |
+| `user_id` | UUID (fk → users, cascade) | |
+| `device_id` | text (unique) | client-provided fingerprint id |
+| `fingerprint_hash` | text? | |
+| `device_name` / `device_type` | text? | |
+| `browser` / `browser_version` / `engine` / `engine_version` | text? | |
+| `os` / `os_version` / `platform` / `cpu_architecture` | text? | |
+| `hardware_concurrency` / `device_memory` / `pixel_ratio` | int/float? | |
+| `screen_resolution` / `viewport` | text? | |
+| `timezone` / `language` / `languages[]` | | |
+| `country` / `state` / `city` / `postal_code` / `latitude` / `longitude` | | from IP intelligence |
+| `public_ip` / `private_ip` / `isp` / `network_type` | text? | |
+| `vpn_detected` / `proxy_detected` / `tor_detected` | bool | |
+| `user_agent` / `accept_*` / `referer` / `origin` | text? | |
+| `login_method` / `oauth_provider` / `biometric_enabled` / `mfa_enabled` | | |
+| `trusted_device` / `trusted_until` | | trust window |
+| `risk_score` / `risk_level` | int / text | low/medium/high/critical |
+| `first_login` / `last_login` / `last_activity` / `login_count` / `failed_login_count` | | |
+| `status` | text | `active`, `blocked` |
+
+Indexes: `user_id`, `device_id`, `fingerprint_hash`, `public_ip`, `country`, `risk_level`, `status`, `created_at`.
+
+### sessions
+
+Session/token binding — powers logout-all, "log out other devices", token reuse detection.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID (pk) | `sid` claim in JWTs |
+| `user_id` | UUID (fk → users, cascade) | |
+| `device_id` | UUID (fk → devices) | |
+| `session_token` | text (unique) | |
+| `access_token_id` | text? (unique) | = access token `jti` |
+| `refresh_token_id` | text? (unique) | = refresh token `jti` |
+| `refresh_token_hash` / `previous_refresh_token_hash` | text? | SHA-256 of rotated tokens |
+| `csrf_token` | text? | |
+| `login_time` / `last_activity` / `expires_at` | timestamp | |
+| `idle_timeout` / `absolute_timeout` | timestamp? | |
+| `logout_time` / `logout_reason` | | |
+| `revoked` / `revoked_by` / `revoked_ip` / `revoked_device` | | |
+| `is_current` | bool | |
+| `ip_address` / `country` / `city` / `user_agent` | text? | |
+
+Indexes: `user_id`, `device_id`, `session_token`, `refresh_token_hash`, `revoked`, `expires_at`, `last_activity`, `login_time`.
+
+**Concurrency rules**: `MAX_ACTIVE_SESSIONS = 2` (oldest evicted); refresh rotates tokens; reusing a rotated refresh token revokes the session (`token_reuse`).
+
+### refresh_tokens
+
+**Legacy** — kept for migration compatibility. Sessions are now the primary mechanism.
+
+### portfolios / holdings
+
+- `portfolios`: `user_id` (fk, cascade), `name`, `benchmark` (default `NIFTY_50`), audit columns.
+- `holdings`: `portfolio_id` (fk, cascade), `stock_symbol`, `quantity`, `avg_buy_price` `DECIMAL(10,2)`.
+
+### goals
+
+`user_id`, `name`, `target_amount` `DECIMAL(15,2)`, `current_amount`, `deadline` (date), `type`, `sip_amount`, `risk_tolerance`, `status` (active/completed/paused).
+
+### subscriptions
+
+`user_id` (unique), `plan` (free/pro/enterprise), `status`, `start_date`, `end_date`, `payment_method`, `amount` `DECIMAL(10,2)`, `currency` (INR).
+
+### alerts / watchlists
+
+- `alerts`: `user_id`, `type` (price_target/volume/news/portfolio/goal), `stock_symbol`, `condition` (above/below/percent_change), `threshold`, `is_active`, `last_triggered_at`.
+- `watchlists`: `user_id`, `name`, `stock_symbols text[]`.
+
+### login_history
+
+One row per login attempt — success/failure, provider, MFA, geo/ISP/VPN, risk, new-device/country/IP flags, `session_id`.
+
+Indexes: `(user_id, created_at)`, `(email, created_at)`, `device_id`, `ip_address`, `country`, `risk_level`, `created_at`.
+
+### audit_logs
+
+`user_id` (set null), `action`, `entity`, `entity_id`, `old_value`/`new_value` (json), `details` (json), `reason`, `ip_address`, `user_agent`, `device_id`, `session_id`, `country`, `city`, `severity`, `risk_score`.
+
+### security_events
+
+Alert timeline for the Security Center: `event_type`, `severity`, `description`, `metadata`, `risk_score`, `device_id`, `session_id`, `ip_address`, `country`, `city`, `email_sent`/`push_sent`, `acknowledged`/`acknowledged_at`.
+
+### user_preferences
+
+1:1 with `users` (`user_id` unique).
+
+| Field | Default |
+| --- | --- |
+| `language` | `en` |
+| `theme` | `slate` (slate/light/dark/indigo/emerald/rose) |
+| `date_format` | `DD/MM/YYYY` |
+| `number_format` | `indian` |
+| `timezone` | `Asia/Kolkata` |
+| `default_exchange` | `NSE` |
+| `risk_tolerance` | `moderate` |
+| `investment_style` | `long_term` |
+| `sidebar_collapsed` | false |
+| `default_view` | `dashboard` |
+| `notifications_email` / `notifications_push` / `notifications_sms` | true / true / false |
+| `notify_price_alerts` / `notify_portfolio` / `notify_news` / `notify_ai_insights` | true / true / false / true |
+| `stock_list_columns` / `dashboard_layout` | json? |
+| `profile_public` / `show_portfolio` | false |
+
+> Note: user language lives **here**, not on `users`.
+
+### blocked_ips
+
+`ip_address`, `user_id` (nullable = globally blocked), `reason`, `blocked_by`, `expires_at`. Unique `(ip_address, user_id)`.
+
+### notifications
+
+`user_id`, `type` (email/push/sms), `channel`, `title`, `body`, `message`, `metadata`, `status` (pending/sent/failed/read), `read_at`, `sent_at`.
+
+### oauth_accounts
+
+`user_id`, `provider`, `provider_id`, `email`, `name`, `avatar_url`, `access_token`, `refresh_token`, `expires_at`. Unique `(provider, provider_id)`.
+
+---
+
+## Redis Keys
+
 ```
+# Revoked JWTs (TTL = remaining token life)
+blacklist:{jti}       → "1"
 
-### Scores Collection
+# Session blacklist (revoked session ids)
+session:blacklist:{sid} → "1"
 
-```javascript
-{
-  _id: ObjectId,
-  symbol: "ITC",
-  date: ISODate("2026-07-26"),
-  aiScore: 78,
-  scores: {
-    value: 82,
-    quality: 75,
-    growth: 55,
-    risk: 65,        // higher = less risky
-    technical: 72,
-    dividend: 85,
-    momentum: 68,
-    esg: 70
-  },
-  valuation: {
-    intrinsicValue: 510,
-    fairValue: 480,
-    currentPrice: 462.50,
-    upside: 10.3
-  },
-  explanation: "ITC scores 78/100. Strong dividend yield...",
-  previousScore: 75,
-  scoreChange: +3,
-  createdAt: ISODate
-}
-```
+# Rate limiting (TTL = window)
+rate:{ip}:{route}     → count
 
-### News Collection
-
-```javascript
-{
-  _id: ObjectId,
-  title: "ITC Q4 results beat expectations",
-  summary: "ITC reported 8% revenue growth...",
-  content: "Full article text...",
-  source: "Economic Times",
-  url: "https://economictimes.indiatimes.com/...",
-  publishedAt: ISODate,
-  sentiment: {
-    label: "positive",
-    confidence: 0.87,
-    score: 0.72
-  },
-  impact: {
-    score: 7,
-    affectedStocks: ["ITC"],
-    affectedSectors: ["FMCG"]
-  },
-  credibility: {
-    score: 0.92,
-    flags: []
-  },
-  tags: ["earnings", "quarterly-results", "fmcg"],
-  createdAt: ISODate
-}
-```
-
-### Chat History Collection
-
-```javascript
-{
-  _id: ObjectId,
-  userId: "uuid-string",
-  conversationId: "conv-uuid",
-  messages: [
-    {
-      role: "user",
-      content: "Should I buy ITC?",
-      timestamp: ISODate
-    },
-    {
-      role: "assistant",
-      content: "Based on my analysis...",
-      timestamp: ISODate,
-      sources: ["stock_score", "news", "portfolio"],
-      metadata: {
-        stocks_analyzed: ["ITC"],
-        confidence: 0.85,
-        language: "en"
-      }
-    }
-  ],
-  language: "en",
-  createdAt: ISODate,
-  updatedAt: ISODate
-}
-```
-
-### Forecasts Collection
-
-```javascript
-{
-  _id: ObjectId,
-  symbol: "ITC",
-  date: ISODate("2026-07-26"),
-  currentPrice: 462.50,
-  forecast30D: {
-    low: 440,
-    mid: 470,
-    high: 500,
-    confidence: 0.72,
-    methodology: "ensemble_ml"
-  },
-  forecast90D: {
-    low: 430,
-    mid: 485,
-    high: 540,
-    confidence: 0.65
-  },
-  supportLevels: [445, 430, 410],
-  resistanceLevels: [475, 490, 510],
-  earningsForecast: {
-    nextQuarter: {
-      beatProbability: 0.65,
-      missProbability: 0.20,
-      inline: 0.15,
-      expectedEPS: 19.50
-    }
-  },
-  createdAt: ISODate
-}
-```
-
-### Sector Data Collection
-
-```javascript
-{
-  _id: ObjectId,
-  sector: "IT",
-  date: ISODate("2026-07-26"),
-  performance: {
-    "1W": 2.3,
-    "1M": 5.8,
-    "3M": 12.4,
-    "6M": 18.2,
-    "1Y": 25.6
-  },
-  stocks: ["TCS", "INFY", "WIPRO", "HCLTECH"],
-  heatmapColor: "#2e7d32",   // green = positive
-  rotationSignal: "IN",      // IN, OUT, NEUTRAL
-  momentum: 12.4,
-  topStock: "TCS",
-  worstStock: "WIPRO",
-  macroImpact: {
-    interestRate: "negative",
-    currency: "positive",
-    commodity: "neutral"
-  },
-  createdAt: ISODate
-}
-```
-
-### Smart Money Collection
-
-```javascript
-{
-  _id: ObjectId,
-  date: ISODate("2026-07-26"),
-  type: "FII",                // FII, DII, PROMOTER, MF
-  entity: "Foreign Institutional Investors",
-  data: {
-    totalBuying: 2500,        // crores
-    totalSelling: 1800,
-    netBuy: 700,
-    topBuys: [
-      { symbol: "HDFCBANK", amount: 350 },
-      { symbol: "ICICIBANK", amount: 280 }
-    ],
-    topSells: [
-      { symbol: "ITC", amount: 150 },
-      { symbol: "TCS", amount: 120 }
-    ]
-  },
-  signal: "BULLISH",         // BULLISH, BEARISH, NEUTRAL
-  explanation: "FII net buying of ₹700Cr...",
-  createdAt: ISODate
-}
+# Live prices — future (TTL 5 min, Sprint 4 original scope)
+stock:price:{symbol}  → { price, change, volume }
 ```
 
 ---
 
-## Redis Key Patterns
+## Seed / Reset
 
-```
-# Live Prices (TTL: 5 min)
-stock:price:ITC          → { price: 462.50, change: 2.3, volume: 1234567 }
-stock:price:TCS          → { price: 3890.00, change: 1.1, volume: 987654 }
+| Script | Purpose |
+| --- | --- |
+| `npm run db:seed` (`apps/api-nest/prisma/seed.ts`) | Idempotent demo data; **note**: plain `ts-node` doesn't load `.env`, so run with `DATABASE_URL="..." npm run db:seed` |
+| `npm run reset-and-create-user` (`scripts/reset-and-create-user.ts`) | Wipe all tables (FK order) then create a single admin (`lcdhuvare3010@gmail.com`), plus `user_preferences` |
 
-# Historical Data (TTL: 1 hour)
-stock:history:ITC:1y     → [{ date, open, high, low, close, volume }, ...]
-
-# AI Scores (TTL: 1 hour)
-stock:scores:ITC         → { aiScore: 78, value: 82, quality: 75, ... }
-stock:scores:all         → [{ symbol, aiScore }, ...]  // sorted set
-
-# Sessions (TTL: 7 days)
-session:{userId}         → { token, user, expiresAt }
-
-# Rate Limiting (TTL: 1 min)
-rate:{ip}:{endpoint}     → { count: 45 }
-
-# Leaderboards (TTL: 1 day)
-leaderboard:portfolio    → [{ userId, score }, ...]  // sorted set
-
-# Alerts Queue (no TTL)
-alerts:queue             → [alertId, alertId, ...]   // list
-
-# Feature Flags (no TTL)
-features:flags           → { darkMode: true, aiChat: true }
-```
+Both connect through the Supabase pooler via `DATABASE_URL` in the root `.env`.
 
 ---
 
-## Index Strategy
+## Conventions
 
-### PostgreSQL Indexes
-
-```sql
--- Users
-CREATE UNIQUE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-
--- Holdings
-CREATE INDEX idx_holdings_portfolio ON holdings(portfolio_id);
-CREATE INDEX idx_holdings_symbol ON holdings(stock_symbol);
-
--- Goals
-CREATE INDEX idx_goals_user ON goals(user_id);
-CREATE INDEX idx_goals_status ON goals(status);
-
--- Audit Logs
-CREATE INDEX idx_audit_user ON audit_logs(user_id);
-CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
-CREATE INDEX idx_audit_action ON audit_logs(action);
-```
-
-### MongoDB Indexes
-
-```javascript
-// Stocks
-db.stocks.createIndex({ symbol: 1 }, { unique: true });
-db.stocks.createIndex({ sector: 1 });
-db.stocks.createIndex({ marketCap: -1 });
-
-// Scores
-db.scores.createIndex({ symbol: 1, date: -1 });
-db.scores.createIndex({ aiScore: -1 });
-
-// News
-db.news.createIndex({ publishedAt: -1 });
-db.news.createIndex({ 'sentiment.label': 1 });
-db.news.createIndex({ tags: 1 });
-
-// Chat History
-db.chat_history.createIndex({ userId: 1, updatedAt: -1 });
-db.chat_history.createIndex({ conversationId: 1 });
-
-// Forecasts
-db.forecasts.createIndex({ symbol: 1, date: -1 });
-
-// Smart Money
-db.smart_money.createIndex({ date: -1, type: 1 });
-```
-
----
-
-_Each database serves its strength: PostgreSQL for relationships, MongoDB for flexibility, Redis for speed._
+- **Migrations**: Prisma Migrate (`apps/api-nest/prisma/migrations/`). Run `npx prisma generate` after schema changes (also enforced by the pre-commit hook).
+- **Mapping**: `camelCase` fields → `snake_case` columns via `@map`/`@@map`.
+- **Soft delete**: prefer `is_deleted = true` over hard deletes on business tables.

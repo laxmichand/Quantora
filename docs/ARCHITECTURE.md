@@ -1,6 +1,8 @@
 # Quantora — System Architecture
 
 > **Complete technical architecture for all 20 modules.**
+>
+> **Current state (0.4.3)**: PostgreSQL (Supabase + Prisma) + optional Redis only — **no MongoDB, no Kafka, no vector DB yet**. Those data stores below are *planned/target state*; the live auth/security surface (sessions, devices, login history, security events, MFA) is fully Postgres-backed. See `docs/DATABASE.md`.
 
 ---
 
@@ -84,9 +86,9 @@
 | `alerts`        | Price/notification alerts  | → users                    |
 | `watchlists`    | User watchlists            | → users                    |
 
-### MongoDB (Document)
+### MongoDB (Document) — *planned*
 
-**Purpose:** Flexible schemas, high-volume data, fast reads.
+**Purpose:** Flexible schemas, high-volume data, fast reads. **Not in use as of 0.4.3.**
 
 | Collection         | Purpose                  | Why MongoDB              |
 | ------------------ | ------------------------ | ------------------------ |

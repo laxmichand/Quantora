@@ -391,7 +391,36 @@ GET  /auth/login-history       → last 10 login attempts
 
 ---
 
-## Sprint 4 — Market Data Platform
+## Sprint 4 — Full Stack Upgrade + Security Center ✅ COMPLETE (re-scoped)
+
+**Goal:** Upgrade the entire stack (Node 24, Angular 22, NestJS 11, TypeScript 6, Prisma 6) and ship the Security Center plus a one-command local dev workflow.
+
+**Status:** ✅ Complete (July 31, 2026 — see `docs/CHANGELOG.md` → 0.4.0)
+
+> The planned *Market Data Platform* (live prices via Kafka, Redis price cache, historical data, fundamentals, scheduler) was **deferred** and remains open — see "Sprint 4 (Original)" below.
+
+### Delivered
+
+- **Security Center** (`/settings/security`) — device & session management (list/rename/trust/revoke), active sessions with current-device detection, trusted devices with auto-expiring trust window, login & account history, security-alerts timeline from the risk engine, account risk score + adaptive MFA settings, session-policy display.
+- **Sessions & Devices APIs** — `GET/POST /api/sessions*`, `GET/PATCH/DELETE /api/devices*` (+ `POST /api/devices/register`), admin overrides.
+- **MFA (TOTP)** — fully implemented (setup/verify/disable, QR, backup codes, `POST /api/auth/login/mfa` challenge). *Note: this is the planned Sprint 8 task 8.12/8.13, shipped early.*
+- **Subscription & Pro gating** — `/settings/subscription`, `ProGuard` redirect for pro-gated routes (e.g. `/ai-chat`).
+- **Ticker tape uses real index data** — `MarketDataService.indices` (NIFTY 50, SENSEX, BANK NIFTY…).
+- **Local dev** — `npm start` / `npm run stop` / `npm run status`, rewritten `scripts/dev.sh` with health-wait loops; DB stays hosted (Supabase).
+- **Stack upgrade** — Node 22→24, Angular 19→22 (Vite builder), NestJS 10→11, TS 5→6, Prisma 5→6.
+
+### Definition of Done
+
+- [x] Security Center renders (markForCheck fix for loading skeleton)
+- [x] Session/device management works end-to-end
+- [x] MFA setup/verify/disable works
+- [x] Subscription page + ProGuard work
+- [x] `npm start` runs the full stack locally
+- [x] All CI checks pass (Prettier, Prisma, ESLint, TSC, Jest, build)
+
+---
+
+## Sprint 4 (Original) — Market Data Platform ⏳ OPEN
 
 **Goal:** Live stock prices, historical data, fundamentals — all flowing through Kafka into PostgreSQL + Redis.
 
@@ -1480,7 +1509,7 @@ model Comment {
 | **16** | Community & Learning                        | 2 weeks  | Lessons, Posts, Sharing                         |
 | **17** | Production Readiness                        | 2 weeks  | Deploy, Monitor, Secure                         |
 
-**Shipped so far:** Sprints 1–3 ✅ (see `docs/CHANGELOG.md`). Sprint 4 was executed as a full-stack version upgrade + Security Center sprint; the planned Sprint 4 (Market Data Platform) remains open.
+**Shipped so far:** Sprints 1–3 ✅ and Sprint 4 (re-scoped: full-stack upgrade + Security Center) ✅ — see `docs/CHANGELOG.md`. Early deliveries from later sprints: MFA/2FA (Sprint 8), session & device management (Sprint 8), subscription/ProGuard + notifications/admin/risk-engine scaffolding (Sprint 17). The original **Sprint 4 (Market Data Platform)** remains open.
 
 ---
 

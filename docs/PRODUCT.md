@@ -22,7 +22,19 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 ---
 
-## 2. Product Architecture Overview
+## 1. Current State vs Vision
+
+> **This document is the full product vision (all 20 modules).** Live as of **0.4.3 (Aug 2026)**, only a subset is implemented:
+>
+> - **Implemented**: Auth (register/login/logout/refresh/Google OAuth/verify-email/forgot/reset-password), MFA (TOTP), account lockout, sessions & devices, login history, security events, user preferences, subscriptions model, admin endpoints, notifications (email/Telegram), portfolio/watchlist/goal models (schema only), AI chat UI + minimal FastAPI service.
+> - **Schema-only (no API yet)**: portfolios, holdings, goals, alerts, watchlists, payments.
+> - **Planned / not started**: the entire Market Data Platform (stocks, news, scores, forecasts, sector data, smart money), Kafka, vector DB, MongoDB-style document storage, full LLM/LangGraph agents.
+> - **Database reality**: PostgreSQL (Supabase) via Prisma + optional Redis only. **No MongoDB** — see `docs/DATABASE.md`. Where this doc references MongoDB, treat it as planned/legacy.
+> - See `docs/CHANGELOG.md` and `docs/SPRINT-PLAN.md` for what shipped per release.
+
+---
+
+## 2. Product Architecture Overview (Target State)
 
 ```
                     External APIs
@@ -55,13 +67,13 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 | Frontend       | Angular 17+ + Angular Material | Web application, i18n (Hindi/English)                |
 | Backend API    | NestJS (Node.js + TypeScript)  | Business logic, auth, orchestration                  |
 | AI Service     | Python + FastAPI + LangGraph   | ML models, analysis, forecasts, agents               |
-| **PostgreSQL** | Relational DB                  | Users, portfolios, goals, subscriptions, audit logs  |
-| **MongoDB**    | Document DB                    | Stocks, news, scores, chat history, research reports |
-| **Redis**      | Cache + Sessions               | Live prices (TTL), sessions, rate limiting           |
-| **Kafka**      | Message Queue                  | Event streaming, data pipeline, real-time sync       |
-| **Vector DB**  | Pinecone / pgvector            | Semantic search, RAG for AI chat                     |
-| **LLM**        | OpenAI / Anthropic             | Explanations, chat, summaries, analysis              |
-| **LangGraph**  | Agent Orchestrator             | Multi-agent AI workflow                              |
+| **PostgreSQL** | Relational DB (Supabase + Prisma) | Users, auth, sessions, devices, portfolios, goals, subscriptions, audit logs |
+| **MongoDB**    | Document DB *(planned — not in use)* | Stocks, news, scores, chat history, research reports |
+| **Redis**      | Cache + Sessions               | Revoked-JWT blacklist, sessions, rate limiting (optional) |
+| **Kafka**      | Message Queue *(planned)*      | Event streaming, data pipeline, real-time sync       |
+| **Vector DB**  | Pinecone / pgvector *(planned)*| Semantic search, RAG for AI chat                     |
+| **LLM**        | OpenAI / Anthropic *(planned)* | Explanations, chat, summaries, analysis              |
+| **LangGraph**  | Agent Orchestrator *(planned)* | Multi-agent AI workflow                              |
 | i18n           | Angular i18n + ngx-translate   | Hindi, English, Hinglish support                     |
 | Notifications  | Telegram, Email, Push          | User alerts, daily reports                           |
 
@@ -113,7 +125,7 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 | Data Fetcher      | Python (yfinance, requests)                  |
 | Stream Processing | Apache Kafka                                 |
 | Cache             | Redis (live prices, TTL-based)               |
-| Storage           | PostgreSQL (structured), MongoDB (documents) |
+| Storage           | PostgreSQL (structured)         |
 | Scheduler         | APScheduler / Celery                         |
 
 ---

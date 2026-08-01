@@ -4,6 +4,19 @@ All notable changes to Quantora.
 
 ---
 
+## [0.4.3] — 2026-08-01
+
+### Fixed
+
+- **Users logged out immediately after login (critical)** — every authenticated request returned `401 Invalid or expired token` even though login and refresh succeeded. Root cause was a JWT secret resolution mismatch: `AuthModule` read `process.env.JWT_SECRET` at **module import time** (before `dotenv.config()` in `main.ts` ran), so tokens were *signed* with the fallback `'quantora-dev-secret'`, while `JwtStrategy` read the secret at **DI/construction time** (after `.env` was loaded) and *verified* with the real `JWT_SECRET`. Every signature check failed → the app immediately logged the user out. Fixed by registering `JwtModule` via `JwtModule.registerAsync({ useFactory })` so signing and verification resolve the same secret at the same time. Verified end-to-end: `login → GET /api/user/preferences → refresh → GET /api/user/preferences` all return 200.
+- **Language-switcher dropdown removed** from the app header, mobile drawer, login and register pages (kept on the Settings page). The unused `LanguageSwitcherComponent` and its module registration were removed. Web build passes.
+
+### Changed
+
+- **`scripts/reset-and-create-user.ts`** fixed for ESM: `__dirname` → `process.cwd()` so the `.env` path resolves and the script runs (used to wipe the DB and recreate the `lcdhuvare3010@gmail.com` admin account).
+
+---
+
 ## [0.4.2] — 2026-07-31
 
 ### Changed

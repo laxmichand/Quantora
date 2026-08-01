@@ -2,6 +2,8 @@
 
 > **Sections 20–22 of the Enterprise Sprint Template.**
 > Covers Scalability, Performance, and Caching Strategy.
+>
+> **Current state (0.4.3)**: targets below are aspirational; live stack is Supabase PostgreSQL + optional Redis (no MongoDB, no Kafka, no queue yet).
 
 ---
 
@@ -15,8 +17,7 @@
 ├── NestJS (1 instance, Render free)
 ├── FastAPI (1 instance, Render free)
 ├── Supabase PostgreSQL (managed)
-├── MongoDB Atlas (managed)
-└── Redis (Docker, single instance)
+└── Redis (optional, Docker)
 Cost: ~₹0/month
 ```
 

@@ -1,6 +1,6 @@
 # Quantora REST API Documentation
 
-> **Version**: 0.0.1 | **Base URL**: `http://localhost:3000/api` | **Swagger**: `http://localhost:3000/api/docs`
+> **Version**: 0.4.3 | **Base URL**: `http://localhost:3000/api` | **Swagger**: `http://localhost:3000/api/docs`
 
 ---
 
@@ -12,13 +12,13 @@
 - [Status Codes](#status-codes)
 - [Health Endpoints](#health-endpoints)
 - [Auth Endpoints](#auth-endpoints)
-- [User Endpoints](#user-endpoints)
-- [Portfolio Endpoints](#portfolio-endpoints)
-- [Stock Endpoints](#stock-endpoints)
-- [AI Scoring Endpoints](#ai-scoring-endpoints)
-- [AI Chat Endpoints](#ai-chat-endpoints)
-- [Payment Endpoints](#payment-endpoints)
+- [User Preference Endpoints](#user-preference-endpoints)
+- [Session Endpoints](#session-endpoints)
+- [Device Endpoints](#device-endpoints)
+- [Admin Endpoints](#admin-endpoints)
+- [Scaffolded Endpoints (Not Implemented)](#scaffolded-endpoints-not-implemented)
 - [Data Models](#data-models)
+- [Endpoint Summary](#endpoint-summary)
 
 ---
 
@@ -30,39 +30,66 @@ Quantora is an intelligent investing platform. All endpoints are prefixed with `
 
 The API allows requests from:
 
-| Origin                               | Purpose             |
-| ------------------------------------ | ------------------- |
-| `http://localhost:4200`              | Local Angular dev   |
-| `http://localhost:80`                | Local Docker        |
-| `https://quantora.vercel.app`        | Production frontend |
-| `https://quantora-web.vercel.app`    | Staging frontend    |
-| `https://quantora-ih3a.onrender.com` | Render deployment   |
+| Origin                                  | Purpose             |
+| --------------------------------------- | ------------------- |
+| `http://localhost:4200`                 | Local Angular dev   |
+| `http://localhost:80`                   | Local Docker        |
+| `https://quantora.vercel.app`           | Production frontend |
+| `https://quantora-web.vercel.app`       | Staging frontend    |
+| `https://quantora-ih3a.onrender.com`    | Render deployment   |
+
+> The live frontend `https://quantora-web-angular.vercel.app` is **not** yet in the allowlist (`apps/api-nest/src/main.ts`); add it there if cross-origin browser calls are needed (same-origin `/api` rewrites via `vercel.json` work without it).
+
+> Note: if you add a new frontend origin (e.g. a Vercel preview), add it to the allowlist in `apps/api-nest/src/main.ts` or requests will be rejected.
 
 ### Rate Limiting
 
-> Planned for Sprint 2. No rate limiting currently enforced.
+Rate limiting **is enforced**. A custom in-memory `ThrottlerGuard` is registered as a global `APP_GUARD`:
+
+- Default: `60` requests / `60` seconds per IP.
+- Auth endpoints (`login`, `login/mfa`, `register`, `refresh`, `forgot-password`, `reset-password`, `google`) are **always throttled** even when the controller is `@Public()`.
+- Excess requests return `429 Too Many Requests`.
+- Per-endpoint tuning via `@Throttle()` / configurable `THROTTLE_WINDOW_MS` / `THROTTLE_MAX` env vars.
 
 ---
 
 ## Authentication
 
-### Bearer Token (JWT)
+### Cookies (primary) + Bearer (fallback)
 
-Protected endpoints require a `Bearer` token in the `Authorization` header:
+Protected endpoints are authenticated with two HttpOnly cookies set on login:
+
+| Cookie | Type     | Path        | Max-Age | Attributes                                 |
+| ------ | -------- | ----------- | ------- | ------------------------------------------ |
+| `_qta` | Access   | `/`         | 15 min  | `HttpOnly; SameSite=Strict` (`Secure` in prod) |
+| `_qtr` | Refresh  | `/api/auth` | 7 days  | `HttpOnly; SameSite=Strict` (`Secure` in prod) |
+
+The JWT strategy reads `_qta` from the cookie first, then falls back to an `Authorization: Bearer <token>` header. The refresh token is read from the `_qtr` cookie (path-restricted to `/api/auth`).
+
+### Token design
+
+- **Access token** (15 min): `{ sub, email, role, jti, sid, did, type: 'access' }`.
+- **Refresh token** (7 days, `REFRESH_TOKEN_EXPIRY_DAYS`): `{ ..., jti, sid, did, family, type: 'refresh' }`.
+- Refresh tokens are **rotated** on every `POST /api/auth/refresh`; the old token is stored as a SHA-256 hash on the session and **reuse of a rotated token revokes the session** (`token_reuse`).
+- **Session binding**: access tokens are bound to a `Session` row via `sid`; revoking a session immediately invalidates its tokens regardless of remaining JWT lifetime.
+- **Concurrent sessions**: `MAX_ACTIVE_SESSIONS = 2`; a new login evicts the oldest active session (`session_limit_exceeded`).
+- **Blacklisting**: Redis stores revoked `jti`s; if Redis is down the system degrades gracefully (Postgres sessions remain the source of truth).
+
+### Refresh flow
 
 ```
-Authorization: Bearer <jwt_access_token>
+1. User logs in  → server sets _qta + _qtr cookies
+2. Access expires → POST /api/auth/refresh with _qtr cookie → new _qta/_qtr
+3. Refresh expires → user must log in again
 ```
 
-The token is obtained from `POST /api/auth/login` or `POST /api/auth/register`. Tokens are validated via a JWT strategy configured with `@nestjs/jwt`.
+### Account lockout
 
-### Refresh Token Flow
+5 failed login attempts lock the account for 15 minutes (`lockedUntil`).
 
-```
-1. User logs in       → receives accessToken + refreshToken
-2. Access token expires → use refreshToken to get new accessToken
-3. Refresh expires     → user must log in again
-```
+### MFA (TOTP)
+
+Optional Google-Authenticator-style TOTP. Flow: login → `POST /api/auth/login/mfa` → `POST /api/auth/mfa/setup` → `POST /api/auth/mfa/verify` → `POST /api/auth/mfa/disable`. When MFA is enabled, `POST /api/auth/login` returns an `mfaRequired` response instead of tokens.
 
 ---
 
@@ -91,19 +118,19 @@ The token is obtained from `POST /api/auth/login` or `POST /api/auth/register`. 
 
 ## Status Codes
 
-| Code  | Meaning                                     |
-| ----- | ------------------------------------------- |
-| `200` | OK — Request succeeded                      |
-| `201` | Created — Resource created                  |
-| `204` | No Content — Delete succeeded               |
-| `400` | Bad Request — Invalid input                 |
-| `401` | Unauthorized — Missing/invalid token        |
-| `403` | Forbidden — Insufficient permissions        |
-| `404` | Not Found — Resource does not exist         |
-| `409` | Conflict — Duplicate resource               |
-| `422` | Unprocessable — Validation error            |
-| `429` | Too Many Requests — Rate limited (Sprint 2) |
-| `500` | Internal Server Error                       |
+| Code  | Meaning                              |
+| ----- | ------------------------------------ |
+| `200` | OK — Request succeeded               |
+| `201` | Created — Resource created           |
+| `204` | No Content — Delete succeeded        |
+| `400` | Bad Request — Invalid input          |
+| `401` | Unauthorized — Missing/invalid token |
+| `403` | Forbidden — Insufficient permissions |
+| `404` | Not Found — Resource does not exist  |
+| `409` | Conflict — Duplicate resource        |
+| `422` | Unprocessable — Validation error     |
+| `429` | Too Many Requests — Rate limited     |
+| `500` | Internal Server Error                |
 
 ---
 
@@ -134,75 +161,32 @@ Returns basic service status.
 **Sprint Status**: Implemented (Sprint 1)
 **Auth**: Public
 
-Health check endpoint. Verifies database connectivity via Prisma (`SELECT 1`). Uses `@nestjs/terminus` `HealthCheckService`.
+Health check endpoint (`@nestjs/terminus`). Verifies database connectivity via Prisma.
 
 **Response 200**:
 
 ```json
 {
   "status": "ok",
-  "timestamp": "2026-07-27T10:00:00.000Z",
-  "uptime": 3600.123
-}
-```
-
-**Detailed health (terminus)**:
-
-```json
-{
-  "status": "ok",
-  "info": {
-    "database": {
-      "status": "up"
-    }
-  },
+  "info": { "database": { "status": "up" } },
   "error": {},
-  "details": {
-    "database": {
-      "status": "up"
-    }
-  }
+  "details": { "database": { "status": "up" } }
 }
 ```
 
-**Response 503** (database down):
-
-```json
-{
-  "status": "error",
-  "info": {
-    "database": {
-      "status": "down",
-      "message": "Connection refused"
-    }
-  },
-  "error": {
-    "database": {
-      "status": "down",
-      "message": "Connection refused"
-    }
-  },
-  "details": {
-    "database": {
-      "status": "down",
-      "message": "Connection refused"
-    }
-  }
-}
-```
+**Response 503** (database down): `status: "error"` with `details.database.status: "down"`.
 
 ---
 
 ## Auth Endpoints
 
-> **Sprint 2 — Planned.** Controllers and DTOs are scaffolded. Endpoints are not yet implemented.
+> All implemented (Sprints 2–4).
 
 ### POST /api/auth/register
 
-**Sprint Status**: Planned (Sprint 2)
 **Auth**: Public
 
-Register a new user account.
+Register a new user account. Returns the user; auth cookies are **not** set by register — the user should log in next.
 
 **Request Body**:
 
@@ -220,7 +204,7 @@ Register a new user account.
 | Field      | Type   | Required | Constraints                                                |
 | ---------- | ------ | -------- | ---------------------------------------------------------- |
 | `email`    | string | Yes      | Valid email format                                         |
-| `password` | string | Yes      | Min 8 chars, must contain uppercase, lowercase, and number |
+| `password` | string | Yes      | Min 8 chars, uppercase + lowercase + number                |
 | `name`     | string | Yes      | Min 2 characters                                           |
 | `phone`    | string | No       | —                                                          |
 
@@ -232,125 +216,109 @@ Register a new user account.
     "id": "uuid",
     "email": "user@example.com",
     "name": "John Doe",
-    "phone": "+91-9876543210",
     "role": "user",
-    "language": "en",
+    "isEmailVerified": false,
     "createdAt": "2026-07-27T10:00:00.000Z"
-  },
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  }
 }
 ```
 
-**Response 409** (email exists):
-
-```json
-{
-  "statusCode": 409,
-  "message": "Email already registered",
-  "error": "Conflict"
-}
-```
-
-**Response 422** (validation error):
-
-```json
-{
-  "statusCode": 422,
-  "message": [
-    "password must be longer than or equal to 8 characters",
-    "password must contain at least one uppercase, one lowercase, and one number"
-  ],
-  "error": "Unprocessable Entity"
-}
-```
+**Response 409** (email exists): `{ "statusCode": 409, "message": "Email already registered" }`
 
 ---
 
 ### POST /api/auth/login
 
-**Sprint Status**: Planned (Sprint 2)
-**Auth**: Public
+**Auth**: Public (throttled)
 
-Authenticate with email and password.
+Authenticate with email + password. Sets `_qta` and `_qtr` cookies. Enforces account lockout, device fingerprinting, risk engine, and MFA challenge.
 
 **Request Body**:
 
 ```json
 {
   "email": "user@example.com",
-  "password": "SecureP@ss1"
+  "password": "SecureP@ss1",
+  "deviceId": "optional-client-device-id",
+  "fingerprint": { "browser": "chrome", "os": "macos" },
+  "timezone": "Asia/Kolkata"
 }
 ```
 
-**Response 200**:
+**Response 200** (no MFA):
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  "user": { "id": "uuid", "email": "user@example.com", "role": "user", "name": "John Doe" },
+  "requiresMfa": false
 }
 ```
 
-**Response 401** (invalid credentials):
+**Response 200** (MFA required — no tokens yet):
 
 ```json
 {
-  "statusCode": 401,
-  "message": "Invalid email or password",
-  "error": "Unauthorized"
+  "user": { "id": "uuid", "email": "user@example.com" },
+  "requiresMfa": true,
+  "mfaToken": "challenge-token"
 }
 ```
+
+**Response 401** (invalid credentials / locked / unverified email): appropriate message.
 
 ---
 
-### POST /api/auth/refresh
+### POST /api/auth/login/mfa
 
-**Sprint Status**: Planned (Sprint 2)
-**Auth**: Public
+**Auth**: Public (throttled)
 
-Exchange a refresh token for a new access token.
+Complete login when MFA is enabled. Verifies the TOTP code against the challenge returned by login.
 
 **Request Body**:
 
 ```json
 {
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  "email": "user@example.com",
+  "password": "SecureP@ss1",
+  "mfaCode": "123456"
 }
 ```
+
+**Response 200**: sets `_qta`/`_qtr` cookies, returns the user.
+
+---
+
+### POST /api/auth/refresh
+
+**Auth**: Public (throttled) — requires `_qtr` cookie
+
+Rotates the refresh token and returns a new token pair as cookies. A reused (already-rotated) refresh token revokes the session.
+
+**Response 200**: new `_qta` + `_qtr` cookies; empty body or minimal payload.
+
+**Response 401** (missing/expired/invalid refresh token).
+
+---
+
+### POST /api/auth/logout
+
+**Auth**: Protected
+
+Invalidates the current session, clears `_qta`/`_qtr`/`refreshToken` cookies.
 
 **Response 200**:
 
 ```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
-
-**Response 401** (expired/invalid refresh token):
-
-```json
-{
-  "statusCode": 401,
-  "message": "Invalid or expired refresh token",
-  "error": "Unauthorized"
-}
+{ "success": true }
 ```
 
 ---
 
 ### GET /api/auth/me
 
-**Sprint Status**: Planned (Sprint 2)
-**Auth**: Protected (Bearer Token)
+**Auth**: Protected
 
 Return the currently authenticated user's profile.
-
-**Headers**:
-
-```
-Authorization: Bearer <accessToken>
-```
 
 **Response 200**:
 
@@ -361,77 +329,42 @@ Authorization: Bearer <accessToken>
   "name": "John Doe",
   "phone": "+91-9876543210",
   "role": "user",
-  "language": "en",
   "isActive": true,
+  "isEmailVerified": true,
+  "mfaEnabled": false,
+  "provider": "local",
   "createdAt": "2026-07-27T10:00:00.000Z",
   "updatedAt": "2026-07-27T10:00:00.000Z"
 }
 ```
 
-**Response 401** (no token):
-
-```json
-{
-  "statusCode": 401,
-  "message": "Unauthorized",
-  "error": "Unauthorized"
-}
-```
-
 ---
 
-### POST /api/auth/logout
+### GET /api/auth/verify-email/:token
 
-**Sprint Status**: Planned (Sprint 2)
-**Auth**: Protected (Bearer Token)
+**Auth**: Public
 
-Invalidate the current refresh token.
+Verify the email address using the token sent by `register`.
 
-**Headers**:
-
-```
-Authorization: Bearer <accessToken>
-```
-
-**Response 200**:
-
-```json
-{
-  "success": true
-}
-```
+**Response 200**: `{ "success": true }`
 
 ---
 
 ### POST /api/auth/forgot-password
 
-**Sprint Status**: Planned (Sprint 2)
-**Auth**: Public
+**Auth**: Public (throttled)
 
 Send a password reset email.
 
-**Request Body**:
+**Request Body**: `{ "email": "user@example.com" }`
 
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-**Response 200**:
-
-```json
-{
-  "success": true
-}
-```
+**Response 200**: `{ "success": true }`
 
 ---
 
-### POST /api/auth/reset-password
+### PATCH /api/auth/reset-password
 
-**Sprint Status**: Planned (Sprint 2)
-**Auth**: Public
+**Auth**: Public (throttled)
 
 Reset password using the token from email.
 
@@ -444,173 +377,168 @@ Reset password using the token from email.
 }
 ```
 
+**Response 200**: `{ "success": true }`
+
+---
+
+### GET /api/auth/google
+
+**Auth**: Public (throttled)
+
+Redirect to Google OAuth consent. (Disabled gracefully if `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are not configured.)
+
+### GET /api/auth/google/callback
+
+**Auth**: Public
+
+Google OAuth callback — finds/creates the user, sets auth cookies, redirects to `FRONTEND_URL`.
+
+---
+
+### MFA endpoints
+
+| Method | URL                       | Auth      | Description                                             |
+| ------ | ------------------------- | --------- | ------------------------------------------------------- |
+| `POST` | `/api/auth/mfa/setup`     | Protected | Generate TOTP secret + QR code (data URL) + backup codes |
+| `POST` | `/api/auth/mfa/verify`    | Protected | Activate MFA after confirming a TOTP code               |
+| `POST` | `/api/auth/mfa/disable`   | Protected | Disable MFA after confirming a TOTP code                |
+
+---
+
+### POST /api/auth/login-history
+
+**Auth**: Protected
+
+Return recent login attempts for the current user (IP, device, geo, success, MFA status, risk).
+
+**Response 200**: array of `LoginHistory` records.
+
+---
+
+### GET /api/auth/security-events
+
+**Auth**: Protected
+
+Return the user's security-alert timeline.
+
+### POST /api/auth/security-events/:id/acknowledge
+
+**Auth**: Protected
+
+Acknowledge a security event. **Response 200**: `{ "success": true }`.
+
+---
+
+## User Preference Endpoints
+
+### GET /api/user/preferences
+
+**Auth**: Protected
+
+Return the current user's preferences (auto-created on register if missing).
+
 **Response 200**:
 
 ```json
 {
-  "success": true
+  "language": "en",
+  "theme": "slate",
+  "dateFormat": "DD/MM/YYYY",
+  "numberFormat": "indian",
+  "timezone": "Asia/Kolkata",
+  "defaultExchange": "NSE",
+  "riskTolerance": "moderate",
+  "investmentStyle": "long_term",
+  "sidebarCollapsed": false,
+  "defaultView": "dashboard",
+  "notificationsEmail": true,
+  "notificationsPush": true,
+  "notificationsSms": false,
+  "notifyPriceAlerts": true,
+  "notifyPortfolio": true,
+  "notifyNews": false,
+  "notifyAiInsights": true,
+  "stockListColumns": null,
+  "dashboardLayout": null
 }
 ```
 
-**Response 400** (expired/invalid token):
+### PATCH /api/user/preferences
 
-```json
-{
-  "statusCode": 400,
-  "message": "Invalid or expired reset token",
-  "error": "Bad Request"
-}
-```
+**Auth**: Protected
+
+Update any supported preference key (language, theme, dateFormat, timezone, notification flags, exchange, riskTolerance, sidebarCollapsed, defaultView, stockListColumns, dashboardLayout, …). Returns the updated preferences.
 
 ---
 
-## User Endpoints
+## Session Endpoints
 
-> **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
+All protected. Sessions power the Security Center.
 
-| Method   | URL              | Sprint Status         | Auth      | Description              |
-| -------- | ---------------- | --------------------- | --------- | ------------------------ |
-| `GET`    | `/api/users`     | Scaffolded (Sprint 1) | Protected | List all users (admin)   |
-| `GET`    | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Get user by ID           |
-| `PATCH`  | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Update user profile      |
-| `DELETE` | `/api/users/:id` | Scaffolded (Sprint 1) | Protected | Soft delete user (admin) |
+| Method | URL                          | Description                                      |
+| ------ | ---------------------------- | ------------------------------------------------ |
+| `GET`  | `/api/sessions`              | List the current user's active sessions          |
+| `GET`  | `/api/sessions/current`      | Current session details (with device metadata)   |
+| `POST` | `/api/sessions/logout`       | Log out the current session                      |
+| `POST` | `/api/sessions/logout-all`   | Revoke all sessions (log out everywhere)         |
+| `POST` | `/api/sessions/logout-others`| Revoke all sessions except the current one       |
+| `POST` | `/api/sessions/logout-device`| Revoke sessions for a given device               |
+| `POST` | `/api/sessions/:id/logout`   | Revoke a specific session by id                  |
 
----
-
-## Portfolio Endpoints
-
-> **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
-
-| Method   | URL                                       | Sprint Status         | Auth      | Description                |
-| -------- | ----------------------------------------- | --------------------- | --------- | -------------------------- |
-| `GET`    | `/api/portfolios`                         | Scaffolded (Sprint 1) | Protected | List user's portfolios     |
-| `POST`   | `/api/portfolios`                         | Scaffolded (Sprint 1) | Protected | Create a new portfolio     |
-| `GET`    | `/api/portfolios/:id`                     | Scaffolded (Sprint 1) | Protected | Get portfolio details      |
-| `PATCH`  | `/api/portfolios/:id`                     | Scaffolded (Sprint 1) | Protected | Update portfolio           |
-| `DELETE` | `/api/portfolios/:id`                     | Scaffolded (Sprint 1) | Protected | Soft delete portfolio      |
-| `GET`    | `/api/portfolios/:id/holdings`            | Scaffolded (Sprint 1) | Protected | List holdings in portfolio |
-| `POST`   | `/api/portfolios/:id/holdings`            | Scaffolded (Sprint 1) | Protected | Add a holding to portfolio |
-| `PATCH`  | `/api/portfolios/:id/holdings/:holdingId` | Scaffolded (Sprint 1) | Protected | Update a holding           |
-| `DELETE` | `/api/portfolios/:id/holdings/:holdingId` | Scaffolded (Sprint 1) | Protected | Remove a holding           |
-
-### Create Portfolio — Request Body (Planned)
-
-```json
-{
-  "name": "My Growth Portfolio",
-  "benchmark": "NIFTY_50"
-}
-```
-
-### Add Holding — Request Body (Planned)
-
-```json
-{
-  "stockSymbol": "RELIANCE",
-  "quantity": 10,
-  "avgBuyPrice": 2450.5
-}
-```
+**Session fields**: id, current, device, ipAddress/country/city (masked), userAgent, browser/OS, loginTime, lastActivity, isTrusted, trustedUntil.
 
 ---
 
-## Stock Endpoints
+## Device Endpoints
 
-> **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
+### POST /api/devices/register
 
-| Method   | URL                   | Sprint Status         | Auth      | Description               |
-| -------- | --------------------- | --------------------- | --------- | ------------------------- |
-| `GET`    | `/api/stocks`         | Scaffolded (Sprint 1) | Public    | List all stocks           |
-| `POST`   | `/api/stocks`         | Scaffolded (Sprint 1) | Protected | Add a stock (admin)       |
-| `GET`    | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Public    | Get stock by symbol       |
-| `PATCH`  | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Protected | Update stock data (admin) |
-| `DELETE` | `/api/stocks/:symbol` | Scaffolded (Sprint 1) | Protected | Remove a stock (admin)    |
+**Auth**: Public (path allowlist)
 
----
+Register a device fingerprint before/at login. The server enriches it with geo/network info.
 
-## AI Scoring Endpoints
+### Protected
 
-> **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
-
-| Method | URL                     | Sprint Status         | Auth      | Description                  |
-| ------ | ----------------------- | --------------------- | --------- | ---------------------------- |
-| `POST` | `/api/scores/stock`     | Scaffolded (Sprint 1) | Protected | Get AI score for a stock     |
-| `POST` | `/api/scores/portfolio` | Scaffolded (Sprint 1) | Protected | Get AI score for a portfolio |
-
-### Score Stock — Request Body (Planned)
-
-```json
-{
-  "symbol": "RELIANCE",
-  "timeframe": "6m"
-}
-```
-
-### Score Stock — Response 200 (Planned)
-
-```json
-{
-  "symbol": "RELIANCE",
-  "score": 78,
-  "rating": "Buy",
-  "factors": {
-    "technical": 82,
-    "fundamental": 75,
-    "sentiment": 70
-  },
-  "summary": "Strong fundamentals with positive technical momentum."
-}
-```
+| Method   | URL                      | Description                              |
+| -------- | ------------------------ | ---------------------------------------- |
+| `GET`    | `/api/devices`           | List the current user's devices          |
+| `GET`    | `/api/devices/current`   | Current device details                   |
+| `GET`    | `/api/devices/:id`       | Device details                           |
+| `PATCH`  | `/api/devices/:id/trust` | Trust/untrust a device (with window)     |
+| `PATCH`  | `/api/devices/:id/rename`| Rename a device                          |
+| `DELETE` | `/api/devices/:id`       | Remove a device (revokes its sessions)   |
 
 ---
 
-## AI Chat Endpoints
+## Admin Endpoints
 
-> **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
+`@Roles('admin')` — require an admin-role account.
 
-| Method | URL                 | Sprint Status         | Auth      | Description                  |
-| ------ | ------------------- | --------------------- | --------- | ---------------------------- |
-| `POST` | `/api/chat`         | Scaffolded (Sprint 1) | Protected | Send a message to AI advisor |
-| `GET`  | `/api/chat/history` | Scaffolded (Sprint 1) | Protected | Get chat history             |
-
-### Chat Request — Request Body (Planned)
-
-```json
-{
-  "message": "Should I invest in IT stocks right now?",
-  "context": "portfolio"
-}
-```
-
-### Chat Response — Response 200 (Planned)
-
-```json
-{
-  "reply": "Based on current market analysis, the IT sector shows...",
-  "sources": ["market_data", "portfolio_analysis"],
-  "timestamp": "2026-07-27T10:00:00.000Z"
-}
-```
+| Method   | URL                             | Description                               |
+| -------- | ------------------------------- | ----------------------------------------- |
+| `GET`    | `/api/admin/sessions`           | All active sessions across users          |
+| `GET`    | `/api/admin/devices`            | All devices across users                  |
+| `GET`    | `/api/admin/audit-logs`         | Audit log trail                           |
+| `GET`    | `/api/admin/users/:userId`      | User details                              |
+| `POST`   | `/api/admin/users/:userId/force-logout` | Revoke all sessions for a user     |
+| `POST`   | `/api/admin/devices/:deviceId/block`    | Block a device (status=blocked)    |
+| `POST`   | `/api/admin/ips/:ip/block`      | Block an IP (currently logged; Redis/dedicated table TODO) |
 
 ---
 
-## Payment Endpoints
+## Scaffolded Endpoints (Not Implemented)
 
-> **Sprint 1 — Scaffolded only.** Controller is empty. Endpoints to be implemented in future sprints.
+The following controllers exist but have **no route handlers** and are **not wired** into `AppModule`. They are scaffolding for future sprints:
 
-| Method | URL                          | Sprint Status         | Auth      | Description             |
-| ------ | ---------------------------- | --------------------- | --------- | ----------------------- |
-| `POST` | `/api/payments/create-order` | Scaffolded (Sprint 1) | Protected | Create a payment order  |
-| `POST` | `/api/payments/verify`       | Scaffolded (Sprint 1) | Protected | Verify payment callback |
-| `GET`  | `/api/payments/history`      | Scaffolded (Sprint 1) | Protected | Get payment history     |
+| Area    | Planned endpoints                                   | Sprint |
+| ------- | --------------------------------------------------- | ------ |
+| Users   | `GET/PATCH/DELETE /api/users`, `/api/users/:id`     | —      |
+| Stocks  | `GET /api/stocks`, `GET /api/stocks/:symbol`, …     | 4      |
+| Portfolio | `/api/portfolios*`, `/api/portfolios/:id/holdings*` | 5      |
+| Payments | `POST /api/payments/create-order`, `/verify`, `/history` | 17 |
+| AI      | `POST /api/chat`, `/api/chat/history`, `/api/scores/stock`, `/api/scores/portfolio` | 6, 8 |
 
-### Subscription Plans (Planned)
-
-| Plan         | Price   | Features                                       |
-| ------------ | ------- | ---------------------------------------------- |
-| `free`       | ₹0/mo   | 1 portfolio, basic scores                      |
-| `pro`        | ₹499/mo | Unlimited portfolios, AI chat, advanced scores |
-| `enterprise` | Custom  | API access, white-label, priority support      |
+> The FastAPI AI service (`apps/ai-fastapi`) currently only exposes `GET /`, `GET /health`, and `GET /api/v1/status`. All AI endpoints (analysis, chat, risk, news, forecast, screener) and the frontend's `/ai/*` proxy target are **not yet implemented**.
 
 ---
 
@@ -625,178 +553,172 @@ Reset password using the token from email.
   "name": "string",
   "phone": "string | null",
   "role": "user | pro | admin",
-  "language": "en | hi | hi-en",
   "isActive": true,
+  "isEmailVerified": true,
+  "provider": "local | google",
+  "mfaEnabled": false,
+  "failedLoginAttempts": 0,
+  "lockedUntil": "datetime | null",
+  "lastLoginAt": "datetime | null",
   "createdAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
+  "updatedAt": "datetime"
 }
 ```
 
-### Portfolio
+> Note: `language` no longer lives on `User` — it is stored in `UserPreference`.
+
+### Device
 
 ```json
 {
   "id": "uuid",
-  "userId": "uuid (FK → User)",
-  "name": "string (default: 'My Portfolio')",
-  "benchmark": "string (default: 'NIFTY_50')",
-  "holdings": ["Holding[]"],
-  "createdAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
+  "deviceId": "string (unique)",
+  "fingerprintHash": "string",
+  "browser": "string | null",
+  "os": "string | null",
+  "timezone": "string | null",
+  "country": "string | null",
+  "city": "string | null",
+  "publicIp": "string | null",
+  "vpn": false,
+  "proxy": false,
+  "tor": false,
+  "trustedDevice": false,
+  "trustedUntil": "datetime | null",
+  "riskScore": 0,
+  "riskLevel": "low | medium | high | critical",
+  "loginCount": 0,
+  "status": "active | blocked"
 }
 ```
 
-### Holding
+### Session
 
 ```json
 {
   "id": "uuid",
-  "portfolioId": "uuid (FK → Portfolio)",
-  "stockSymbol": "string (e.g. 'RELIANCE')",
-  "quantity": 10,
-  "avgBuyPrice": 2450.5,
-  "addedAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
+  "sessionToken": "string (unique)",
+  "accessTokenId": "string (unique)",
+  "refreshTokenId": "string (unique)",
+  "revoked": false,
+  "revokedBy": "string | null",
+  "logoutReason": "string | null",
+  "loginTime": "datetime",
+  "lastActivity": "datetime",
+  "expiresAt": "datetime",
+  "idleTimeout": "number",
+  "absoluteTimeout": "number",
+  "ipAddress": "string | null",
+  "country": "string | null",
+  "userAgent": "string | null",
+  "deviceId": "string | null"
 }
 ```
 
-### Goal
+### LoginHistory
 
 ```json
 {
   "id": "uuid",
-  "userId": "uuid (FK → User)",
-  "name": "string",
-  "targetAmount": 1000000.0,
-  "currentAmount": 250000.0,
-  "deadline": "date",
-  "type": "retirement | education | house | emergency",
-  "sipAmount": 10000.0,
-  "riskTolerance": "conservative | moderate | aggressive",
-  "status": "active | completed | paused",
-  "createdAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
-}
-```
-
-### Subscription
-
-```json
-{
-  "id": "uuid",
-  "userId": "uuid (FK → User, unique)",
-  "plan": "free | pro | enterprise",
-  "status": "active | inactive | cancelled",
-  "startDate": "datetime",
-  "endDate": "datetime | null",
-  "paymentMethod": "string | null",
-  "amount": 499.0,
-  "currency": "INR",
-  "createdAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
-}
-```
-
-### Alert
-
-```json
-{
-  "id": "uuid",
-  "userId": "uuid (FK → User)",
-  "type": "price_target | volume | news | portfolio | goal",
-  "stockSymbol": "string | null",
-  "condition": "above | below | percent_change",
-  "threshold": 2500.0,
-  "isActive": true,
-  "lastTriggeredAt": "datetime | null",
-  "createdAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
-}
-```
-
-### Watchlist
-
-```json
-{
-  "id": "uuid",
-  "userId": "uuid (FK → User)",
-  "name": "string (default: 'My Watchlist')",
-  "stockSymbols": ["RELIANCE", "TCS", "INFY"],
-  "createdAt": "datetime",
-  "updatedAt": "datetime",
-  "version": 1
-}
-```
-
-### AuditLog
-
-```json
-{
-  "id": "uuid",
-  "userId": "uuid | null",
-  "action": "string",
-  "entity": "string",
-  "entityId": "string | null",
-  "details": {},
+  "email": "string",
+  "success": true,
+  "provider": "local | google",
+  "failureReason": "string | null",
+  "mfaMethod": "string | null",
+  "mfaSuccess": "boolean | null",
   "ipAddress": "string | null",
   "userAgent": "string | null",
+  "device": "string | null",
+  "country": "string | null",
+  "isp": "string | null",
+  "vpn": false,
+  "proxy": false,
+  "tor": false,
+  "isNewDevice": false,
+  "riskScore": 0,
+  "riskLevel": "low | medium | high | critical",
+  "riskFactors": [],
+  "sessionId": "string | null",
   "createdAt": "datetime"
 }
 ```
 
----
+### UserPreference
 
-## Sprint Status Legend
+```json
+{
+  "userId": "uuid (unique)",
+  "language": "en | hi",
+  "theme": "slate | light | dark | indigo | emerald | rose",
+  "dateFormat": "DD/MM/YYYY",
+  "numberFormat": "indian",
+  "timezone": "Asia/Kolkata",
+  "defaultExchange": "NSE",
+  "riskTolerance": "conservative | moderate | aggressive",
+  "investmentStyle": "long_term",
+  "sidebarCollapsed": false,
+  "defaultView": "dashboard",
+  "notifyPriceAlerts": true,
+  "notifyPortfolio": true,
+  "notifyNews": false,
+  "notifyAiInsights": true
+}
+```
 
-| Status                     | Meaning                                          |
-| -------------------------- | ------------------------------------------------ |
-| **Implemented (Sprint 1)** | Endpoints are live and functional                |
-| **Scaffolded (Sprint 1)**  | Controller exists but has no route handlers      |
-| **Planned (Sprint 2)**     | Defined in DTOs and Sprint 2 plan, not yet coded |
+### Portfolio / Holding / Goal / Subscription / Alert / Watchlist / AuditLog
+
+Defined in the Prisma schema (`apps/api-nest/prisma/schema.prisma`). See `docs/DATABASE.md` for the full table inventory.
 
 ---
 
 ## Endpoint Summary
 
-| Method   | URL                                       | Sprint | Auth      | Status      |
-| -------- | ----------------------------------------- | ------ | --------- | ----------- |
-| `GET`    | `/api`                                    | 1      | Public    | Implemented |
-| `GET`    | `/api/health`                             | 1      | Public    | Implemented |
-| `POST`   | `/api/auth/register`                      | 2      | Public    | Planned     |
-| `POST`   | `/api/auth/login`                         | 2      | Public    | Planned     |
-| `POST`   | `/api/auth/refresh`                       | 2      | Public    | Planned     |
-| `GET`    | `/api/auth/me`                            | 2      | Protected | Planned     |
-| `POST`   | `/api/auth/logout`                        | 2      | Protected | Planned     |
-| `POST`   | `/api/auth/forgot-password`               | 2      | Public    | Planned     |
-| `POST`   | `/api/auth/reset-password`                | 2      | Public    | Planned     |
-| `GET`    | `/api/users`                              | —      | Protected | Scaffolded  |
-| `GET`    | `/api/users/:id`                          | —      | Protected | Scaffolded  |
-| `PATCH`  | `/api/users/:id`                          | —      | Protected | Scaffolded  |
-| `DELETE` | `/api/users/:id`                          | —      | Protected | Scaffolded  |
-| `GET`    | `/api/portfolios`                         | —      | Protected | Scaffolded  |
-| `POST`   | `/api/portfolios`                         | —      | Protected | Scaffolded  |
-| `GET`    | `/api/portfolios/:id`                     | —      | Protected | Scaffolded  |
-| `PATCH`  | `/api/portfolios/:id`                     | —      | Protected | Scaffolded  |
-| `DELETE` | `/api/portfolios/:id`                     | —      | Protected | Scaffolded  |
-| `GET`    | `/api/portfolios/:id/holdings`            | —      | Protected | Scaffolded  |
-| `POST`   | `/api/portfolios/:id/holdings`            | —      | Protected | Scaffolded  |
-| `PATCH`  | `/api/portfolios/:id/holdings/:holdingId` | —      | Protected | Scaffolded  |
-| `DELETE` | `/api/portfolios/:id/holdings/:holdingId` | —      | Protected | Scaffolded  |
-| `GET`    | `/api/stocks`                             | —      | Public    | Scaffolded  |
-| `POST`   | `/api/stocks`                             | —      | Protected | Scaffolded  |
-| `GET`    | `/api/stocks/:symbol`                     | —      | Public    | Scaffolded  |
-| `PATCH`  | `/api/stocks/:symbol`                     | —      | Protected | Scaffolded  |
-| `DELETE` | `/api/stocks/:symbol`                     | —      | Protected | Scaffolded  |
-| `POST`   | `/api/scores/stock`                       | —      | Protected | Scaffolded  |
-| `POST`   | `/api/scores/portfolio`                   | —      | Protected | Scaffolded  |
-| `POST`   | `/api/chat`                               | —      | Protected | Scaffolded  |
-| `GET`    | `/api/chat/history`                       | —      | Protected | Scaffolded  |
-| `POST`   | `/api/payments/create-order`              | —      | Protected | Scaffolded  |
-| `POST`   | `/api/payments/verify`                    | —      | Protected | Scaffolded  |
-| `GET`    | `/api/payments/history`                   | —      | Protected | Scaffolded  |
+| Method   | URL                                      | Sprint | Auth      | Status      |
+| -------- | ---------------------------------------- | ------ | --------- | ----------- |
+| `GET`    | `/api`                                   | 1      | Public    | Implemented |
+| `GET`    | `/api/health`                            | 1      | Public    | Implemented |
+| `POST`   | `/api/auth/register`                     | 2      | Public    | Implemented |
+| `POST`   | `/api/auth/login`                        | 2      | Public    | Implemented |
+| `POST`   | `/api/auth/login/mfa`                    | 4/8    | Public    | Implemented |
+| `POST`   | `/api/auth/refresh`                      | 2      | Public    | Implemented |
+| `POST`   | `/api/auth/logout`                       | 2      | Protected | Implemented |
+| `GET`    | `/api/auth/me`                           | 2      | Protected | Implemented |
+| `GET`    | `/api/auth/verify-email/:token`          | 2      | Public    | Implemented |
+| `POST`   | `/api/auth/forgot-password`              | 2      | Public    | Implemented |
+| `PATCH`  | `/api/auth/reset-password`               | 2      | Public    | Implemented |
+| `GET`    | `/api/auth/google`                       | 3      | Public    | Implemented |
+| `GET`    | `/api/auth/google/callback`              | 3      | Public    | Implemented |
+| `POST`   | `/api/auth/mfa/setup`                    | 8      | Protected | Implemented |
+| `POST`   | `/api/auth/mfa/verify`                   | 8      | Protected | Implemented |
+| `POST`   | `/api/auth/mfa/disable`                  | 8      | Protected | Implemented |
+| `POST`   | `/api/auth/login-history`                | 3      | Protected | Implemented |
+| `GET`    | `/api/auth/security-events`              | 4      | Protected | Implemented |
+| `POST`   | `/api/auth/security-events/:id/acknowledge` | 4   | Protected | Implemented |
+| `GET`    | `/api/user/preferences`                  | 2      | Protected | Implemented |
+| `PATCH`  | `/api/user/preferences`                  | 2      | Protected | Implemented |
+| `GET`    | `/api/sessions`                          | 3      | Protected | Implemented |
+| `GET`    | `/api/sessions/current`                  | 4      | Protected | Implemented |
+| `POST`   | `/api/sessions/logout`                   | 4      | Protected | Implemented |
+| `POST`   | `/api/sessions/logout-all`               | 4      | Protected | Implemented |
+| `POST`   | `/api/sessions/logout-others`            | 4      | Protected | Implemented |
+| `POST`   | `/api/sessions/logout-device`            | 4      | Protected | Implemented |
+| `POST`   | `/api/sessions/:id/logout`               | 3      | Protected | Implemented |
+| `POST`   | `/api/devices/register`                  | 3      | Public    | Implemented |
+| `GET`    | `/api/devices`                           | 4      | Protected | Implemented |
+| `GET`    | `/api/devices/current`                   | 4      | Protected | Implemented |
+| `GET`    | `/api/devices/:id`                       | 4      | Protected | Implemented |
+| `PATCH`  | `/api/devices/:id/trust`                 | 4      | Protected | Implemented |
+| `PATCH`  | `/api/devices/:id/rename`                | 4      | Protected | Implemented |
+| `DELETE` | `/api/devices/:id`                       | 4      | Protected | Implemented |
+| `GET`    | `/api/admin/sessions`                    | 17     | Admin     | Implemented |
+| `GET`    | `/api/admin/devices`                     | 17     | Admin     | Implemented |
+| `GET`    | `/api/admin/audit-logs`                  | 17     | Admin     | Implemented |
+| `GET`    | `/api/admin/users/:userId`               | 17     | Admin     | Implemented |
+| `POST`   | `/api/admin/users/:userId/force-logout`  | 17     | Admin     | Implemented |
+| `POST`   | `/api/admin/devices/:deviceId/block`     | 17     | Admin     | Implemented |
+| `POST`   | `/api/admin/ips/:ip/block`               | 17     | Admin     | Implemented |
+| `GET`    | `/api/users`, `/api/users/:id`           | —      | Protected | Scaffolded |
+| `GET`    | `/api/stocks`, `/api/stocks/:symbol`     | 4      | Public    | Scaffolded |
+| `GET`    | `/api/portfolios*`, `/holdings*`         | 5      | Protected | Scaffolded |
+| `POST`   | `/api/payments/*`                        | 17     | Protected | Scaffolded |
+| `POST`   | `/api/chat*`, `/api/scores/*`            | 6/8    | Protected | Scaffolded |

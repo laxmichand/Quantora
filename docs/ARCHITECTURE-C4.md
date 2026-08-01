@@ -1,6 +1,8 @@
 # Quantora — C4 Architecture & Sequence Diagrams
 
 > System decomposition using C4 model + key flow sequence diagrams.
+>
+> **Current state (0.4.3)**: live stack is Angular (Vercel) → NestJS API (Render, Docker) → Supabase PostgreSQL (Prisma) + optional Redis. **MongoDB Atlas is planned, not provisioned.**
 
 ---
 
@@ -35,7 +37,7 @@
 | System              | Purpose                                                   | Data                          |
 | ------------------- | --------------------------------------------------------- | ----------------------------- |
 | Supabase PostgreSQL | Relational data (users, portfolios, goals, subscriptions) | Structured, ACID              |
-| MongoDB Atlas       | Document data (stock metadata, AI scores, chat logs)      | Semi-structured, flexible     |
+| MongoDB Atlas       | Document data *(planned)*        | Semi-structured, flexible     |
 | Redis               | Caching, rate limiting, session store                     | Key-value, ephemeral          |
 | yfinance API        | Indian stock market data (NSE/BSE)                        | Real-time & historical prices |
 | OpenAI API          | AI analysis, chat, recommendations (Sprint 5+)            | LLM inference                 |
@@ -101,7 +103,7 @@
 | NestJS API       | NestJS 10 + Prisma 5.22 | 3000 (dev) | REST API, auth, business logic |
 | FastAPI AI       | Python FastAPI          | 8000 (dev) | ML/AI inference, data analysis |
 | PostgreSQL       | Supabase (managed)      | 5432       | Relational data                |
-| MongoDB          | Atlas (managed)         | 27017      | Document data                  |
+| MongoDB          | Atlas (managed) *(planned)*    | 27017      | Document data                  |
 | Redis            | Docker / managed        | 6379       | Cache, rate limiting           |
 | Nginx            | Nginx (Docker)          | 80         | Reverse proxy, static files    |
 
