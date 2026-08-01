@@ -16,6 +16,9 @@
  *   Released               -> "Released"           (after manual workflow wiring)
  *   Closed                 -> "Closed"
  *
+ * Issues in "QA Failed" are NOT auto-returned to "In Progress" - that move is
+ * manual (user action) by design.
+ *
  * Usage:
  *   node scripts/jira-sync.mjs <command> [args...]
  *
