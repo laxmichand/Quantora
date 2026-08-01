@@ -3,6 +3,7 @@ export interface AngelConfig {
   clientCode: string;
   password: string;
   totp: string;
+  totpSecret: string;
   refreshToken: string;
   baseUrl: string;
   scripMasterUrl: string;
@@ -27,6 +28,7 @@ export function loadAngelConfig(env: NodeJS.ProcessEnv = process.env): AngelConf
     clientCode: env.ANGEL_CLIENT_CODE?.trim() ?? '',
     password: env.ANGEL_PASSWORD ?? '',
     totp: env.ANGEL_TOTP?.trim() ?? '',
+    totpSecret: env.ANGEL_TOTP_SECRET?.trim() ?? '',
     refreshToken: env.ANGEL_REFRESH_TOKEN?.trim() ?? '',
     baseUrl: env.ANGEL_BASE_URL?.trim() || ANGEL_DEFAULTS.baseUrl,
     scripMasterUrl: env.ANGEL_SCRIP_MASTER_URL?.trim() || ANGEL_DEFAULTS.scripMasterUrl,
@@ -44,8 +46,10 @@ export function validateAngelConfig(config: AngelConfig): string[] {
   const missing: string[] = [];
   if (!config.apiKey) missing.push('ANGEL_API_KEY');
   if (!config.clientCode) missing.push('ANGEL_CLIENT_CODE');
-  if (!config.refreshToken && (!config.password || !config.totp)) {
-    missing.push('ANGEL_REFRESH_TOKEN (or ANGEL_PASSWORD + ANGEL_TOTP for initial login)');
+  if (!config.refreshToken && (!config.password || (!config.totp && !config.totpSecret))) {
+    missing.push(
+      'ANGEL_REFRESH_TOKEN (or ANGEL_PASSWORD + ANGEL_TOTP/ANGEL_TOTP_SECRET for initial login)',
+    );
   }
   return missing;
 }

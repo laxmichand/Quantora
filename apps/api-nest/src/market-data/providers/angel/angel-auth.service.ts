@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AngelAuthError, AngelApiError } from './angel.types';
 import { assertAngelConfig, AngelConfig, loadAngelConfig } from './angel.config';
+import { generateTotp } from './angel-totp';
 
 interface AngelAuthBody {
   status?: boolean;
@@ -57,7 +58,10 @@ export class AngelAuthService {
 
   canLogin(): boolean {
     return Boolean(
-      this.config.apiKey && this.config.clientCode && this.config.password && this.config.totp,
+      this.config.apiKey &&
+      this.config.clientCode &&
+      this.config.password &&
+      (this.config.totp || this.config.totpSecret),
     );
   }
 
@@ -85,9 +89,13 @@ export class AngelAuthService {
   async login(): Promise<void> {
     if (!this.canLogin()) {
       throw new AngelAuthError(
-        'Angel One login requires ANGEL_API_KEY, ANGEL_CLIENT_CODE, ANGEL_PASSWORD and ANGEL_TOTP',
+        'Angel One login requires ANGEL_API_KEY, ANGEL_CLIENT_CODE, ANGEL_PASSWORD and ANGEL_TOTP/ANGEL_TOTP_SECRET',
       );
     }
+
+    const totp =
+      this.config.totp ||
+      (this.config.totpSecret ? await generateTotp(this.config.totpSecret) : '');
 
     const url = `${this.config.baseUrl}/rest/auth/angelbrokingUser/v1/login`;
     let res: Response;
@@ -101,7 +109,7 @@ export class AngelAuthService {
         body: JSON.stringify({
           clientcode: this.config.clientCode,
           password: this.config.password,
-          totp: this.config.totp,
+          totp,
           apikey: this.config.apiKey,
         }),
       });

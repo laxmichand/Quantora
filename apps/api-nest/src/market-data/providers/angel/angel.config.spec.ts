@@ -32,6 +32,7 @@ describe('angel.config', () => {
       process.env.ANGEL_CLIENT_CODE = 'client-1';
       process.env.ANGEL_PASSWORD = 'pass-1';
       process.env.ANGEL_TOTP = 'totp-1';
+      process.env.ANGEL_TOTP_SECRET = 'secret-1';
       process.env.ANGEL_REFRESH_TOKEN = 'refresh-1';
       process.env.ANGEL_BASE_URL = 'https://sandbox.angelone.in';
       process.env.ANGEL_TIMEOUT_MS = '5000';
@@ -42,6 +43,7 @@ describe('angel.config', () => {
 
       expect(config.password).toBe('pass-1');
       expect(config.totp).toBe('totp-1');
+      expect(config.totpSecret).toBe('secret-1');
       expect(config.refreshToken).toBe('refresh-1');
       expect(config.baseUrl).toBe('https://sandbox.angelone.in');
       expect(config.timeoutMs).toBe(5000);
@@ -83,7 +85,7 @@ describe('angel.config', () => {
       expect(validateAngelConfig(loadAngelConfig())).toEqual([
         'ANGEL_API_KEY',
         'ANGEL_CLIENT_CODE',
-        'ANGEL_REFRESH_TOKEN (or ANGEL_PASSWORD + ANGEL_TOTP for initial login)',
+        'ANGEL_REFRESH_TOKEN (or ANGEL_PASSWORD + ANGEL_TOTP/ANGEL_TOTP_SECRET for initial login)',
       ]);
     });
 
@@ -100,6 +102,15 @@ describe('angel.config', () => {
       process.env.ANGEL_CLIENT_CODE = 'client-1';
       process.env.ANGEL_PASSWORD = 'pass-1';
       process.env.ANGEL_TOTP = 'totp-1';
+
+      expect(validateAngelConfig(loadAngelConfig())).toEqual([]);
+    });
+
+    it('accepts password + totp secret when no refresh token is configured', () => {
+      process.env.ANGEL_API_KEY = 'api-1';
+      process.env.ANGEL_CLIENT_CODE = 'client-1';
+      process.env.ANGEL_PASSWORD = 'pass-1';
+      process.env.ANGEL_TOTP_SECRET = 'secret-1';
 
       expect(validateAngelConfig(loadAngelConfig())).toEqual([]);
     });

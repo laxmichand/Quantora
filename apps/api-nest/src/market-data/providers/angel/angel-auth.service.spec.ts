@@ -69,6 +69,13 @@ describe('AngelAuthService', () => {
       process.env.ANGEL_TOTP = 'totp-1';
       expect(new AngelAuthService().canLogin()).toBe(true);
     });
+
+    it('can login with password and a totp secret (no manual totp)', () => {
+      setValidEnv();
+      process.env.ANGEL_PASSWORD = 'pass-1';
+      process.env.ANGEL_TOTP_SECRET = 'BDII3L372XF32BLNNFTWN4AVN4';
+      expect(new AngelAuthService().canLogin()).toBe(true);
+    });
   });
 
   describe('login', () => {
@@ -114,6 +121,32 @@ describe('AngelAuthService', () => {
         totp: 'totp-1',
         apikey: 'api-1',
       });
+    });
+
+    it('generates the totp from ANGEL_TOTP_SECRET when no explicit totp is set', async () => {
+      setValidEnv();
+      process.env.ANGEL_PASSWORD = 'pass-1';
+      process.env.ANGEL_TOTP_SECRET = 'BDII3L372XF32BLNNFTWN4AVN4';
+
+      const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          status: true,
+          data: { jwtToken: 'jwt-1', refreshToken: 'refresh-1', feedToken: 'feed-1' },
+        }),
+      } as unknown as Response);
+
+      const service = new AngelAuthService();
+      await service.login();
+
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain('/rest/auth/angelbrokingUser/v1/login');
+      const body = JSON.parse(init!.body as string);
+      expect(body.totp).toMatch(/^\d{6}$/);
+      expect(body.totp).not.toBe('');
+      expect(body.clientcode).toBe('client-1');
+      expect(body.password).toBe('pass-1');
     });
 
     it('throws AngelApiError when the login endpoint rejects', async () => {
