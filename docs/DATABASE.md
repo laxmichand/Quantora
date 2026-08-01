@@ -178,8 +178,8 @@ session:blacklist:{sid} → "1"
 # Rate limiting (TTL = window)
 rate:{ip}:{route}     → count
 
-# Live prices — future (TTL 5 min, Sprint 4 original scope)
-stock:price:{symbol}  → { price, change, volume }
+# Latest-price cache — Sprint 4 (per-tick, no TTL or configurable stale window)
+quote:{exchange}:{symbol} → { ltp, open, high, low, prevClose, change, changePct, volume, timestamp, sourceTimestamp }
 ```
 
 ---

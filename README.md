@@ -34,7 +34,8 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 | ---------- | ----------------------------------------------------------------------------- |
 | Frontend   | Angular 22 + Angular Material                                                 |
 | Backend    | NestJS 11 + Prisma 6.19                                                       |
-| AI Service | Python FastAPI + yfinance                                                     |
+| AI Service | Python FastAPI                                                                |
+| Market Data| DhanHQ (REST + WebSocket) — live prices, historical OHLCV                     |
 | Database   | Supabase PostgreSQL (free)                                                    |
 | Cache      | Redis                                                                         |
 | Auth       | Google OAuth 2.0 + JWT + HttpOnly Refresh Cookies + Argon2id + Session Limits |
@@ -50,23 +51,23 @@ Run `npm run db:seed -w apps/api-nest` to seed the database with these users.
 | 1      | Engineering Foundation                                      | Complete |
 | 2      | Identity & Security                                         | Complete |
 | 3      | Google OAuth + Landing Page + Auth Security + Responsive UI | Complete |
-| 4      | Full Stack Version Upgrade + Security Center                    | Complete |
-| 5      | Data Ingestion & Analysis                                   | Next     |
-| 6      | Passive Income & Portfolio                                  | Planned  |
-| 7      | AI-Powered Features                                         | Planned  |
-| 8      | Risk Analytics                                              | Planned  |
-| 9      | AI Chat & Agents                                            | Planned  |
-| 10     | News Intelligence                                           | Planned  |
-| 11     | Forecasts & Research                                        | Planned  |
+| 4      | Full Stack Version Upgrade + Security Center                | Complete |
+| 4      | Market Data Platform (DhanHQ Edition)                       | Open     |
+| 5      | Portfolio Platform                                          | Planned  |
+| 6      | Analytics Engine                                            | Planned  |
+| 7      | Risk Engine                                                 | Planned  |
+| 8      | AI Platform + 2FA + Sessions + MCP                         | Planned  |
+| 9      | News Intelligence                                           | Planned  |
+| 10     | Forecasts & Research                                        | Planned  |
+| 11     | Research Platform                                           | Planned  |
 | 12     | Broker Integrations                                         | Planned  |
 | 13     | Screener & Alerts                                           | Planned  |
 | 14     | Charting Engine                                             | Planned  |
 | 15     | Provider Standardization                                    | Planned  |
 | 16     | Community & Learning                                        | Planned  |
 | 17     | Premium & Notifications                                     | Planned  |
-| 18     | Production Readiness                                        | Planned  |
 
-**Current:** Sprint 4 complete — full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24) + Security Center. Post-sprint polish shipped (v0.4.1–0.4.2): ~6x faster login, Subscription & Pricing page with Pro gating, unified settings sidebar. Sprint 5 — Data Ingestion & Analysis — up next.
+**Current:** Sprint 4 (re-scoped) complete — full stack version upgrade (Angular 22, NestJS 11, Prisma 6, TypeScript 6, Node 24) + Security Center. Post-sprint polish shipped (v0.4.1–0.4.3): ~6x faster login, Subscription & Pricing page with Pro gating, unified settings sidebar, JWT secret-resolution fix. **Next:** Sprint 4 (Original) — **Market Data Platform (DhanHQ Edition)** — DhanHQ WebSocket → Kafka → Redis/PostgreSQL for 5,000+ NSE/BSE instruments, historical OHLCV, and stock list/detail UI.
 
 ---
 
@@ -314,8 +315,9 @@ Key variables:
 - `JWT_SECRET` — JWT signing secret
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials
 - `OPENAI_API_KEY` — OpenAI API key for AI features
+- `DHAN_CLIENT_ID` / `DHAN_ACCESS_TOKEN` — DhanHQ market-data credentials (Sprint 4)
 
 ---
 
-_Sprint 1-4: Engineering Foundation + Identity & Security + Google OAuth + Auth Security + Responsive UI + Full Stack Version Upgrade — Complete_
-_Last Updated: July 31, 2026_
+_Sprint 1–3 + Sprint 4 (re-scoped): Engineering Foundation + Identity & Security + Google OAuth + Auth Security + Responsive UI + Full Stack Version Upgrade + Security Center — Complete. Sprint 4 (Original) — Market Data Platform (DhanHQ Edition) — Open._
+_Last Updated: 2026-08-01_

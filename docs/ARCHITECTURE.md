@@ -107,7 +107,7 @@
 
 | Key Pattern              | TTL    | Purpose            |
 | ------------------------ | ------ | ------------------ |
-| `stock:price:{symbol}`   | 5 min  | Live stock price   |
+| `stock:price:{symbol}`   | —      | Live stock price (per-tick cache, Sprint 4)   |
 | `stock:history:{symbol}` | 1 hour | Historical data    |
 | `stock:scores:{symbol}`  | 1 hour | AI scores          |
 | `session:{userId}`       | 7 days | User session       |
@@ -190,7 +190,7 @@ NSE API → Kafka(stock.prices) → PostgreSQL(Price Store)
 | Agent                | Responsibility            | Tools                         |
 | -------------------- | ------------------------- | ----------------------------- |
 | Planner Agent        | Decompose complex queries | —                             |
-| Stock Agent          | Fetch stock data & scores | yfinance, PostgreSQL, MongoDB |
+| Stock Agent          | Fetch stock data & scores | DhanHQ, PostgreSQL, Redis |
 | Risk Agent           | Portfolio risk assessment | PostgreSQL, risk calculator   |
 | News Agent           | News & sentiment          | News API, sentiment analyzer  |
 | Forecast Agent       | Price predictions         | ML models, Vector DB          |

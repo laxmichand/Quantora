@@ -111,9 +111,9 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 #### Data Sources
 
+- DhanHQ (primary market-data provider, NSE/BSE)
 - NSE India APIs
 - BSE India APIs
-- yfinance (Yahoo Finance)
 - MoneyControl / Tickertape (scraping where APIs unavailable)
 - RBI data portal
 - SEBI filings
@@ -122,7 +122,7 @@ It combines real-time market data, AI-driven analytics, portfolio management, an
 
 | Component         | Technology                                   |
 | ----------------- | -------------------------------------------- |
-| Data Fetcher      | Python (yfinance, requests)                  |
+| Data Fetcher      | DhanHQ (REST + WebSocket)                      |
 | Stream Processing | Apache Kafka                                 |
 | Cache             | Redis (live prices, TTL-based)               |
 | Storage           | PostgreSQL (structured)         |
