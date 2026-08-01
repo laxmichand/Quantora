@@ -670,3 +670,56 @@ model OAuthAccount {
   @@index([provider])
   @@map("oauth_accounts")
 }
+
+// ============================================
+// MARKET DATA
+// ============================================
+
+model Stock {
+  id               String    @id @default(uuid())
+  symbol           String    @unique
+  name             String
+  exchange         String // NSE, BSE
+  sector           String
+  industry         String?
+  instrumentId     String?   @map("instrument_id") // DhanHQ instrument identifier
+  provider         String    @default("dhan")
+  marketCap        Decimal?  @map("market_cap")
+  currentPrice     Decimal?  @map("current_price")
+  pe               Decimal?  @map("pe")
+  pb               Decimal?  @map("pb")
+  roe              Decimal?  @map("roe")
+  dividendYield    Decimal?  @map("dividend_yield")
+  beta             Decimal?
+  fiftyTwoWeekHigh Decimal?  @map("fifty_two_week_high")
+  fiftyTwoWeekLow  Decimal?  @map("fifty_two_week_low")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  prices StockPrice[]
+
+  @@map("stocks")
+}
+
+model StockPrice {
+  id            String    @id @default(uuid())
+  stockId       String    @map("stock_id")
+  stock         Stock     @relation(fields: [stockId], references: [id])
+  exchange      String
+  symbol        String
+  price         Decimal
+  open          Decimal
+  high          Decimal
+  low           Decimal
+  previousClose Decimal?  @map("previous_close")
+  volume        BigInt?
+  oi            BigInt?
+  provider      String    @default("dhan")
+  timestamp     DateTime
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@unique([stockId, timestamp])
+  @@index([exchange, symbol, timestamp])
+  @@index([stockId, timestamp(sort: Desc)])
+  @@map("stock_prices")
+}
