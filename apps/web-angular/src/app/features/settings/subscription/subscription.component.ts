@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { MarketDataService } from '../../../core/services/market-data.service';
 
@@ -20,30 +21,30 @@ interface Plan {
 export class SubscriptionComponent {
   plans: Plan[] = [
     {
-      name: 'Free',
+      name: 'SUBSCRIPTION.PLAN_FREE',
       price: '₹0',
-      period: 'forever',
-      tagline: 'Everything you need to start investing',
+      period: 'SUBSCRIPTION.FOREVER',
+      tagline: 'SUBSCRIPTION.PLAN_FREE_TAGLINE',
       features: [
-        'Live market indices & ticker',
-        'Unlimited watchlists',
-        'Portfolio tracking',
-        'Basic stock screener',
-        'Email support',
+        'SUBSCRIPTION.PLAN_FREE_FEATURE_1',
+        'SUBSCRIPTION.PLAN_FREE_FEATURE_2',
+        'SUBSCRIPTION.PLAN_FREE_FEATURE_3',
+        'SUBSCRIPTION.PLAN_FREE_FEATURE_4',
+        'SUBSCRIPTION.PLAN_FREE_FEATURE_5',
       ],
     },
     {
-      name: 'Pro',
+      name: 'SUBSCRIPTION.PLAN_PRO',
       price: '₹499',
-      period: '/month',
-      tagline: 'Advanced tools for serious investors',
+      period: 'SUBSCRIPTION.PER_MONTH',
+      tagline: 'SUBSCRIPTION.PLAN_PRO_TAGLINE',
       highlight: true,
       features: [
-        'AI Chat assistant',
-        'Advanced screener & backtesting',
-        'Real-time price alerts',
-        'Advanced security (MFA, risk scoring)',
-        'Priority support',
+        'SUBSCRIPTION.PLAN_PRO_FEATURE_1',
+        'SUBSCRIPTION.PLAN_PRO_FEATURE_2',
+        'SUBSCRIPTION.PLAN_PRO_FEATURE_3',
+        'SUBSCRIPTION.PLAN_PRO_FEATURE_4',
+        'SUBSCRIPTION.PLAN_PRO_FEATURE_5',
       ],
     },
   ];
@@ -51,6 +52,7 @@ export class SubscriptionComponent {
   constructor(
     public authService: AuthService,
     public marketData: MarketDataService,
+    private translate: TranslateService,
   ) {}
 
   get tickerItems(): { symbol: string; price: string; change: number }[] {
@@ -67,6 +69,8 @@ export class SubscriptionComponent {
   }
 
   get currentPlanName(): string {
-    return this.isPro ? 'Quantora Pro' : 'Free';
+    return this.isPro
+      ? this.translate.instant('SUBSCRIPTION.QUANTORA_PRO')
+      : this.translate.instant('SUBSCRIPTION.PLAN_FREE');
   }
 }

@@ -2,13 +2,13 @@
   <!-- HEADER -->
   <div class="page-header">
     <div class="header-left">
-      <h1>Settings</h1>
-      <p>Manage your preferences, appearance &amp; language</p>
+      <h1>{{ 'SETTINGS.TITLE' | translate }}</h1>
+      <p>{{ 'SETTINGS.SUBTITLE' | translate }}</p>
     </div>
     <div class="header-right">
       <div class="user-chip">
         <span class="user-name">
-          {{ authService.currentUser?.name || 'User' }}
+          {{ authService.currentUser?.name || ('SETTINGS.USER' | translate) }}
         </span>
         <span class="user-email">
           {{ authService.currentUser?.email || '' }}
@@ -42,9 +42,10 @@
                 <div class="preview-header"></div>
                 <div class="preview-body"></div>
               </div>
-              <span class="theme-label">{{ theme.label }}</span>
+              <span class="theme-label">{{ theme.label | translate }}</span>
               <span class="theme-badge" *ngIf="theme.name === 'default'">
-                {{ isSystemDark ? '🌙 Dark' : '☀️ Light' }}
+                {{ isSystemDark ? ('SETTINGS.DARK' | translate) : ('SETTINGS.LIGHT' | translate) }}
+                🌙/☀️
               </span>
             </button>
           </div>
@@ -67,7 +68,7 @@
             >
               <span class="lang-flag">EN</span>
               <div>
-                <span class="lang-name">English</span>
+                <span class="lang-name">{{ 'SETTINGS.LANG_ENGLISH' | translate }}</span>
                 <span class="lang-native">English</span>
               </div>
             </button>
@@ -78,8 +79,8 @@
             >
               <span class="lang-flag">HI</span>
               <div>
-                <span class="lang-name">Hindi</span>
-                <span class="lang-native">हिन्दी</span>
+                <span class="lang-name">{{ 'SETTINGS.LANG_HINDI' | translate }}</span>
+                <span class="lang-native">{{ 'SETTINGS.LANG_NATIVE_HINDI' | translate }}</span>
               </div>
             </button>
           </div>
@@ -94,7 +95,7 @@
               <p>{{ 'SETTINGS.NOTIFICATIONS_DESC' | translate }}</p>
             </div>
           </div>
-          <div class="coming-soon">Coming in Sprint 8</div>
+          <div class="coming-soon">{{ 'SETTINGS.COMING_SOON' | translate }}</div>
         </div>
       </div>
     </div>

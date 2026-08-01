@@ -5,6 +5,6 @@
     [routerLinkActiveOptions]="{ exact: tabs[tab].exact }"
   >
     <mat-icon>{{ tabs[tab].icon }}</mat-icon>
-    <span>{{ tabs[tab].label }}</span>
+    <span>{{ tabs[tab].label | translate }}</span>
   </a>
 </nav>

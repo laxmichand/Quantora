@@ -14,9 +14,11 @@
   <div>
     <h1 class="page-title">
       <mat-icon>show_chart</mat-icon>
-      IN Stocks
+      {{ 'STOCKS.TITLE' | translate }}
     </h1>
-    <p class="page-subtitle">NSE &bull; BSE &bull; {{ displayStocks.length }} stocks</p>
+    <p class="page-subtitle">
+      {{ 'STOCKS.SUBTITLE' | translate: { count: displayStocks.length } }}
+    </p>
   </div>
 </div>
 
@@ -29,7 +31,7 @@
     (click)="setTab(tab)"
   >
     <mat-icon>{{ tabIcons[tab] }}</mat-icon>
-    {{ tabLabels[tab] }}
+    {{ tabLabels[tab] | translate }}
   </button>
 </div>
 
@@ -49,7 +51,11 @@
 <app-data-table
   [columns]="columns"
   [data]="displayStocks"
-  [config]="{ showColumnToggle: false, pageSize: 15, emptyMessage: 'No stocks match your filters' }"
+  [config]="{
+    showColumnToggle: false,
+    pageSize: 15,
+    emptyMessage: ('STOCKS.NO_MATCH' | translate),
+  }"
 >
   <ng-template #slNumCell let-row let-i="index">
     <span class="row-num">{{ i + 1 }}</span>
@@ -79,7 +85,7 @@
 <div class="section-header">
   <h2 class="section-title">
     <mat-icon>auto_awesome</mat-icon>
-    Curated Screens
+    {{ 'STOCKS.CURATED_SCREENS' | translate }}
   </h2>
 </div>
 <div class="screens-grid">
@@ -87,7 +93,7 @@
     <mat-icon>{{ s.icon }}</mat-icon>
     <div class="screen-info">
       <span class="screen-name">{{ s.name }}</span>
-      <span class="screen-count">{{ s.count }} stocks</span>
+      <span class="screen-count">{{ 'STOCKS.STOCKS_COUNT' | translate: { count: s.count } }}</span>
     </div>
     <mat-icon class="arrow">chevron_right</mat-icon>
   </div>
@@ -97,7 +103,7 @@
 <div class="section-header">
   <h2 class="section-title">
     <mat-icon>newspaper</mat-icon>
-    Market News
+    {{ 'STOCKS.MARKET_NEWS' | translate }}
   </h2>
 </div>
 <div class="news-grid">

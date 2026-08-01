@@ -3,7 +3,7 @@ import * as argon2 from 'argon2';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 async function main() {
   const prisma = new PrismaClient();

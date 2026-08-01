@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { SharedModule } from '../../../shared/shared.module';
 import { DevicesComponent } from './devices.component';
 
@@ -25,6 +26,7 @@ const routes: Routes = [{ path: '', component: DevicesComponent }];
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    TranslateModule,
     SharedModule,
   ],
 })

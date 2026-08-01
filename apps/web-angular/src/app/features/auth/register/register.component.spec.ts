@@ -3,7 +3,7 @@ import { RegisterComponent } from './register.component';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -23,7 +23,13 @@ describe('RegisterComponent', () => {
         MatIconModule,
         MatButtonModule,
       ],
-      providers: [AuthService],
+      providers: [
+        AuthService,
+        {
+          provide: TranslateService,
+          useValue: { instant: (key: string) => key },
+        },
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
@@ -44,7 +50,7 @@ describe('RegisterComponent', () => {
 
   it('should show error for empty fields', () => {
     component.onSubmit();
-    expect(component.error).toBe('Please fill in all fields');
+    expect(component.error).toBe('AUTH.ERR_FILL_FIELDS');
   });
 
   it('should show error for mismatched passwords', () => {
@@ -53,7 +59,7 @@ describe('RegisterComponent', () => {
     component.password = 'Test1234';
     component.confirmPassword = 'Different123';
     component.onSubmit();
-    expect(component.error).toBe('Passwords do not match');
+    expect(component.error).toBe('AUTH.ERR_PASSWORDS_MATCH');
   });
 
   it('should show error for short password', () => {
@@ -62,6 +68,6 @@ describe('RegisterComponent', () => {
     component.password = '123';
     component.confirmPassword = '123';
     component.onSubmit();
-    expect(component.error).toBe('Password must be at least 8 characters');
+    expect(component.error).toBe('AUTH.ERR_PASSWORD_MIN');
   });
 });

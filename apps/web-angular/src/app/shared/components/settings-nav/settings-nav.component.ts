@@ -10,17 +10,17 @@ export class SettingsNavComponent {
   @Input() tab: 'general' | 'devices' | 'subscription' = 'general';
 
   readonly tabs: Record<string, { route: string; icon: string; label: string; exact: boolean }> = {
-    general: { route: '/settings', icon: 'settings', label: 'General', exact: true },
+    general: { route: '/settings', icon: 'settings', label: 'SETTINGS.GENERAL', exact: true },
     devices: {
       route: '/settings/devices',
       icon: 'devices',
-      label: 'Devices & Sessions',
+      label: 'DEVICES.TITLE',
       exact: false,
     },
     subscription: {
       route: '/settings/subscription',
       icon: 'workspace_premium',
-      label: 'Subscription',
+      label: 'SETTINGS.SUBSCRIPTION',
       exact: false,
     },
   };

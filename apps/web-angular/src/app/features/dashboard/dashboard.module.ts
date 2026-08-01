@@ -15,7 +15,7 @@ const routes: Routes = [{ path: '', component: DashboardComponent }];
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
-    TranslateModule.forChild(),
+    TranslateModule,
     SharedModule,
     MatCardModule,
     MatIconModule,

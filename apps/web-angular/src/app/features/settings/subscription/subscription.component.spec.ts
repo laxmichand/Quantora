@@ -3,6 +3,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SubscriptionComponent } from './subscription.component';
 import { AuthService, AuthUser } from '../../../core/services/auth.service';
 import { MarketDataService } from '../../../core/services/market-data.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 const FREE_USER: AuthUser = { id: '123', email: 'free@test.com', name: 'Free', role: 'user' };
 const PRO_USER: AuthUser = { id: '124', email: 'pro@test.com', name: 'Pro', role: 'pro' };
@@ -15,7 +16,18 @@ describe('SubscriptionComponent', () => {
     authService = jasmine.createSpyObj('AuthService', [], { currentUser: authUser });
     TestBed.configureTestingModule({
       declarations: [SubscriptionComponent],
-      providers: [MarketDataService, { provide: AuthService, useValue: authService }],
+      imports: [TranslateModule.forRoot()],
+      providers: [
+        MarketDataService,
+        { provide: AuthService, useValue: authService },
+        {
+          provide: TranslateService,
+          useValue: {
+            instant: (key: string) => key,
+            get: (key: string) => key,
+          },
+        },
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
@@ -31,9 +43,9 @@ describe('SubscriptionComponent', () => {
   it('should define a Free and a Pro plan', () => {
     build(FREE_USER);
     const names = component.plans.map((p) => p.name);
-    expect(names).toContain('Free');
-    expect(names).toContain('Pro');
-    expect(component.plans.find((p) => p.name === 'Pro')?.highlight).toBeTrue();
+    expect(names).toContain('SUBSCRIPTION.PLAN_FREE');
+    expect(names).toContain('SUBSCRIPTION.PLAN_PRO');
+    expect(component.plans.find((p) => p.name === 'SUBSCRIPTION.PLAN_PRO')?.highlight).toBeTrue();
   });
 
   it('should expose ticker items from market data indices', () => {
@@ -46,12 +58,12 @@ describe('SubscriptionComponent', () => {
   it('should report Free plan for a free user', () => {
     build(FREE_USER);
     expect(component.isPro).toBeFalse();
-    expect(component.currentPlanName).toBe('Free');
+    expect(component.currentPlanName).toBe('SUBSCRIPTION.PLAN_FREE');
   });
 
   it('should report Pro plan for a pro user', () => {
     build(PRO_USER);
     expect(component.isPro).toBeTrue();
-    expect(component.currentPlanName).toBe('Quantora Pro');
+    expect(component.currentPlanName).toBe('SUBSCRIPTION.QUANTORA_PRO');
   });
 });

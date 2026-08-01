@@ -12,15 +12,15 @@ import { SecurityAuditService } from '../security-audit/security-audit.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RiskEngineModule } from '../risk-engine/risk-engine.module';
 
-const jwtSecret = process.env.JWT_SECRET || 'quantora-dev-secret';
-
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: jwtSecret,
-      signOptions: { expiresIn: '15m' },
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET || 'quantora-dev-secret',
+        signOptions: { expiresIn: '15m' },
+      }),
     }),
     PrismaModule,
     SecurityAuditModule,

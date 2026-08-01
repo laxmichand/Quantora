@@ -3,7 +3,7 @@ import { LoginComponent } from './login.component';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -25,7 +25,13 @@ describe('LoginComponent', () => {
         MatIconModule,
         MatButtonModule,
       ],
-      providers: [AuthService],
+      providers: [
+        AuthService,
+        {
+          provide: TranslateService,
+          useValue: { instant: (key: string) => key },
+        },
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
@@ -46,7 +52,7 @@ describe('LoginComponent', () => {
 
   it('should show error for empty fields', () => {
     component.onSubmit();
-    expect(component.error).toBe('Please fill in all fields');
+    expect(component.error).toBe('AUTH.ERR_FILL_FIELDS');
   });
 });
 

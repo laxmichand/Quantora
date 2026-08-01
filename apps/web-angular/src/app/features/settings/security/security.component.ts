@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { DeviceService, DeviceInfo } from '../../../core/services/device.service';
 import { SessionService } from '../../../core/services/session.service';
@@ -55,6 +56,7 @@ export class SecurityComponent implements OnInit {
     private sessionService: SessionService,
     private securityService: SecurityService,
     private snackBar: MatSnackBar,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -149,46 +151,79 @@ export class SecurityComponent implements OnInit {
   onLogoutOthers(): void {
     this.sessionService.logoutOthers().subscribe({
       next: () => {
-        this.snackBar.open('Logged out from other devices', 'Done', { duration: 3000 });
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_LOGGED_OUT_OTHERS'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 3000 },
+        );
         this.loadAll();
       },
       error: () =>
-        this.snackBar.open('Failed to logout other devices', 'Dismiss', { duration: 3000 }),
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_LOGOUT_OTHERS_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
   onLogoutAll(): void {
     this.sessionService.logoutAll().subscribe({
       next: () => {
-        this.snackBar.open('Logged out from all devices', 'Done', { duration: 3000 });
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_LOGGED_OUT_ALL'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 3000 },
+        );
         this.authService['currentUserSubject'].next(null);
         this.authService['router'].navigate(['/auth/login']);
       },
       error: () =>
-        this.snackBar.open('Failed to logout all devices', 'Dismiss', { duration: 3000 }),
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_LOGOUT_ALL_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
   onLogoutSession(sessionId: string): void {
     this.sessionService.logoutSession(sessionId).subscribe({
       next: () => {
-        this.snackBar.open('Session logged out', 'Done', { duration: 2000 });
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_SESSION_LOGGED_OUT'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 2000 },
+        );
         this.loadAll();
       },
-      error: () => this.snackBar.open('Failed to logout session', 'Dismiss', { duration: 3000 }),
+      error: () =>
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_SESSION_LOGOUT_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
   onTrustDevice(deviceId: string, trusted: boolean): void {
     this.deviceService.trust(deviceId, trusted).subscribe({
       next: () => {
-        this.snackBar.open(trusted ? 'Device trusted' : 'Device untrusted', 'Done', {
-          duration: 2000,
-        });
+        this.snackBar.open(
+          trusted
+            ? this.translate.instant('SECURITY.MSG_DEVICE_TRUSTED')
+            : this.translate.instant('SECURITY.MSG_DEVICE_UNTRUSTED'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 2000 },
+        );
         this.loadAll();
       },
       error: () =>
-        this.snackBar.open('Failed to update device trust', 'Dismiss', { duration: 3000 }),
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_TRUST_UPDATE_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
@@ -209,10 +244,19 @@ export class SecurityComponent implements OnInit {
     this.deviceService.rename(deviceId, this.renameValue.trim()).subscribe({
       next: () => {
         this.renamingDeviceId = null;
-        this.snackBar.open('Device renamed', 'Done', { duration: 2000 });
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_DEVICE_RENAMED'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 2000 },
+        );
         this.loadAll();
       },
-      error: () => this.snackBar.open('Failed to rename device', 'Dismiss', { duration: 3000 }),
+      error: () =>
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_DEVICE_RENAME_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
@@ -221,18 +265,30 @@ export class SecurityComponent implements OnInit {
     if (!d) return;
     this.deviceService.remove(deviceId).subscribe({
       next: () => {
-        this.snackBar.open('Device removed', 'Done', { duration: 2000 });
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_DEVICE_REMOVED'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 2000 },
+        );
         this.loadAll();
       },
-      error: () => this.snackBar.open('Failed to remove device', 'Dismiss', { duration: 3000 }),
+      error: () =>
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_DEVICE_REMOVE_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
   toggleSetting(key: keyof SecuritySettings): void {
     this.settings[key] = !this.settings[key];
     this.snackBar.open(
-      `${this.settingLabel(key)} ${this.settings[key] ? 'enabled' : 'disabled'}`,
-      'Done',
+      this.translate.instant(
+        this.settings[key] ? 'SECURITY.MSG_SETTING_ENABLED' : 'SECURITY.MSG_SETTING_DISABLED',
+        { name: this.settingLabel(key) },
+      ),
+      this.translate.instant('SECURITY.DONE'),
       { duration: 2000 },
     );
   }
@@ -242,19 +298,28 @@ export class SecurityComponent implements OnInit {
       next: () => {
         e.acknowledged = true;
         this.cdr.markForCheck();
-        this.snackBar.open('Event dismissed', 'Done', { duration: 2000 });
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_EVENT_DISMISSED'),
+          this.translate.instant('SECURITY.DONE'),
+          { duration: 2000 },
+        );
       },
-      error: () => this.snackBar.open('Failed to dismiss event', 'Dismiss', { duration: 3000 }),
+      error: () =>
+        this.snackBar.open(
+          this.translate.instant('SECURITY.MSG_EVENT_DISMISS_FAIL'),
+          this.translate.instant('SECURITY.DISMISS'),
+          { duration: 3000 },
+        ),
     });
   }
 
   private settingLabel(key: keyof SecuritySettings): string {
     const map: Record<keyof SecuritySettings, string> = {
-      mfa: 'Multi-Factor Authentication',
-      biometric: 'Biometric login',
-      adaptiveMfa: 'Adaptive MFA',
-      newDeviceAlerts: 'New device alerts',
-      torBlocking: 'TOR blocking',
+      mfa: this.translate.instant('SECURITY.SETTING_MFA'),
+      biometric: this.translate.instant('SECURITY.SETTING_BIOMETRIC'),
+      adaptiveMfa: this.translate.instant('SECURITY.SETTING_ADAPTIVE'),
+      newDeviceAlerts: this.translate.instant('SECURITY.SETTING_DEVICE_ALERTS'),
+      torBlocking: this.translate.instant('SECURITY.SETTING_TOR'),
     };
     return map[key];
   }
@@ -264,10 +329,10 @@ export class SecurityComponent implements OnInit {
   }
 
   riskLabel(score: number): string {
-    if (score <= 20) return 'Low';
-    if (score <= 50) return 'Medium';
-    if (score <= 80) return 'High';
-    return 'Critical';
+    if (score <= 20) return this.translate.instant('SECURITY.RISK_LOW');
+    if (score <= 50) return this.translate.instant('SECURITY.RISK_MEDIUM');
+    if (score <= 80) return this.translate.instant('SECURITY.RISK_HIGH');
+    return this.translate.instant('SECURITY.RISK_CRITICAL');
   }
 
   riskColor(score: number): string {
@@ -367,20 +432,20 @@ export class SecurityComponent implements OnInit {
   }
 
   timeAgo(date?: string): string {
-    if (!date) return 'Just now';
+    if (!date) return this.translate.instant('SECURITY.JUST_NOW');
     const now = Date.now();
     const then = new Date(date).getTime();
     const mins = Math.floor((now - then) / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return this.translate.instant('SECURITY.JUST_NOW');
+    if (mins < 60) return this.translate.instant('SECURITY.MINUTES_AGO', { count: mins });
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return this.translate.instant('SECURITY.HOURS_AGO', { count: hours });
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return this.translate.instant('SECURITY.DAYS_AGO', { count: days });
   }
 
   maskIp(ip?: string): string {
-    if (!ip) return 'Unknown';
+    if (!ip) return this.translate.instant('DEVICES.UNKNOWN');
     const parts = ip.split('.');
     if (parts.length === 4) return `${parts[0]}.${parts[1]}.xxx.xxx`;
     return ip.slice(0, Math.min(ip.length, 12)) + '...';

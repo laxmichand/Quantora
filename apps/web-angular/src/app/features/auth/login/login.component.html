@@ -11,56 +11,58 @@
           <div class="brand-mark">
             <mat-icon>auto_graph</mat-icon>
           </div>
-          <span class="brand-name">Quantora</span>
-          <span class="brand-badge">BETA</span>
+          <span class="brand-name">{{ 'APP_NAME' | translate }}</span>
+          <span class="brand-badge">{{ 'AUTH.BETA' | translate }}</span>
         </div>
 
-        <h1 class="qauth-tagline">Intelligent Investing.<br /><span>Simplified.</span></h1>
-        <p class="qauth-sub">AI-powered market intelligence for Indian retail investors.</p>
+        <h1 class="qauth-tagline">
+          {{ 'AUTH.TAGLINE_LOGIN_L1' | translate }}<br /><span>{{
+            'AUTH.TAGLINE_LOGIN_L2' | translate
+          }}</span>
+        </h1>
+        <p class="qauth-sub">{{ 'AUTH.SUB_LOGIN' | translate }}</p>
 
         <div class="qauth-features">
           <div class="qfeat">
             <div class="qfeat-icon ai"><mat-icon>smart_toy</mat-icon></div>
             <div class="qfeat-text">
-              <strong>AI Stock Scores</strong>
-              <span
-                >Value, Quality, Growth, Risk — scored 0-100 with plain-English explanations</span
-              >
+              <strong>{{ 'AUTH.FEAT_AI_SCORES' | translate }}</strong>
+              <span>{{ 'AUTH.FEAT_AI_SCORES_DESC' | translate }}</span>
             </div>
           </div>
           <div class="qfeat">
             <div class="qfeat-icon portfolio"><mat-icon>account_balance_wallet</mat-icon></div>
             <div class="qfeat-text">
-              <strong>Smart Portfolio Tracking</strong>
-              <span>Live P&amp;L, sector allocation, diversification checks, CSV import</span>
+              <strong>{{ 'AUTH.FEAT_PORTFOLIO' | translate }}</strong>
+              <span>{{ 'AUTH.FEAT_PORTFOLIO_DESC' | translate }}</span>
             </div>
           </div>
           <div class="qfeat">
             <div class="qfeat-icon risk"><mat-icon>shield</mat-icon></div>
             <div class="qfeat-text">
-              <strong>Risk Analytics</strong>
-              <span>VaR, Sharpe Ratio, Beta, drawdown — institutional tools for retail</span>
+              <strong>{{ 'AUTH.FEAT_RISK' | translate }}</strong>
+              <span>{{ 'AUTH.FEAT_RISK_DESC' | translate }}</span>
             </div>
           </div>
           <div class="qfeat">
             <div class="qfeat-icon forecast"><mat-icon>trending_up</mat-icon></div>
             <div class="qfeat-text">
-              <strong>AI Forecasts &amp; Agents</strong>
-              <span>30-day price ranges, support/resistance, 37 expert investor agents</span>
+              <strong>{{ 'AUTH.FEAT_FORECAST' | translate }}</strong>
+              <span>{{ 'AUTH.FEAT_FORECAST_DESC' | translate }}</span>
             </div>
           </div>
           <div class="qfeat">
             <div class="qfeat-icon screener"><mat-icon>filter_list</mat-icon></div>
             <div class="qfeat-text">
-              <strong>100+ Screener Filters</strong>
-              <span>P/E, ROE, dividend yield, sector, market cap — find your next multibagger</span>
+              <strong>{{ 'AUTH.FEAT_SCREENER' | translate }}</strong>
+              <span>{{ 'AUTH.FEAT_SCREENER_DESC' | translate }}</span>
             </div>
           </div>
           <div class="qfeat">
             <div class="qfeat-icon goals"><mat-icon>flag</mat-icon></div>
             <div class="qfeat-text">
-              <strong>Goal Planning</strong>
-              <span>SIP calculator, retirement roadmaps, passive income tracker</span>
+              <strong>{{ 'AUTH.FEAT_GOALS' | translate }}</strong>
+              <span>{{ 'AUTH.FEAT_GOALS_DESC' | translate }}</span>
             </div>
           </div>
         </div>
@@ -85,8 +87,8 @@
           <div class="qr-mark">
             <mat-icon>auto_graph</mat-icon>
           </div>
-          <span class="qr-name">Quantora</span>
-          <span class="qr-badge">BETA</span>
+          <span class="qr-name">{{ 'APP_NAME' | translate }}</span>
+          <span class="qr-badge">{{ 'AUTH.BETA' | translate }}</span>
         </div>
       </div>
 
@@ -95,11 +97,11 @@
         <div class="qauth-tabs">
           <a class="tab active" routerLink="/auth/login">
             <mat-icon>login</mat-icon>
-            Sign In
+            {{ 'AUTH.SIGN_IN' | translate }}
           </a>
           <a class="tab" routerLink="/auth/register">
             <mat-icon>person_add</mat-icon>
-            Create Account
+            {{ 'AUTH.CREATE_ACCOUNT' | translate }}
           </a>
         </div>
 
@@ -107,7 +109,7 @@
         <form (ngSubmit)="onSubmit()" class="qauth-form">
           <div class="qauth-field">
             <label class="field-label" for="email"
-              >Email address <span class="required">*</span></label
+              >{{ 'AUTH.EMAIL_ADDRESS' | translate }} <span class="required">*</span></label
             >
             <div class="field-row">
               <div class="field-icon"><mat-icon>mail_outline</mat-icon></div>
@@ -116,7 +118,7 @@
                 type="email"
                 [(ngModel)]="email"
                 name="email"
-                placeholder="you@example.com"
+                [placeholder]="'AUTH.PLACEHOLDER_EMAIL' | translate"
                 autocomplete="email"
                 required
               />
@@ -124,7 +126,7 @@
           </div>
           <div class="qauth-field">
             <label class="field-label" for="password"
-              >Password <span class="required">*</span></label
+              >{{ 'AUTH.PASSWORD' | translate }} <span class="required">*</span></label
             >
             <div class="field-row">
               <div class="field-icon"><mat-icon>lock_outline</mat-icon></div>
@@ -134,7 +136,7 @@
                   [type]="showPassword ? 'text' : 'password'"
                   [(ngModel)]="password"
                   name="password"
-                  placeholder="Enter your password"
+                  [placeholder]="'AUTH.PLACEHOLDER_PASSWORD' | translate"
                   autocomplete="current-password"
                   required
                 />
@@ -153,24 +155,26 @@
             <label class="qauth-checkbox">
               <input type="checkbox" name="remember" checked />
               <span class="check-box"></span>
-              <span>Keep me signed in</span>
+              <span>{{ 'AUTH.KEEP_SIGNED_IN' | translate }}</span>
             </label>
-            <a class="qauth-link" href="javascript:void(0)">Forgot?</a>
+            <a class="qauth-link" href="javascript:void(0)">{{ 'AUTH.FORGOT' | translate }}</a>
           </div>
           <div class="error-msg" *ngIf="error">
             <mat-icon>error_outline</mat-icon>
             {{ error }}
           </div>
           <button type="submit" class="qauth-btn" [disabled]="loading">
-            <span *ngIf="!loading">Sign In</span>
+            <span *ngIf="!loading">{{ 'AUTH.SIGN_IN' | translate }}</span>
             <span *ngIf="loading" class="loading-row">
               <span class="spinner"></span>
-              Signing in...
+              {{ 'AUTH.SIGNING_IN' | translate }}
             </span>
           </button>
         </form>
 
-        <div class="qauth-divider"><span>Or continue with</span></div>
+        <div class="qauth-divider">
+          <span>{{ 'AUTH.OR_CONTINUE_WITH' | translate }}</span>
+        </div>
 
         <div class="qauth-social">
           <button class="sbtn google" type="button" (click)="googleLogin()">
@@ -192,12 +196,15 @@
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Google
+            {{ 'AUTH.GOOGLE' | translate }}
           </button>
         </div>
 
         <div class="qauth-footer">
-          <span>New here? <a routerLink="/auth/register">Create free account</a></span>
+          <span
+            >{{ 'AUTH.NEW_HERE' | translate }}
+            <a routerLink="/auth/register">{{ 'AUTH.FREE_ACCOUNT' | translate }}</a></span
+          >
         </div>
       </div>
     </div>

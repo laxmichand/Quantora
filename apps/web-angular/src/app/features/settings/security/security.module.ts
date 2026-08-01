@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule } from '@ngx-translate/core';
 import { SecurityComponent } from './security.component';
 
 const routes: Routes = [{ path: '', component: SecurityComponent }];
@@ -20,6 +21,7 @@ const routes: Routes = [{ path: '', component: SecurityComponent }];
     MatButtonModule,
     MatTooltipModule,
     MatSnackBarModule,
+    TranslateModule,
   ],
 })
 export class SecurityModule {}

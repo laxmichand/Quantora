@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -28,21 +29,22 @@ export class RegisterComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private translate: TranslateService,
   ) {}
 
   async onSubmit(): Promise<void> {
     if (!this.name || !this.email || !this.password) {
-      this.error = 'Please fill in all fields';
+      this.error = this.translate.instant('AUTH.ERR_FILL_FIELDS');
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.error = 'Passwords do not match';
+      this.error = this.translate.instant('AUTH.ERR_PASSWORDS_MATCH');
       return;
     }
 
     if (this.password.length < 8) {
-      this.error = 'Password must be at least 8 characters';
+      this.error = this.translate.instant('AUTH.ERR_PASSWORD_MIN');
       return;
     }
 
@@ -55,7 +57,7 @@ export class RegisterComponent {
       this.loading = false;
     } catch (err: any) {
       this.loading = false;
-      this.error = err.error?.message || 'Registration failed';
+      this.error = err.error?.message || this.translate.instant('AUTH.ERR_REGISTRATION');
     }
   }
 

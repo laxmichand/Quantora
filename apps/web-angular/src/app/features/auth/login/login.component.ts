@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -24,6 +25,7 @@ export class LoginComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -35,7 +37,7 @@ export class LoginComponent implements OnInit {
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get('error');
     if (oauthError) {
-      this.error = 'Google login failed. Please try again.';
+      this.error = this.translate.instant('AUTH.ERR_GOOGLE');
       return;
     }
 
@@ -45,7 +47,7 @@ export class LoginComponent implements OnInit {
       oauth$.subscribe({
         error: () => {
           this.loading = false;
-          this.error = 'Google login failed. Please try again.';
+          this.error = this.translate.instant('AUTH.ERR_GOOGLE');
         },
       });
     }
@@ -53,7 +55,7 @@ export class LoginComponent implements OnInit {
 
   async onSubmit(): Promise<void> {
     if (!this.email || !this.password) {
-      this.error = 'Please fill in all fields';
+      this.error = this.translate.instant('AUTH.ERR_FILL_FIELDS');
       return;
     }
 
@@ -71,7 +73,7 @@ export class LoginComponent implements OnInit {
       this.router.navigate(['/dashboard']);
     } catch (err: any) {
       this.loading = false;
-      this.error = err.error?.message || 'Invalid credentials';
+      this.error = err.error?.message || this.translate.instant('AUTH.ERR_INVALID_CREDENTIALS');
     }
   }
 

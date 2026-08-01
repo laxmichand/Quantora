@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ThemeService, Theme } from '../../core/services/theme.service';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 
 @Component({
   standalone: false,
@@ -19,6 +20,7 @@ export class SettingsComponent {
     public authService: AuthService,
     public themeService: ThemeService,
     private translate: TranslateService,
+    private preferences: PreferencesService,
   ) {
     this.currentTheme = themeService.getCurrentTheme();
     this.themes = themeService.themes;
@@ -36,5 +38,6 @@ export class SettingsComponent {
     this.translate.use(lang);
     this.currentLang = lang;
     localStorage.setItem('quantora_lang', lang);
+    this.preferences.saveLanguage(lang);
   }
 }

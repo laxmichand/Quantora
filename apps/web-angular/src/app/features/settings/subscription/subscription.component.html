@@ -2,13 +2,13 @@
   <!-- HEADER -->
   <div class="page-header">
     <div class="header-left">
-      <h1>Subscription &amp; Pricing</h1>
-      <p>Unlock Quantora Pro for advanced investing tools</p>
+      <h1>{{ 'SUBSCRIPTION.TITLE' | translate }}</h1>
+      <p>{{ 'SUBSCRIPTION.SUBTITLE' | translate }}</p>
     </div>
     <div class="header-right">
       <div class="user-chip">
         <span class="user-name">
-          {{ authService.currentUser?.name || 'User' }}
+          {{ authService.currentUser?.name || ('SETTINGS.USER' | translate) }}
         </span>
         <span class="user-email">
           {{ authService.currentUser?.email || '' }}
@@ -51,28 +51,34 @@
       <div class="current-plan" [class.pro]="isPro">
         <mat-icon>{{ isPro ? 'workspace_premium' : 'person' }}</mat-icon>
         <div class="current-plan-info">
-          <span class="plan-label">Current plan</span>
+          <span class="plan-label">{{ 'SUBSCRIPTION.CURRENT_PLAN' | translate }}</span>
           <span class="plan-name">{{ currentPlanName }}</span>
         </div>
         <span class="plan-status">
-          {{ isPro ? 'Active' : 'Upgrade to unlock Pro features' }}
+          {{
+            isPro
+              ? ('SUBSCRIPTION.ACTIVE' | translate)
+              : ('SUBSCRIPTION.UPGRADE_TO_UNLOCK' | translate)
+          }}
         </span>
       </div>
 
       <!-- PLANS -->
       <div class="plans-grid">
         <div class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
-          <div class="plan-badge" *ngIf="plan.highlight">POPULAR</div>
-          <h3 class="plan-name">{{ plan.name }}</h3>
-          <p class="plan-tagline">{{ plan.tagline }}</p>
+          <div class="plan-badge" *ngIf="plan.highlight">
+            {{ 'SUBSCRIPTION.POPULAR' | translate }}
+          </div>
+          <h3 class="plan-name">{{ plan.name | translate }}</h3>
+          <p class="plan-tagline">{{ plan.tagline | translate }}</p>
           <div class="plan-price">
             <span class="price">{{ plan.price }}</span>
-            <span class="period">{{ plan.period }}</span>
+            <span class="period">{{ plan.period | translate }}</span>
           </div>
           <ul class="plan-features">
             <li *ngFor="let f of plan.features">
               <mat-icon>check_circle</mat-icon>
-              {{ f }}
+              {{ f | translate }}
             </li>
           </ul>
           <button
@@ -83,11 +89,11 @@
             {{
               plan.highlight
                 ? isPro
-                  ? 'Current Plan'
-                  : 'Upgrade to Pro'
+                  ? ('SUBSCRIPTION.CURRENT_PLAN_BTN' | translate)
+                  : ('SUBSCRIPTION.UPGRADE_TO_PRO' | translate)
                 : isPro
-                  ? 'Downgrade'
-                  : 'Current Plan'
+                  ? ('SUBSCRIPTION.DOWNGRADE' | translate)
+                  : ('SUBSCRIPTION.CURRENT_PLAN_BTN' | translate)
             }}
           </button>
         </div>

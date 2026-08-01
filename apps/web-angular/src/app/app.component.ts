@@ -4,6 +4,7 @@ import { ThemeService } from './core/services/theme.service';
 import { AuthService } from './core/services/auth.service';
 import { AppInfoService } from './core/services/app-info.service';
 import { MarketDataService } from './core/services/market-data.service';
+import { PreferencesService } from './core/services/preferences.service';
 import { TranslateService } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
 
@@ -42,13 +43,17 @@ export class AppComponent {
     public authService: AuthService,
     public appInfo: AppInfoService,
     public marketData: MarketDataService,
+    private preferences: PreferencesService,
     private router: Router,
   ) {
     const saved = localStorage.getItem('quantora_lang') || 'en';
     translate.setDefaultLang('en');
     translate.use(saved);
+    this.setDocumentLang(saved);
     this.appInfo.start();
     this.checkViewport();
+
+    this.translate.onLangChange.subscribe((e) => this.setDocumentLang(e.lang));
 
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
       this.updateHeaderVisibility();
@@ -56,6 +61,10 @@ export class AppComponent {
       this.searchOpen = false;
     });
     this.updateHeaderVisibility();
+  }
+
+  private setDocumentLang(lang: string): void {
+    document.documentElement.lang = lang;
   }
 
   private updateHeaderVisibility(): void {

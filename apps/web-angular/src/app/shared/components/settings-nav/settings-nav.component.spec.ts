@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { SettingsNavComponent } from './settings-nav.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 describe('SettingsNavComponent', () => {
   let component: SettingsNavComponent;
@@ -9,7 +10,13 @@ describe('SettingsNavComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SettingsNavComponent],
-      imports: [RouterTestingModule, MatIconModule],
+      imports: [RouterTestingModule, MatIconModule, TranslateModule.forRoot()],
+      providers: [
+        {
+          provide: TranslateService,
+          useValue: { instant: (key: string) => key },
+        },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(SettingsNavComponent);
@@ -32,13 +39,13 @@ describe('SettingsNavComponent', () => {
   it('should map devices tab to its route and label', () => {
     component.tab = 'devices';
     expect(component.tabs['devices'].route).toBe('/settings/devices');
-    expect(component.tabs['devices'].label).toBe('Devices & Sessions');
+    expect(component.tabs['devices'].label).toBe('DEVICES.TITLE');
   });
 
   it('should map subscription tab to its route and label', () => {
     component.tab = 'subscription';
     expect(component.tabs['subscription'].route).toBe('/settings/subscription');
-    expect(component.tabs['subscription'].label).toBe('Subscription');
+    expect(component.tabs['subscription'].label).toBe('SETTINGS.SUBSCRIPTION');
   });
 
   it('should mark the general link as exact-matched', () => {

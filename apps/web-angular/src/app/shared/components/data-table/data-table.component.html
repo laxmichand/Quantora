@@ -8,7 +8,7 @@
         #searchInput
         type="text"
         class="dt-search-input"
-        placeholder="Search..."
+        [placeholder]="'DATA_TABLE.SEARCH_PLACEHOLDER' | translate"
         [value]="searchTerm"
         (input)="onSearchInput($any($event.target).value)"
       />
@@ -21,13 +21,19 @@
 
     <!-- Column Toggle -->
     <div class="dt-col-menu-wrap" *ngIf="config.showColumnToggle !== false">
-      <button class="dt-toolbar-btn" (click)="toggleColumnMenu()" matTooltip="Columns">
+      <button
+        class="dt-toolbar-btn"
+        (click)="toggleColumnMenu()"
+        [matTooltip]="'DATA_TABLE.COLUMNS' | translate"
+      >
         <mat-icon>view_column</mat-icon>
       </button>
       <div class="dt-col-dropdown" *ngIf="columnMenuOpen">
         <div class="dt-col-dropdown-header">
-          <span>Toggle Columns</span>
-          <button class="dt-col-reset" (click)="showAllColumns()">Show All</button>
+          <span>{{ 'DATA_TABLE.TOGGLE_COLUMNS' | translate }}</span>
+          <button class="dt-col-reset" (click)="showAllColumns()">
+            {{ 'DATA_TABLE.SHOW_ALL' | translate }}
+          </button>
         </div>
         <div class="dt-col-list">
           <label class="dt-col-item" *ngFor="let col of columns">
@@ -41,7 +47,7 @@
     <!-- Reset -->
     <button
       class="dt-toolbar-btn"
-      matTooltip="Reset table preferences"
+      [matTooltip]="'DATA_TABLE.RESET_PREFS' | translate"
       (click)="resetPreferences()"
     >
       <mat-icon>restart_alt</mat-icon>
@@ -126,7 +132,7 @@
           <td [attr.colspan]="visibleColumns.length" class="empty-cell">
             <div class="empty-state">
               <mat-icon>inbox</mat-icon>
-              <span>{{ config.emptyMessage || 'No data found' }}</span>
+              <span>{{ config.emptyMessage || ('DATA_TABLE.NO_DATA' | translate) }}</span>
             </div>
           </td>
         </tr>
@@ -139,7 +145,7 @@
     <div class="dt-page-info">
       <select class="dt-page-size" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
         <option *ngFor="let opt of config.pageSizeOptions || [5, 10, 25, 50]" [ngValue]="opt">
-          {{ opt }} / page
+          {{ 'DATA_TABLE.PER_PAGE' | translate: { count: opt } }}
         </option>
       </select>
       <span class="dt-page-count">
@@ -148,7 +154,7 @@
             ? processedData.length
             : currentPage * pageSize
         }}
-        of {{ processedData.length }}
+        {{ 'DATA_TABLE.OF' | translate }} {{ processedData.length }}
       </span>
     </div>
     <div class="dt-page-controls">

@@ -2,26 +2,26 @@
 <div class="page-top">
   <button class="back-btn" (click)="goBack()">
     <mat-icon>arrow_back</mat-icon>
-    <span>Back</span>
+    <span>{{ 'PORTFOLIO.BACK' | translate }}</span>
   </button>
   <div class="page-title-area">
-    <h1>My Portfolio</h1>
-    <span class="last-updated">Last updated: Today, 3:30 PM</span>
+    <h1>{{ 'PORTFOLIO.TITLE' | translate }}</h1>
+    <span class="last-updated">{{ 'PORTFOLIO.LAST_UPDATED' | translate }}</span>
   </div>
 </div>
 
 <!-- Summary Cards -->
 <div class="summary-grid">
   <div class="summary-card">
-    <span class="summary-label">Invested Value</span>
+    <span class="summary-label">{{ 'PORTFOLIO.INVESTED_VALUE' | translate }}</span>
     <span class="summary-value">{{ formatCurrency(summary.invested) }}</span>
   </div>
   <div class="summary-card">
-    <span class="summary-label">Current Value</span>
+    <span class="summary-label">{{ 'PORTFOLIO.CURRENT_VALUE' | translate }}</span>
     <span class="summary-value big">{{ formatCurrency(summary.currentValue) }}</span>
   </div>
   <div class="summary-card">
-    <span class="summary-label">Total P&L</span>
+    <span class="summary-label">{{ 'PORTFOLIO.TOTAL_PNL' | translate }}</span>
     <span
       class="summary-value"
       [class.positive]="summary.pnl >= 0"
@@ -38,7 +38,7 @@
     </span>
   </div>
   <div class="summary-card">
-    <span class="summary-label">Today's P&L</span>
+    <span class="summary-label">{{ 'PORTFOLIO.TODAY_PNL' | translate }}</span>
     <span
       class="summary-value"
       [class.positive]="summary.todayPnl >= 0"
@@ -55,7 +55,7 @@
     </span>
   </div>
   <div class="summary-card">
-    <span class="summary-label">XIRR</span>
+    <span class="summary-label">{{ 'PORTFOLIO.XIRR' | translate }}</span>
     <span class="summary-value positive">{{ summary.xirr }}%</span>
   </div>
 </div>
@@ -67,7 +67,7 @@
     <div class="card-header-row">
       <h2 class="card-title">
         <mat-icon>table_chart</mat-icon>
-        Holdings ({{ holdings.length }})
+        {{ 'PORTFOLIO.HOLDINGS' | translate: { count: holdings.length } }}
       </h2>
     </div>
     <app-data-table
@@ -90,7 +90,7 @@
     <div class="card-header-row">
       <h2 class="card-title">
         <mat-icon>pie_chart</mat-icon>
-        Sector Allocation
+        {{ 'PORTFOLIO.SECTOR_ALLOCATION' | translate }}
       </h2>
     </div>
     <div class="allocation-bars">
@@ -109,11 +109,11 @@
     <!-- Stats -->
     <div class="mini-stats">
       <div class="mini-stat">
-        <span class="ms-label">Peak Value</span>
+        <span class="ms-label">{{ 'PORTFOLIO.PEAK_VALUE' | translate }}</span>
         <span class="ms-value">{{ formatCurrency(summary.peakValue) }}</span>
       </div>
       <div class="mini-stat">
-        <span class="ms-label">Drawdown</span>
+        <span class="ms-label">{{ 'PORTFOLIO.DRAWDOWN' | translate }}</span>
         <span class="ms-value negative"
           >{{
             (((summary.currentValue - summary.peakValue) / summary.peakValue) * 100).toFixed(2)

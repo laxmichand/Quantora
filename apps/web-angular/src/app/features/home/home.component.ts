@@ -11,12 +11,17 @@ export class HomeComponent {
   userName = 'Investor';
 
   quickActions = [
-    { icon: 'candlestick_chart', label: 'Stocks', route: '/stocks', desc: 'Browse NSE & BSE' },
-    { icon: 'pie_chart', label: 'Portfolio', route: '/portfolio', desc: 'Your holdings' },
-    { icon: 'smart_toy', label: 'Ask AI', route: '/ai-chat', desc: 'Get insights' },
-    { icon: 'filter_list', label: 'Screener', route: '/screener', desc: 'Find stocks' },
-    { icon: 'leaderboard', label: 'Indices', route: '/indices', desc: 'Market trends' },
-    { icon: 'monetization_on', label: 'Gold', route: '/gold', desc: 'Track gold' },
+    { icon: 'candlestick_chart', label: 'HOME.STOCKS', route: '/stocks', desc: 'HOME.STOCKS_DESC' },
+    {
+      icon: 'pie_chart',
+      label: 'HOME.PORTFOLIO',
+      route: '/portfolio',
+      desc: 'HOME.PORTFOLIO_DESC',
+    },
+    { icon: 'smart_toy', label: 'HOME.ASK_AI', route: '/ai-chat', desc: 'HOME.ASK_AI_DESC' },
+    { icon: 'filter_list', label: 'HOME.SCREENER', route: '/screener', desc: 'HOME.SCREENER_DESC' },
+    { icon: 'leaderboard', label: 'HOME.INDICES', route: '/indices', desc: 'HOME.INDICES_DESC' },
+    { icon: 'monetization_on', label: 'HOME.GOLD', route: '/gold', desc: 'HOME.GOLD_DESC' },
   ];
 
   constructor(private auth: AuthService) {

@@ -1,5 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Location } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { TableColumn } from '../../../shared/components/data-table/data-table.component';
 
 interface Holding {
@@ -156,17 +157,76 @@ export class PortfolioOverviewComponent implements OnInit {
   ];
 
   columns: TableColumn[] = [
-    { key: 'symbol', label: 'Stock', sortable: true, sticky: true, width: '180px' },
-    { key: 'qty', label: 'Qty', align: 'right', sortable: true },
-    { key: 'avgPrice', label: 'Avg Price', align: 'right', sortable: true, pipe: 'currency' },
-    { key: 'ltp', label: 'LTP', align: 'right', sortable: true, pipe: 'currency' },
-    { key: 'change', label: 'Chg %', align: 'right', sortable: true, pipe: 'percent' },
-    { key: 'invested', label: 'Invested', align: 'right', sortable: true, pipe: 'currency' },
-    { key: 'currentValue', label: 'Current', align: 'right', sortable: true, pipe: 'currency' },
-    { key: 'pnl', label: 'P&L', align: 'right', sortable: true, pipe: 'currency' },
-    { key: 'pnlPct', label: 'Returns', align: 'right', sortable: true, pipe: 'percent' },
-    { key: 'sector', label: 'Sector', sortable: true },
-    { key: 'weight', label: 'Weight', align: 'right', sortable: true, pipe: 'percent' },
+    {
+      key: 'symbol',
+      label: this.translate.instant('PORTFOLIO.COL_STOCK'),
+      sortable: true,
+      sticky: true,
+      width: '180px',
+    },
+    {
+      key: 'qty',
+      label: this.translate.instant('PORTFOLIO.COL_QTY'),
+      align: 'right',
+      sortable: true,
+    },
+    {
+      key: 'avgPrice',
+      label: this.translate.instant('PORTFOLIO.COL_AVG_PRICE'),
+      align: 'right',
+      sortable: true,
+      pipe: 'currency',
+    },
+    {
+      key: 'ltp',
+      label: this.translate.instant('PORTFOLIO.COL_LTP'),
+      align: 'right',
+      sortable: true,
+      pipe: 'currency',
+    },
+    {
+      key: 'change',
+      label: this.translate.instant('PORTFOLIO.COL_CHG'),
+      align: 'right',
+      sortable: true,
+      pipe: 'percent',
+    },
+    {
+      key: 'invested',
+      label: this.translate.instant('PORTFOLIO.COL_INVESTED'),
+      align: 'right',
+      sortable: true,
+      pipe: 'currency',
+    },
+    {
+      key: 'currentValue',
+      label: this.translate.instant('PORTFOLIO.COL_CURRENT'),
+      align: 'right',
+      sortable: true,
+      pipe: 'currency',
+    },
+    {
+      key: 'pnl',
+      label: this.translate.instant('PORTFOLIO.COL_PNL'),
+      align: 'right',
+      sortable: true,
+      pipe: 'currency',
+    },
+    {
+      key: 'pnlPct',
+      label: this.translate.instant('PORTFOLIO.COL_RETURNS'),
+      align: 'right',
+      sortable: true,
+      pipe: 'percent',
+    },
+    { key: 'sector', label: this.translate.instant('PORTFOLIO.COL_SECTOR'), sortable: true },
+    {
+      key: 'weight',
+      label: this.translate.instant('PORTFOLIO.COL_WEIGHT'),
+      align: 'right',
+      sortable: true,
+      pipe: 'percent',
+    },
   ];
 
   sectorAllocation = [
@@ -178,7 +238,10 @@ export class PortfolioOverviewComponent implements OnInit {
     { label: 'FMCG', pct: 1.9, color: '#ec4899' },
   ];
 
-  constructor(private location: Location) {}
+  constructor(
+    private location: Location,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {}
 

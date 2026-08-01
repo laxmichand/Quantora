@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { DataTableComponent } from './components/data-table/data-table.component';
 import { SettingsNavComponent } from './components/settings-nav/settings-nav.component';
@@ -28,7 +29,7 @@ const MATERIAL = [
 
 @NgModule({
   declarations: [...COMPONENTS],
-  imports: [...MATERIAL],
-  exports: [...COMPONENTS, ...MATERIAL],
+  imports: [...MATERIAL, TranslateModule],
+  exports: [...COMPONENTS, ...MATERIAL, TranslateModule],
 })
 export class SharedModule {}

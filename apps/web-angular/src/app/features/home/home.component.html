@@ -1,7 +1,7 @@
 <div class="home-page">
   <div class="welcome-section">
-    <h1>Welcome back, {{ userName }} 👋</h1>
-    <p>What would you like to explore today?</p>
+    <h1>{{ 'HOME.WELCOME' | translate: { name: userName } }}</h1>
+    <p>{{ 'HOME.SUBTITLE' | translate }}</p>
   </div>
 
   <div class="quick-grid">
@@ -10,8 +10,8 @@
         <mat-icon>{{ a.icon }}</mat-icon>
       </div>
       <div class="quick-info">
-        <span class="quick-label">{{ a.label }}</span>
-        <span class="quick-desc">{{ a.desc }}</span>
+        <span class="quick-label">{{ a.label | translate }}</span>
+        <span class="quick-desc">{{ a.desc | translate }}</span>
       </div>
       <mat-icon class="quick-arrow">chevron_right</mat-icon>
     </a>

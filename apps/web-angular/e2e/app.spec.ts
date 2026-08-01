@@ -12,8 +12,7 @@ test.describe('Auth Flow', () => {
 
   test('should navigate to login page', async ({ page }) => {
     await page.goto('/auth/login');
-    await expect(page.locator('text=Quantora')).toBeVisible();
-    await expect(page.locator('text=Sign In')).toBeVisible();
+    await expect(page.locator('.qauth-tabs .tab.active')).toContainText('Sign In');
   });
 
   test('should navigate to register page', async ({ page }) => {
@@ -44,10 +43,10 @@ test.describe('Auth Flow', () => {
   });
 });
 
-test.describe('Sidebar Navigation', () => {
-  test('should show sidebar with nav items', async ({ page }) => {
-    await page.goto('/dashboard');
-    await expect(page.locator('.sidebar')).toBeVisible();
-    await expect(page.locator('.nav-item').count()).toBeGreaterThanOrEqual(5);
+test.describe('Navigation', () => {
+  test('should show the top nav with nav items', async ({ page }) => {
+    await page.goto('/auth/login');
+    await expect(page.locator('.toolbar-nav')).toBeVisible();
+    await expect(page.locator('.toolbar-nav .nav-item').count()).toBeGreaterThanOrEqual(3);
   });
 });

@@ -2,11 +2,13 @@
 <div class="welcome-row">
   <div class="welcome-text">
     <h1>{{ greeting }}, {{ userName }}</h1>
-    <p>Here's your investment overview for today</p>
+    <p>{{ 'DASHBOARD.OVERVIEW_SUBTITLE' | translate }}</p>
   </div>
   <div class="market-status">
     <span class="status-dot"></span>
-    Market Open
+    {{
+      marketOpen ? ('DASHBOARD.MARKET_OPEN' | translate) : ('DASHBOARD.MARKET_CLOSED' | translate)
+    }}
   </div>
 </div>
 
@@ -46,7 +48,7 @@
       <div class="card-header-row">
         <h2 class="card-title">
           <mat-icon>show_chart</mat-icon>
-          Market Movers
+          {{ 'DASHBOARD.MARKET_MOVERS' | translate }}
         </h2>
         <div class="tab-pills">
           <button
@@ -54,21 +56,21 @@
             [class.active]="activeTab === 'gainers'"
             (click)="activeTab = 'gainers'"
           >
-            <span class="pill-dot green"></span> Gainers
+            <span class="pill-dot green"></span> {{ 'DASHBOARD.GAINERS' | translate }}
           </button>
           <button
             class="pill"
             [class.active]="activeTab === 'losers'"
             (click)="activeTab = 'losers'"
           >
-            <span class="pill-dot red"></span> Losers
+            <span class="pill-dot red"></span> {{ 'DASHBOARD.LOSERS' | translate }}
           </button>
           <button
             class="pill"
             [class.active]="activeTab === 'active'"
             (click)="activeTab = 'active'"
           >
-            <span class="pill-dot blue"></span> Most Active
+            <span class="pill-dot blue"></span> {{ 'DASHBOARD.MOST_ACTIVE' | translate }}
           </button>
         </div>
       </div>
@@ -92,7 +94,7 @@
       <div class="card-header-row">
         <h2 class="card-title">
           <mat-icon>donut_large</mat-icon>
-          Sector Performance
+          {{ 'DASHBOARD.SECTOR_PERFORMANCE' | translate }}
         </h2>
       </div>
       <div class="sectors-grid">
@@ -126,14 +128,14 @@
       <div class="card-header-row">
         <h2 class="card-title">
           <mat-icon>pie_chart</mat-icon>
-          Allocation
+          {{ 'DASHBOARD.ALLOCATION' | translate }}
         </h2>
       </div>
       <div class="allocation-bars">
         <div class="alloc-row" *ngFor="let a of portfolioAllocation">
           <div class="alloc-label">
             <span class="alloc-dot" [style.background]="a.color"></span>
-            {{ a.label }}
+            {{ a.label | translate }}
           </div>
           <div class="alloc-bar-track">
             <div class="alloc-bar-fill" [style.width.%]="a.pct" [style.background]="a.color"></div>
@@ -148,7 +150,7 @@
       <div class="card-header-row">
         <h2 class="card-title">
           <mat-icon>newspaper</mat-icon>
-          Market News
+          {{ 'DASHBOARD.MARKET_NEWS' | translate }}
         </h2>
       </div>
       <div class="news-list">
@@ -172,7 +174,7 @@
       <div class="card-header-row">
         <h2 class="card-title">
           <mat-icon>flash_on</mat-icon>
-          Quick Actions
+          {{ 'DASHBOARD.QUICK_ACTIONS' | translate }}
         </h2>
       </div>
       <div class="actions-grid">
@@ -180,7 +182,7 @@
           <div class="action-icon" [style.background]="a.color + '18'" [style.color]="a.color">
             <mat-icon>{{ a.icon }}</mat-icon>
           </div>
-          <span class="action-label">{{ a.label }}</span>
+          <span class="action-label">{{ a.label | translate }}</span>
         </a>
       </div>
     </div>

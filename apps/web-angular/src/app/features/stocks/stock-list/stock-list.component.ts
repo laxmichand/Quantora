@@ -1,4 +1,5 @@
 import { Component, ViewChild, TemplateRef } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MarketDataService, StockQuote } from '../../../core/services/market-data.service';
 import { TableColumn } from '../../../shared/components/data-table/data-table.component';
 
@@ -22,12 +23,12 @@ export class StockListComponent {
 
   tabs = ['all', 'gainers', 'losers', 'active', '52whigh', '52wlow'];
   tabLabels: Record<string, string> = {
-    all: 'All Stocks',
-    gainers: 'Gainers',
-    losers: 'Losers',
-    active: 'Most Active',
-    '52whigh': '52W High',
-    '52wlow': '52W Low',
+    all: 'STOCKS.ALL_STOCKS',
+    gainers: 'STOCKS.GAINERS',
+    losers: 'STOCKS.LOSERS',
+    active: 'STOCKS.MOST_ACTIVE',
+    '52whigh': 'STOCKS.W52_HIGH',
+    '52wlow': 'STOCKS.W52_LOW',
   };
   tabIcons: Record<string, string> = {
     all: 'grid_view',
@@ -513,7 +514,10 @@ export class StockListComponent {
     },
   ];
 
-  constructor(private marketData: MarketDataService) {
+  constructor(
+    private marketData: MarketDataService,
+    private translate: TranslateService,
+  ) {
     this.columns = [
       {
         key: '#',
@@ -523,10 +527,15 @@ export class StockListComponent {
         sortable: false,
         hideable: false,
       },
-      { key: 'symbol', label: 'Stock', cellTemplate: this.slStockCell, sortable: true },
+      {
+        key: 'symbol',
+        label: this.translate.instant('DASHBOARD.COL_STOCK'),
+        cellTemplate: this.slStockCell,
+        sortable: true,
+      },
       {
         key: 'price',
-        label: 'LTP (₹)',
+        label: this.translate.instant('DASHBOARD.COL_LTP'),
         align: 'right',
         pipe: 'number',
         class: 'text-price',
@@ -534,24 +543,42 @@ export class StockListComponent {
       },
       {
         key: 'change',
-        label: 'Change',
+        label: this.translate.instant('DASHBOARD.COL_CHANGE'),
         align: 'right',
         cellTemplate: this.slChgCell,
         sortable: true,
       },
       {
         key: 'pct',
-        label: '% Change',
+        label: this.translate.instant('DASHBOARD.COL_PCT_CHANGE'),
         align: 'right',
         cellTemplate: this.slPctCell,
         sortable: true,
       },
-      { key: 'volume', label: 'Volume', align: 'right', class: 'text-muted', sortable: true },
-      { key: 'marketCap', label: 'Mkt Cap', align: 'right', class: 'text-muted', sortable: true },
-      { key: 'pe', label: 'P/E', align: 'right', class: 'text-muted', sortable: true },
+      {
+        key: 'volume',
+        label: this.translate.instant('DASHBOARD.COL_VOLUME'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'marketCap',
+        label: this.translate.instant('DASHBOARD.COL_MKT_CAP'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'pe',
+        label: this.translate.instant('DASHBOARD.COL_PE'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
       {
         key: 'sector',
-        label: 'Sector',
+        label: this.translate.instant('DASHBOARD.COL_SECTOR'),
         width: '12%',
         cellTemplate: this.slSectorCell,
         sortable: true,

@@ -13,21 +13,22 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ThemeSwitcherComponent } from './core/components/theme-switcher/theme-switcher.component';
-import { LanguageSwitcherComponent } from './core/components/language-switcher/language-switcher.component';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { APP_INIT_PROVIDER } from './core/app-initializer';
+import { SharedModule } from './shared/shared.module';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
 @NgModule({
-  declarations: [AppComponent, ThemeSwitcherComponent, LanguageSwitcherComponent],
+  declarations: [AppComponent, ThemeSwitcherComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
     AppRoutingModule,
+    SharedModule,
     TranslateModule.forRoot({
       defaultLanguage: 'en',
       loader: {

@@ -11,12 +11,12 @@ export interface Theme {
 })
 export class ThemeService {
   readonly themes: Theme[] = [
-    { name: 'default', label: 'Auto', icon: 'brightness_auto' },
-    { name: 'light', label: 'Light', icon: 'light_mode' },
-    { name: 'dark', label: 'Dark', icon: 'dark_mode' },
-    { name: 'indigo', label: 'Indigo', icon: 'palette' },
-    { name: 'emerald', label: 'Emerald', icon: 'palette' },
-    { name: 'rose', label: 'Rose', icon: 'palette' },
+    { name: 'default', label: 'SETTINGS.THEME_AUTO', icon: 'brightness_auto' },
+    { name: 'light', label: 'SETTINGS.THEME_LIGHT', icon: 'light_mode' },
+    { name: 'dark', label: 'SETTINGS.THEME_DARK', icon: 'dark_mode' },
+    { name: 'indigo', label: 'SETTINGS.THEME_INDIGO', icon: 'palette' },
+    { name: 'emerald', label: 'SETTINGS.THEME_EMERALD', icon: 'palette' },
+    { name: 'rose', label: 'SETTINGS.THEME_ROSE', icon: 'palette' },
   ];
 
   private currentTheme = 'default';
