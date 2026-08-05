@@ -1,0 +1,125 @@
+<!-- Back Button -->
+<div class="page-top">
+  <button class="back-btn" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+    <span>{{ 'PORTFOLIO.BACK' | translate }}</span>
+  </button>
+  <div class="page-title-area">
+    <h1>{{ 'PORTFOLIO.TITLE' | translate }}</h1>
+    <span class="last-updated">{{ 'PORTFOLIO.LAST_UPDATED' | translate }}</span>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-grid">
+  <div class="summary-card">
+    <span class="summary-label">{{ 'PORTFOLIO.INVESTED_VALUE' | translate }}</span>
+    <span class="summary-value">{{ formatCurrency(summary.invested) }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="summary-label">{{ 'PORTFOLIO.CURRENT_VALUE' | translate }}</span>
+    <span class="summary-value big">{{ formatCurrency(summary.currentValue) }}</span>
+  </div>
+  <div class="summary-card">
+    <span class="summary-label">{{ 'PORTFOLIO.TOTAL_PNL' | translate }}</span>
+    <span
+      class="summary-value"
+      [class.positive]="summary.pnl >= 0"
+      [class.negative]="summary.pnl < 0"
+    >
+      {{ summary.pnl >= 0 ? '+' : '' }}{{ formatCurrency(summary.pnl) }}
+    </span>
+    <span
+      class="summary-sub"
+      [class.positive]="summary.pnlPct >= 0"
+      [class.negative]="summary.pnlPct < 0"
+    >
+      {{ summary.pnlPct >= 0 ? '+' : '' }}{{ summary.pnlPct }}%
+    </span>
+  </div>
+  <div class="summary-card">
+    <span class="summary-label">{{ 'PORTFOLIO.TODAY_PNL' | translate }}</span>
+    <span
+      class="summary-value"
+      [class.positive]="summary.todayPnl >= 0"
+      [class.negative]="summary.todayPnl < 0"
+    >
+      {{ summary.todayPnl >= 0 ? '+' : '' }}{{ formatCurrency(summary.todayPnl) }}
+    </span>
+    <span
+      class="summary-sub"
+      [class.positive]="summary.todayPnlPct >= 0"
+      [class.negative]="summary.todayPnlPct < 0"
+    >
+      {{ summary.todayPnlPct >= 0 ? '+' : '' }}{{ summary.todayPnlPct }}%
+    </span>
+  </div>
+  <div class="summary-card">
+    <span class="summary-label">{{ 'PORTFOLIO.XIRR' | translate }}</span>
+    <span class="summary-value positive">{{ summary.xirr }}%</span>
+  </div>
+</div>
+
+<!-- Content Grid -->
+<div class="portfolio-grid">
+  <!-- Holdings Table -->
+  <div class="card holdings-card">
+    <div class="card-header-row">
+      <h2 class="card-title">
+        <mat-icon>table_chart</mat-icon>
+        {{ 'PORTFOLIO.HOLDINGS' | translate: { count: holdings.length } }}
+      </h2>
+    </div>
+    <app-data-table
+      [columns]="columns"
+      [data]="holdings"
+      [config]="{
+        showSearch: true,
+        showColumnToggle: true,
+        showPagination: true,
+        pageSize: 10,
+        striped: false,
+      }"
+      [loading]="false"
+    >
+    </app-data-table>
+  </div>
+
+  <!-- Sector Allocation -->
+  <div class="card allocation-card">
+    <div class="card-header-row">
+      <h2 class="card-title">
+        <mat-icon>pie_chart</mat-icon>
+        {{ 'PORTFOLIO.SECTOR_ALLOCATION' | translate }}
+      </h2>
+    </div>
+    <div class="allocation-bars">
+      <div class="alloc-row" *ngFor="let a of sectorAllocation">
+        <div class="alloc-label">
+          <span class="alloc-dot" [style.background]="a.color"></span>
+          {{ a.label }}
+        </div>
+        <div class="alloc-bar-track">
+          <div class="alloc-bar-fill" [style.width.%]="a.pct" [style.background]="a.color"></div>
+        </div>
+        <span class="alloc-pct">{{ a.pct }}%</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <span class="ms-label">{{ 'PORTFOLIO.PEAK_VALUE' | translate }}</span>
+        <span class="ms-value">{{ formatCurrency(summary.peakValue) }}</span>
+      </div>
+      <div class="mini-stat">
+        <span class="ms-label">{{ 'PORTFOLIO.DRAWDOWN' | translate }}</span>
+        <span class="ms-value negative"
+          >{{
+            (((summary.currentValue - summary.peakValue) / summary.peakValue) * 100).toFixed(2)
+          }}%</span
+        >
+      </div>
+    </div>
+  </div>
+</div>

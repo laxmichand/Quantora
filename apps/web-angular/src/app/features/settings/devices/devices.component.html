@@ -1,0 +1,257 @@
+<div class="devices-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>{{ 'DEVICES.TITLE' | translate }}</h1>
+      <p>{{ 'DEVICES.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-actions">
+      <button
+        mat-stroked-button
+        color="warn"
+        (click)="logoutAll()"
+        [disabled]="sessions.length <= 1"
+      >
+        <mat-icon>logout</mat-icon>
+        {{ 'DEVICES.LOGOUT_ALL' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div class="devices-layout">
+    <app-settings-nav tab="devices"></app-settings-nav>
+
+    <div class="devices-content">
+      <div class="loading-state" *ngIf="loading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>{{ 'DEVICES.LOADING' | translate }}</span>
+      </div>
+
+      <ng-container *ngIf="!loading">
+        <!-- Current Device Card -->
+        <div class="device-card current-device" *ngIf="currentSession">
+          <div class="card-badge">{{ 'DEVICES.CURRENT_DEVICE' | translate }}</div>
+          <div class="device-row">
+            <div class="device-icon-wrapper">
+              <mat-icon class="device-icon">{{ getDeviceIcon(currentSession) }}</mat-icon>
+            </div>
+            <div class="device-info">
+              <div class="device-name">
+                {{
+                  currentSession.deviceName || currentSession.browser + ' on ' + currentSession.os
+                }}
+              </div>
+              <div class="device-detail-row">
+                <span class="detail-chip os-chip">{{ currentSession.os }}</span>
+                <span class="detail-chip browser-chip">{{ currentSession.browser }}</span>
+                <span class="detail-chip trusted-chip" *ngIf="currentSession.trustedDevice">{{
+                  'DEVICES.TRUSTED' | translate
+                }}</span>
+              </div>
+              <div class="device-meta">
+                <span class="meta-item">
+                  <mat-icon>location_on</mat-icon> {{ currentSession.location }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>public</mat-icon> {{ maskIp(currentSession.ipAddress) }}
+                </span>
+                <span class="meta-item" *ngIf="currentSession.lastActivity">
+                  <mat-icon>schedule</mat-icon> {{ 'DEVICES.ACTIVE' | translate }}
+                  {{ timeAgo(currentSession.lastActivity) }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>login</mat-icon> {{ 'DEVICES.LOGGED_IN' | translate }}
+                  {{ timeAgo(currentSession.loginTime) }}
+                </span>
+              </div>
+            </div>
+            <div class="device-actions">
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="logoutCurrent()"
+                [matTooltip]="'DEVICES.TOOLTIP_LOGOUT_DEVICE' | translate"
+              >
+                <mat-icon>logout</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other Sessions -->
+        <div class="section" *ngIf="otherSessions.length > 0">
+          <div class="section-header">
+            <h2>{{ 'DEVICES.OTHER_SESSIONS' | translate: { count: otherSessions.length } }}</h2>
+            <button
+              mat-button
+              color="warn"
+              (click)="logoutAllOthers()"
+              [disabled]="otherSessions.length === 0"
+            >
+              <mat-icon>logout</mat-icon> {{ 'DEVICES.LOGOUT_ALL_OTHERS' | translate }}
+            </button>
+          </div>
+
+          <div class="session-list">
+            <div class="session-item" *ngFor="let session of otherSessions">
+              <div class="session-row">
+                <div class="device-icon-wrapper small">
+                  <mat-icon class="device-icon">{{ getDeviceIcon(session) }}</mat-icon>
+                </div>
+                <div class="session-info">
+                  <div class="session-name">
+                    {{ session.deviceName || session.browser + ' on ' + session.os }}
+                  </div>
+                  <div class="session-meta">
+                    <span class="meta-pill">{{ session.os }}</span>
+                    <span class="meta-pill">{{ session.browser }}</span>
+                    <span class="meta-pill">{{ session.location }}</span>
+                    <span class="meta-pill ip-pill">{{ maskIp(session.ipAddress) }}</span>
+                  </div>
+                </div>
+                <div class="session-time">
+                  <span class="time-label">{{ 'DEVICES.ACTIVE' | translate }}</span>
+                  <span class="time-value">{{ timeAgo(session.lastActivity) }}</span>
+                </div>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="logoutSession(session.id)"
+                  [matTooltip]="'DEVICES.TOOLTIP_LOGOUT_SESSION' | translate"
+                >
+                  <mat-icon>logout</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No other sessions -->
+        <div class="empty-state" *ngIf="otherSessions.length === 0 && currentSession">
+          <mat-icon>devices</mat-icon>
+          <h3>{{ 'DEVICES.NO_OTHER_SESSIONS' | translate }}</h3>
+          <p>{{ 'DEVICES.NO_OTHER_SESSIONS_DESC' | translate }}</p>
+        </div>
+
+        <!-- Registered Devices -->
+        <div class="section" *ngIf="devices.length > 0">
+          <div class="section-header">
+            <h2>{{ 'DEVICES.REGISTERED_DEVICES' | translate: { count: devices.length } }}</h2>
+          </div>
+
+          <div class="device-list">
+            <div class="device-card" *ngFor="let device of devices">
+              <div class="device-row">
+                <div class="device-icon-wrapper">
+                  <mat-icon class="device-icon">{{
+                    getDeviceIcon({ deviceType: device.deviceType, browser: device.browser })
+                  }}</mat-icon>
+                </div>
+                <div class="device-info">
+                  <div class="device-name-row">
+                    <ng-container *ngIf="renamingDeviceId !== device.id; else renameForm">
+                      <span class="device-name">{{
+                        device.deviceName || device.browser + ' on ' + device.os
+                      }}</span>
+                      <span class="trusted-badge" *ngIf="device.trustedDevice"
+                        >✓ {{ 'DEVICES.TRUSTED' | translate }}</span
+                      >
+                      <span
+                        class="risk-badge"
+                        [class]="'risk-' + device.riskLevel"
+                        *ngIf="device.riskLevel !== 'low'"
+                        >{{ device.riskLevel | uppercase }}</span
+                      >
+                    </ng-container>
+                    <ng-template #renameForm>
+                      <div class="rename-form">
+                        <input
+                          #renameInput
+                          [(ngModel)]="renameValue"
+                          (keyup.enter)="saveRename(device.id)"
+                          (keyup.escape)="cancelRename()"
+                          [placeholder]="'DEVICES.DEVICE_NAME_PLACEHOLDER' | translate"
+                          autofocus
+                        />
+                        <button
+                          mat-icon-button
+                          (click)="saveRename(device.id)"
+                          [matTooltip]="'DEVICES.TOOLTIP_SAVE' | translate"
+                        >
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          (click)="cancelRename()"
+                          [matTooltip]="'DEVICES.TOOLTIP_CANCEL' | translate"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    </ng-template>
+                  </div>
+                  <div class="device-stats">
+                    <span
+                      >{{ device.browser || ('DEVICES.UNKNOWN' | translate)
+                      }}{{ device.browserVersion ? ' ' + device.browserVersion : '' }}</span
+                    >
+                    <span
+                      >{{ device.os || ('DEVICES.UNKNOWN' | translate)
+                      }}{{ device.osVersion ? ' ' + device.osVersion : '' }}</span
+                    >
+                    <span>{{ device.deviceType || ('DEVICES.UNKNOWN_DEVICE' | translate) }}</span>
+                  </div>
+                  <div class="device-meta">
+                    <span
+                      >{{ 'DEVICES.LAST_ACTIVE' | translate }}
+                      {{
+                        timeAgo(device.lastActivity || device.lastLogin || device.createdAt)
+                      }}</span
+                    >
+                    <span *ngIf="device.loginCount > 0">{{
+                      'DEVICES.LOGINS' | translate: { count: device.loginCount }
+                    }}</span>
+                    <span *ngIf="device.publicIp">{{ maskIp(device.publicIp) }}</span>
+                  </div>
+                </div>
+                <div class="device-actions">
+                  <button
+                    mat-icon-button
+                    (click)="startRename(device.id, device.deviceName)"
+                    [matTooltip]="'DEVICES.TOOLTIP_RENAME' | translate"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    (click)="trustDevice(device.id, !device.trustedDevice)"
+                    [matTooltip]="
+                      (device.trustedDevice ? 'DEVICES.TOOLTIP_UNTRUST' : 'DEVICES.TOOLTIP_TRUST')
+                        | translate
+                    "
+                  >
+                    <mat-icon>{{ device.trustedDevice ? 'verified_user' : 'shield' }}</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removeDevice(device.id)"
+                    [matTooltip]="'DEVICES.TOOLTIP_REMOVE' | translate"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state when no sessions at all -->
+        <div class="empty-state" *ngIf="!currentSession && !loading">
+          <mat-icon>devices_other</mat-icon>
+          <h3>{{ 'DEVICES.NO_ACTIVE_SESSIONS' | translate }}</h3>
+          <p>{{ 'DEVICES.NO_ACTIVE_SESSIONS_DESC' | translate }}</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

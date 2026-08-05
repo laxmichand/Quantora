@@ -1,0 +1,737 @@
+import { Component, ViewChild, TemplateRef, OnDestroy } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { Subject, of } from 'rxjs';
+import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
+import {
+  MarketDataService,
+  MarketInstrument,
+  StockQuote,
+} from '../../../core/services/market-data.service';
+import { TableColumn } from '../../../shared/components/data-table/data-table.component';
+
+@Component({
+  selector: 'app-stock-list',
+  standalone: false,
+  templateUrl: './stock-list.component.html',
+  styleUrls: ['./stock-list.component.scss'],
+})
+export class StockListComponent implements OnDestroy {
+  activeTab = 'all';
+  activeSector = 'All';
+
+  @ViewChild('slNumCell', { static: true }) slNumCell!: TemplateRef<any>;
+  @ViewChild('slStockCell', { static: true }) slStockCell!: TemplateRef<any>;
+  @ViewChild('slChgCell', { static: true }) slChgCell!: TemplateRef<any>;
+  @ViewChild('slPctCell', { static: true }) slPctCell!: TemplateRef<any>;
+  @ViewChild('slSectorCell', { static: true }) slSectorCell!: TemplateRef<any>;
+
+  columns: TableColumn[] = [];
+
+  /* ── Live instrument search ── */
+  searchQuery = '';
+  exchange = 'NSE';
+  exchanges = ['NSE', 'BSE', 'NFO', 'MCX', 'CDS', 'BFO'];
+  liveResults: MarketInstrument[] = [];
+  liveTotal = 0;
+  liveSearching = false;
+  liveError = '';
+  searchActive = false;
+  liveColumns: TableColumn[] = [];
+
+  private search$ = new Subject<void>();
+
+  tabs = ['all', 'gainers', 'losers', 'active', '52whigh', '52wlow'];
+  tabLabels: Record<string, string> = {
+    all: 'STOCKS.ALL_STOCKS',
+    gainers: 'STOCKS.GAINERS',
+    losers: 'STOCKS.LOSERS',
+    active: 'STOCKS.MOST_ACTIVE',
+    '52whigh': 'STOCKS.W52_HIGH',
+    '52wlow': 'STOCKS.W52_LOW',
+  };
+  tabIcons: Record<string, string> = {
+    all: 'grid_view',
+    gainers: 'trending_up',
+    losers: 'trending_down',
+    active: 'bar_chart',
+    '52whigh': 'arrow_upward',
+    '52wlow': 'arrow_downward',
+  };
+
+  sectors = [
+    'All',
+    'IT',
+    'Banking',
+    'Auto',
+    'Pharma',
+    'FMCG',
+    'Metal',
+    'Energy',
+    'Finance',
+    'Telecom',
+    'Oil & Gas',
+    'Power',
+    'Conglomerate',
+    'Mining',
+    'Chemicals',
+    'Retail',
+    'Technology',
+    'Healthcare',
+  ];
+
+  allStocks: StockQuote[] = [
+    {
+      symbol: 'RELIANCE',
+      name: 'Reliance Industries',
+      price: '2,945.60',
+      change: 35.8,
+      pct: 1.23,
+      volume: '28.5M',
+      marketCap: '19.87L Cr',
+      pe: '28.4',
+      sector: 'Conglomerate',
+    },
+    {
+      symbol: 'TCS',
+      name: 'Tata Consultancy',
+      price: '3,812.40',
+      change: -21.35,
+      pct: -0.56,
+      volume: '18.2M',
+      marketCap: '13.92L Cr',
+      pe: '33.2',
+      sector: 'IT',
+    },
+    {
+      symbol: 'HDFCBANK',
+      name: 'HDFC Bank',
+      price: '1,678.30',
+      change: 12.45,
+      pct: 0.75,
+      volume: '14.3M',
+      marketCap: '12.84L Cr',
+      pe: '19.6',
+      sector: 'Banking',
+    },
+    {
+      symbol: 'INFY',
+      name: 'Infosys Ltd',
+      price: '1,832.50',
+      change: 43.8,
+      pct: 2.45,
+      volume: '15.8M',
+      marketCap: '7.62L Cr',
+      pe: '27.8',
+      sector: 'IT',
+    },
+    {
+      symbol: 'ICICIBANK',
+      name: 'ICICI Bank',
+      price: '1,234.75',
+      change: 8.9,
+      pct: 0.73,
+      volume: '12.1M',
+      marketCap: '8.64L Cr',
+      pe: '18.2',
+      sector: 'Banking',
+    },
+    {
+      symbol: 'HINDUNILVR',
+      name: 'Hindustan Unilever',
+      price: '2,456.80',
+      change: -18.6,
+      pct: -0.75,
+      volume: '5.6M',
+      marketCap: '5.78L Cr',
+      pe: '58.4',
+      sector: 'FMCG',
+    },
+    {
+      symbol: 'ITC',
+      name: 'ITC Limited',
+      price: '478.30',
+      change: 2.01,
+      pct: 0.42,
+      volume: '22.8M',
+      marketCap: '5.97L Cr',
+      pe: '26.1',
+      sector: 'FMCG',
+    },
+    {
+      symbol: 'SBIN',
+      name: 'State Bank of India',
+      price: '812.45',
+      change: -5.2,
+      pct: -0.64,
+      volume: '25.4M',
+      marketCap: '7.25L Cr',
+      pe: '10.8',
+      sector: 'Banking',
+    },
+    {
+      symbol: 'BHARTIARTL',
+      name: 'Bharti Airtel',
+      price: '1,678.90',
+      change: 42.15,
+      pct: 2.57,
+      volume: '7.1M',
+      marketCap: '9.82L Cr',
+      pe: '72.5',
+      sector: 'Telecom',
+    },
+    {
+      symbol: 'KOTAKBANK',
+      name: 'Kotak Mahindra Bank',
+      price: '1,823.45',
+      change: 15.3,
+      pct: 0.85,
+      volume: '8.4M',
+      marketCap: '3.62L Cr',
+      pe: '22.1',
+      sector: 'Banking',
+    },
+    {
+      symbol: 'LT',
+      name: 'Larsen & Toubro',
+      price: '3,567.80',
+      change: 48.6,
+      pct: 1.38,
+      volume: '4.2M',
+      marketCap: '4.92L Cr',
+      pe: '36.8',
+      sector: 'Conglomerate',
+    },
+    {
+      symbol: 'AXISBANK',
+      name: 'Axis Bank',
+      price: '1,156.30',
+      change: -12.45,
+      pct: -1.07,
+      volume: '16.7M',
+      marketCap: '3.58L Cr',
+      pe: '15.4',
+      sector: 'Banking',
+    },
+    {
+      symbol: 'ASIANPAINT',
+      name: 'Asian Paints',
+      price: '2,890.60',
+      change: -32.15,
+      pct: -1.1,
+      volume: '3.1M',
+      marketCap: '2.77L Cr',
+      pe: '52.3',
+      sector: 'FMCG',
+    },
+    {
+      symbol: 'HCLTECH',
+      name: 'HCL Technologies',
+      price: '1,756.40',
+      change: 58.3,
+      pct: 3.43,
+      volume: '8.7M',
+      marketCap: '4.78L Cr',
+      pe: '24.6',
+      sector: 'IT',
+    },
+    {
+      symbol: 'WIPRO',
+      name: 'Wipro Ltd',
+      price: '567.25',
+      change: 17.85,
+      pct: 3.25,
+      volume: '15.3M',
+      marketCap: '2.97L Cr',
+      pe: '22.8',
+      sector: 'IT',
+    },
+    {
+      symbol: 'TATAMOTORS',
+      name: 'Tata Motors',
+      price: '978.60',
+      change: 22.15,
+      pct: 2.32,
+      volume: '19.7M',
+      marketCap: '3.58L Cr',
+      pe: '8.4',
+      sector: 'Auto',
+    },
+    {
+      symbol: 'SUNPHARMA',
+      name: 'Sun Pharma',
+      price: '1,234.60',
+      change: -45.3,
+      pct: -3.55,
+      volume: '5.4M',
+      marketCap: '2.96L Cr',
+      pe: '32.1',
+      sector: 'Pharma',
+    },
+    {
+      symbol: 'TATASTEEL',
+      name: 'Tata Steel',
+      price: '168.35',
+      change: 6.2,
+      pct: 3.83,
+      volume: '45.2M',
+      marketCap: '2.06L Cr',
+      pe: '62.4',
+      sector: 'Metal',
+    },
+    {
+      symbol: 'BAJFINANCE',
+      name: 'Bajaj Finance',
+      price: '7,123.80',
+      change: -88.45,
+      pct: -1.24,
+      volume: '8.9M',
+      marketCap: '4.41L Cr',
+      pe: '32.6',
+      sector: 'Finance',
+    },
+    {
+      symbol: 'ADANIENT',
+      name: 'Adani Enterprises',
+      price: '3,245.80',
+      change: 142.5,
+      pct: 4.59,
+      volume: '12.4M',
+      marketCap: '3.70L Cr',
+      pe: '108.2',
+      sector: 'Conglomerate',
+    },
+    {
+      symbol: 'MARUTI',
+      name: 'Maruti Suzuki',
+      price: '12,345.60',
+      change: 156.8,
+      pct: 1.29,
+      volume: '1.8M',
+      marketCap: '3.87L Cr',
+      pe: '28.9',
+      sector: 'Auto',
+    },
+    {
+      symbol: 'TITAN',
+      name: 'Titan Company',
+      price: '3,456.70',
+      change: 45.3,
+      pct: 1.33,
+      volume: '2.4M',
+      marketCap: '3.06L Cr',
+      pe: '82.4',
+      sector: 'Retail',
+    },
+    {
+      symbol: 'BAJAJFINSV',
+      name: 'Bajaj Finserv',
+      price: '1,678.45',
+      change: -22.15,
+      pct: -1.3,
+      volume: '6.2M',
+      marketCap: '2.68L Cr',
+      pe: '42.8',
+      sector: 'Finance',
+    },
+    {
+      symbol: 'NTPC',
+      name: 'NTPC Ltd',
+      price: '345.20',
+      change: -6.35,
+      pct: -1.81,
+      volume: '22.1M',
+      marketCap: '3.34L Cr',
+      pe: '16.2',
+      sector: 'Power',
+    },
+    {
+      symbol: 'ONGC',
+      name: 'Oil & Natural Gas',
+      price: '278.90',
+      change: -4.65,
+      pct: -1.64,
+      volume: '14.7M',
+      marketCap: '3.50L Cr',
+      pe: '7.8',
+      sector: 'Oil & Gas',
+    },
+    {
+      symbol: 'POWERGRID',
+      name: 'Power Grid Corp',
+      price: '289.45',
+      change: -5.8,
+      pct: -1.96,
+      volume: '18.2M',
+      marketCap: '2.67L Cr',
+      pe: '15.6',
+      sector: 'Power',
+    },
+    {
+      symbol: 'TECHM',
+      name: 'Tech Mahindra',
+      price: '1,567.80',
+      change: -32.45,
+      pct: -2.03,
+      volume: '4.5M',
+      marketCap: '1.53L Cr',
+      pe: '38.2',
+      sector: 'IT',
+    },
+    {
+      symbol: 'DRREDDY',
+      name: "Dr. Reddy's Labs",
+      price: '5,678.90',
+      change: -178.4,
+      pct: -3.04,
+      volume: '1.2M',
+      marketCap: '0.94L Cr',
+      pe: '18.4',
+      sector: 'Pharma',
+    },
+    {
+      symbol: 'CIPLA',
+      name: 'Cipla Ltd',
+      price: '1,456.30',
+      change: -38.75,
+      pct: -2.59,
+      volume: '3.8M',
+      marketCap: '1.18L Cr',
+      pe: '28.6',
+      sector: 'Pharma',
+    },
+    {
+      symbol: 'APOLLOHOSP',
+      name: 'Apollo Hospitals',
+      price: '6,234.15',
+      change: -152.6,
+      pct: -2.39,
+      volume: '0.9M',
+      marketCap: '0.89L Cr',
+      pe: '78.4',
+      sector: 'Healthcare',
+    },
+    {
+      symbol: 'COALINDIA',
+      name: 'Coal India',
+      price: '489.60',
+      change: 14.9,
+      pct: 3.14,
+      volume: '9.8M',
+      marketCap: '3.02L Cr',
+      pe: '7.2',
+      sector: 'Mining',
+    },
+    {
+      symbol: 'JSWSTEEL',
+      name: 'JSW Steel',
+      price: '1,023.75',
+      change: 28.4,
+      pct: 2.85,
+      volume: '6.2M',
+      marketCap: '2.48L Cr',
+      pe: '34.8',
+      sector: 'Metal',
+    },
+    {
+      symbol: 'ULTRACEMCO',
+      name: 'UltraTech Cement',
+      price: '11,234.50',
+      change: 123.6,
+      pct: 1.11,
+      volume: '0.8M',
+      marketCap: '3.23L Cr',
+      pe: '42.1',
+      sector: 'Conglomerate',
+    },
+    {
+      symbol: 'NESTLEIND',
+      name: 'Nestle India',
+      price: '2,567.80',
+      change: -18.45,
+      pct: -0.71,
+      volume: '1.1M',
+      marketCap: '2.48L Cr',
+      pe: '72.8',
+      sector: 'FMCG',
+    },
+    {
+      symbol: 'TRENT',
+      name: 'Trent Ltd',
+      price: '5,678.90',
+      change: 145.2,
+      pct: 2.62,
+      volume: '3.4M',
+      marketCap: '2.02L Cr',
+      pe: '95.6',
+      sector: 'Retail',
+    },
+    {
+      symbol: 'ZOMATO',
+      name: 'Zomato Ltd',
+      price: '289.45',
+      change: 8.3,
+      pct: 2.95,
+      volume: '32.1M',
+      marketCap: '2.72L Cr',
+      pe: '245.2',
+      sector: 'Technology',
+    },
+    {
+      symbol: 'NYKAA',
+      name: 'FSN E-Comm Ventures',
+      price: '234.60',
+      change: 5.75,
+      pct: 2.52,
+      volume: '18.5M',
+      marketCap: '0.67L Cr',
+      pe: '—',
+      sector: 'E-Commerce',
+    },
+    {
+      symbol: 'POLYCAB',
+      name: 'Polycab India',
+      price: '7,234.80',
+      change: 167.4,
+      pct: 2.37,
+      volume: '1.2M',
+      marketCap: '1.08L Cr',
+      pe: '48.2',
+      sector: 'Electricals',
+    },
+    {
+      symbol: 'DEEPAKNTR',
+      name: 'Deepak Nitrite',
+      price: '2,567.30',
+      change: 56.8,
+      pct: 2.26,
+      volume: '2.8M',
+      marketCap: '0.35L Cr',
+      pe: '36.4',
+      sector: 'Chemicals',
+    },
+    {
+      symbol: 'ZYDUSLIFE',
+      name: 'Zydus Lifesciences',
+      price: '923.45',
+      change: -28.6,
+      pct: -3.01,
+      volume: '4.2M',
+      marketCap: '0.92L Cr',
+      pe: '22.8',
+      sector: 'Pharma',
+    },
+    {
+      symbol: 'LAURUSLABS',
+      name: 'Laurus Labs',
+      price: '456.80',
+      change: -12.35,
+      pct: -2.63,
+      volume: '3.8M',
+      marketCap: '0.25L Cr',
+      pe: '28.4',
+      sector: 'Pharma',
+    },
+  ];
+
+  constructor(
+    private marketData: MarketDataService,
+    private translate: TranslateService,
+  ) {
+    this.columns = [
+      {
+        key: '#',
+        label: '#',
+        width: '30px',
+        cellTemplate: this.slNumCell,
+        sortable: false,
+        hideable: false,
+      },
+      {
+        key: 'symbol',
+        label: this.translate.instant('DASHBOARD.COL_STOCK'),
+        cellTemplate: this.slStockCell,
+        sortable: true,
+      },
+      {
+        key: 'price',
+        label: this.translate.instant('DASHBOARD.COL_LTP'),
+        align: 'right',
+        pipe: 'number',
+        class: 'text-price',
+        sortable: true,
+      },
+      {
+        key: 'change',
+        label: this.translate.instant('DASHBOARD.COL_CHANGE'),
+        align: 'right',
+        cellTemplate: this.slChgCell,
+        sortable: true,
+      },
+      {
+        key: 'pct',
+        label: this.translate.instant('DASHBOARD.COL_PCT_CHANGE'),
+        align: 'right',
+        cellTemplate: this.slPctCell,
+        sortable: true,
+      },
+      {
+        key: 'volume',
+        label: this.translate.instant('DASHBOARD.COL_VOLUME'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'marketCap',
+        label: this.translate.instant('DASHBOARD.COL_MKT_CAP'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'pe',
+        label: this.translate.instant('DASHBOARD.COL_PE'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'sector',
+        label: this.translate.instant('DASHBOARD.COL_SECTOR'),
+        width: '12%',
+        cellTemplate: this.slSectorCell,
+        sortable: true,
+      },
+    ];
+
+    this.liveColumns = [
+      {
+        key: '#',
+        label: '#',
+        width: '30px',
+        cellTemplate: this.slNumCell,
+        sortable: false,
+        hideable: false,
+      },
+      {
+        key: 'symbol',
+        label: this.translate.instant('STOCKS.LIVE_SYMBOL'),
+        cellTemplate: this.slStockCell,
+        sortable: true,
+      },
+      {
+        key: 'exch_seg',
+        label: this.translate.instant('STOCKS.LIVE_EXCHANGE'),
+        sortable: true,
+      },
+      {
+        key: 'token',
+        label: this.translate.instant('STOCKS.LIVE_TOKEN'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'lotsize',
+        label: this.translate.instant('STOCKS.LIVE_LOT'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+      {
+        key: 'tick_size',
+        label: this.translate.instant('STOCKS.LIVE_TICK'),
+        align: 'right',
+        class: 'text-muted',
+        sortable: true,
+      },
+    ];
+
+    this.search$
+      .pipe(
+        debounceTime(350),
+        switchMap(() => this.runLiveSearch()),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.search$.complete();
+  }
+
+  onSearchChange(): void {
+    this.searchActive = !!this.searchQuery?.trim();
+    this.search$.next();
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchActive = false;
+    this.liveResults = [];
+    this.liveTotal = 0;
+    this.liveError = '';
+  }
+
+  private runLiveSearch() {
+    const q = this.searchQuery?.trim();
+    if (!q) {
+      this.liveResults = [];
+      this.liveTotal = 0;
+      this.liveError = '';
+      return of(null);
+    }
+    this.liveSearching = true;
+    this.liveError = '';
+    return this.marketData.searchInstruments(this.exchange, q, 25).pipe(
+      tap((result) => {
+        this.liveResults = result.instruments;
+        this.liveTotal = result.total;
+        this.liveSearching = false;
+      }),
+      catchError(() => {
+        this.liveResults = [];
+        this.liveTotal = 0;
+        this.liveError = this.translate.instant('STOCKS.LIVE_DATA_ERROR');
+        this.liveSearching = false;
+        return of(null);
+      }),
+    );
+  }
+
+  get indices() {
+    return this.marketData.indices;
+  }
+  get news() {
+    return this.marketData.news;
+  }
+  get curatedScreens() {
+    return this.marketData.curatedScreens;
+  }
+
+  get displayStocks(): StockQuote[] {
+    let stocks: StockQuote[];
+    if (this.activeTab === 'all') {
+      stocks = this.allStocks;
+    } else {
+      const tabMap: Record<string, string> = {
+        gainers: 'Gainers',
+        losers: 'Losers',
+        active: 'Most Active',
+        '52whigh': '52 Week High',
+        '52wlow': '52 Week Low',
+      };
+      stocks = this.marketData.getStockTabData(tabMap[this.activeTab]);
+    }
+    if (this.activeSector !== 'All') {
+      stocks = stocks.filter((s) => s.sector === this.activeSector);
+    }
+    return stocks;
+  }
+
+  setTab(tab: string): void {
+    this.activeTab = tab;
+  }
+  setSector(sector: string): void {
+    this.activeSector = sector;
+  }
+}

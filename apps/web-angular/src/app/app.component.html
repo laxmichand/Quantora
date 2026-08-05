@@ -1,0 +1,349 @@
+<div class="app-layout">
+  <!-- STOCK TICKER STRIP -->
+  <div class="ticker-strip">
+    <div class="ticker-track">
+      <div class="ticker-item" *ngFor="let s of tickerItems">
+        <span class="ticker-symbol">{{ s.symbol }}</span>
+        <span class="ticker-price">₹{{ s.price }}</span>
+        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+          <mat-icon>{{
+            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+          }}</mat-icon>
+          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+        </span>
+      </div>
+      <div class="ticker-item" *ngFor="let s of tickerItems">
+        <span class="ticker-symbol">{{ s.symbol }}</span>
+        <span class="ticker-price">₹{{ s.price }}</span>
+        <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+          <mat-icon>{{
+            s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+          }}</mat-icon>
+          {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER BAR -->
+  <mat-toolbar class="app-toolbar">
+    <!-- Hamburger (mobile only) -->
+    <button
+      class="mobile-hamburger"
+      (click)="toggleMobileMenu()"
+      [attr.aria-label]="'NAV.TOGGLE_MENU' | translate"
+    >
+      <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+
+    <!-- Logo -->
+    <a class="toolbar-logo" [routerLink]="isLoggedIn ? '/dashboard' : '/'">
+      <div class="logo-icon-wrap">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="toolbar-title">{{ 'APP_NAME' | translate }}</span>
+    </a>
+
+    <!-- Search (collapsible on mobile) -->
+    <div class="toolbar-search" [class.open]="searchOpen">
+      <button
+        class="search-toggle"
+        (click)="toggleSearch()"
+        [attr.aria-label]="'NAV.TOGGLE_SEARCH' | translate"
+      >
+        <mat-icon>search</mat-icon>
+      </button>
+      <input type="text" [placeholder]="'NAV.SEARCH_PLACEHOLDER' | translate" />
+    </div>
+
+    <!-- Nav Links (desktop) -->
+    <nav class="toolbar-nav">
+      <a class="nav-item" routerLink="/stocks" routerLinkActive="active">{{
+        'NAV.IN_STOCKS' | translate
+      }}</a>
+      <a class="nav-item" routerLink="/mutual-funds" routerLinkActive="active">{{
+        'NAV.MUTUAL_FUNDS' | translate
+      }}</a>
+      <a class="nav-item" routerLink="/indices" routerLinkActive="active">{{
+        'NAV.INDICES' | translate
+      }}</a>
+
+      <!-- More dropdown -->
+      <div class="more-dropdown" [class.open]="productsOpen">
+        <button
+          class="nav-item more-trigger"
+          (click)="toggleProducts()"
+          [class.active]="productsOpen"
+        >
+          {{ 'NAV.MORE' | translate }}
+          <mat-icon class="chevron" [class.open]="productsOpen">expand_more</mat-icon>
+        </button>
+        <div class="more-panel" *ngIf="productsOpen">
+          <div class="more-col">
+            <div class="more-heading">{{ 'NAV.INVEST' | translate }}</div>
+            <a class="more-item" routerLink="/stocks"
+              ><mat-icon>show_chart</mat-icon>{{ 'NAV.US_STOCKS' | translate }}</a
+            >
+            <a class="more-item" routerLink="/etf"
+              ><mat-icon>candlestick_chart</mat-icon>{{ 'NAV.ETFS' | translate }}</a
+            >
+            <a class="more-item" routerLink="/gold"
+              ><mat-icon>monetization_on</mat-icon>{{ 'NAV.GOLD' | translate }}</a
+            >
+            <a class="more-item" routerLink="/bonds"
+              ><mat-icon>request_quote</mat-icon>{{ 'NAV.BONDS' | translate }}</a
+            >
+            <a class="more-item" routerLink="/ipo"
+              ><mat-icon>new_releases</mat-icon>{{ 'NAV.IPO' | translate }}</a
+            >
+          </div>
+          <div class="more-col">
+            <div class="more-heading">{{ 'NAV.TOOLS' | translate }}</div>
+            <a class="more-item" routerLink="/screener"
+              ><mat-icon>filter_list</mat-icon>{{ 'NAV.SCREENER' | translate }}</a
+            >
+            <a class="more-item" routerLink="/compare"
+              ><mat-icon>compare_arrows</mat-icon>{{ 'NAV.COMPARE' | translate }}</a
+            >
+            <a class="more-item" routerLink="/backtest"
+              ><mat-icon>history</mat-icon>{{ 'NAV.BACKTEST' | translate }}</a
+            >
+            <a class="more-item" routerLink="/calendar"
+              ><mat-icon>calendar_month</mat-icon>{{ 'NAV.CALENDAR' | translate }}</a
+            >
+          </div>
+          <div class="more-col">
+            <div class="more-heading">{{ 'NAV.LEARN' | translate }}</div>
+            <a class="more-item" routerLink="/blog"
+              ><mat-icon>article</mat-icon>{{ 'NAV.BLOG' | translate }}</a
+            >
+            <a class="more-item" routerLink="/research"
+              ><mat-icon>science</mat-icon>{{ 'NAV.RESEARCH' | translate }}</a
+            >
+            <a class="more-item" routerLink="/learn"
+              ><mat-icon>school</mat-icon>{{ 'NAV.COURSES' | translate }}</a
+            >
+            <a class="more-item" routerLink="/news"
+              ><mat-icon>newspaper</mat-icon>{{ 'NAV.NEWS' | translate }}</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="isLoggedIn">
+        <a class="nav-item" routerLink="/portfolio" routerLinkActive="active">{{
+          'NAV.PORTFOLIO' | translate
+        }}</a>
+        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">{{
+          'NAV.DASHBOARD' | translate
+        }}</a>
+        <a class="nav-item" routerLink="/ai-chat" routerLinkActive="active">{{
+          'NAV.AI_CHAT' | translate
+        }}</a>
+      </ng-container>
+    </nav>
+
+    <!-- Right side -->
+    <div class="toolbar-right">
+      <ng-container *ngIf="isLoggedIn">
+        <button
+          mat-icon-button
+          class="toolbar-icon-btn"
+          [attr.aria-label]="'HEADER.NOTIFICATIONS' | translate"
+        >
+          <mat-icon>notifications</mat-icon>
+        </button>
+        <div class="profile-dropdown" [class.open]="profileOpen">
+          <button class="profile-btn" (click)="toggleProfile()">
+            <div class="profile-avatar"><mat-icon>person</mat-icon></div>
+          </button>
+          <div class="profile-panel" *ngIf="profileOpen">
+            <a class="profile-item" routerLink="/settings"
+              ><mat-icon>settings</mat-icon><span>{{ 'NAV.SETTINGS' | translate }}</span></a
+            >
+            <a class="profile-item" routerLink="/security"
+              ><mat-icon>security</mat-icon><span>{{ 'NAV.SECURITY' | translate }}</span></a
+            >
+            <a class="profile-item" routerLink="/settings/subscription"
+              ><mat-icon>workspace_premium</mat-icon
+              ><span>{{ 'NAV.SUBSCRIPTION' | translate }}</span></a
+            >
+            <div class="profile-divider"></div>
+            <button class="profile-item danger" (click)="logout()">
+              <mat-icon>logout</mat-icon><span>{{ 'NAV.SIGN_OUT' | translate }}</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!isLoggedIn">
+        <a routerLink="/auth/register" class="btn-signup">{{ 'NAV.SIGN_UP' | translate }}</a>
+        <a routerLink="/auth/login" class="btn-login">{{ 'NAV.LOGIN' | translate }}</a>
+      </ng-container>
+    </div>
+  </mat-toolbar>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-drawer-overlay" *ngIf="mobileMenuOpen" (click)="mobileMenuOpen = false"></div>
+  <nav class="mobile-drawer" [class.open]="mobileMenuOpen">
+    <div class="drawer-header">
+      <div class="logo-icon-wrap">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <span class="drawer-title">{{ 'APP_NAME' | translate }}</span>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">{{ 'NAV.MARKETS' | translate }}</div>
+      <a class="drawer-item" routerLink="/stocks" (click)="mobileMenuOpen = false">
+        <mat-icon>show_chart</mat-icon> {{ 'NAV.IN_STOCKS' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/mutual-funds" (click)="mobileMenuOpen = false">
+        <mat-icon>account_balance</mat-icon> {{ 'NAV.MUTUAL_FUNDS' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/indices" (click)="mobileMenuOpen = false">
+        <mat-icon>trending_up</mat-icon> {{ 'NAV.INDICES' | translate }}
+      </a>
+    </div>
+
+    <ng-container *ngIf="isLoggedIn">
+      <div class="drawer-section">
+        <div class="drawer-section-title">{{ 'NAV.PORTFOLIO' | translate }}</div>
+        <a class="drawer-item" routerLink="/portfolio" (click)="mobileMenuOpen = false">
+          <mat-icon>pie_chart</mat-icon> {{ 'NAV.PORTFOLIO' | translate }}
+        </a>
+        <a class="drawer-item" routerLink="/dashboard" (click)="mobileMenuOpen = false">
+          <mat-icon>dashboard</mat-icon> {{ 'NAV.DASHBOARD' | translate }}
+        </a>
+      </div>
+    </ng-container>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">{{ 'NAV.INVEST' | translate }}</div>
+      <a class="drawer-item" routerLink="/stocks" (click)="mobileMenuOpen = false">
+        <mat-icon>show_chart</mat-icon> {{ 'NAV.US_STOCKS' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/etf" (click)="mobileMenuOpen = false">
+        <mat-icon>candlestick_chart</mat-icon> {{ 'NAV.ETFS' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/gold" (click)="mobileMenuOpen = false">
+        <mat-icon>monetization_on</mat-icon> {{ 'NAV.GOLD' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/bonds" (click)="mobileMenuOpen = false">
+        <mat-icon>request_quote</mat-icon> {{ 'NAV.BONDS' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/ipo" (click)="mobileMenuOpen = false">
+        <mat-icon>new_releases</mat-icon> {{ 'NAV.IPO' | translate }}
+      </a>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">{{ 'NAV.TOOLS' | translate }}</div>
+      <a class="drawer-item" routerLink="/screener" (click)="mobileMenuOpen = false">
+        <mat-icon>filter_list</mat-icon> {{ 'NAV.SCREENER' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/compare" (click)="mobileMenuOpen = false">
+        <mat-icon>compare_arrows</mat-icon> {{ 'NAV.COMPARE' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/backtest" (click)="mobileMenuOpen = false">
+        <mat-icon>history</mat-icon> {{ 'NAV.BACKTEST' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/calendar" (click)="mobileMenuOpen = false">
+        <mat-icon>calendar_month</mat-icon> {{ 'NAV.CALENDAR' | translate }}
+      </a>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">{{ 'NAV.LEARN' | translate }}</div>
+      <a class="drawer-item" routerLink="/blog" (click)="mobileMenuOpen = false">
+        <mat-icon>article</mat-icon> {{ 'NAV.BLOG' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/research" (click)="mobileMenuOpen = false">
+        <mat-icon>science</mat-icon> {{ 'NAV.RESEARCH' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/learn" (click)="mobileMenuOpen = false">
+        <mat-icon>school</mat-icon> {{ 'NAV.COURSES' | translate }}
+      </a>
+      <a class="drawer-item" routerLink="/news" (click)="mobileMenuOpen = false">
+        <mat-icon>newspaper</mat-icon> {{ 'NAV.NEWS' | translate }}
+      </a>
+    </div>
+
+    <ng-container *ngIf="isLoggedIn">
+      <div class="drawer-section">
+        <div class="drawer-section-title">{{ 'NAV.ACCOUNT' | translate }}</div>
+        <a class="drawer-item" routerLink="/settings" (click)="mobileMenuOpen = false">
+          <mat-icon>settings</mat-icon> {{ 'NAV.SETTINGS' | translate }}
+        </a>
+        <a class="drawer-item" routerLink="/security" (click)="mobileMenuOpen = false">
+          <mat-icon>security</mat-icon> {{ 'NAV.SECURITY' | translate }}
+        </a>
+        <a class="drawer-item" routerLink="/settings/subscription" (click)="mobileMenuOpen = false">
+          <mat-icon>workspace_premium</mat-icon> {{ 'NAV.SUBSCRIPTION' | translate }}
+        </a>
+        <a class="drawer-item" routerLink="/ai-chat" (click)="mobileMenuOpen = false">
+          <mat-icon>smart_toy</mat-icon> {{ 'NAV.AI_CHAT' | translate }}
+        </a>
+        <button class="drawer-item drawer-logout" (click)="logout()">
+          <mat-icon>logout</mat-icon> {{ 'NAV.SIGN_OUT' | translate }}
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!isLoggedIn">
+      <div class="drawer-section">
+        <a
+          class="drawer-item drawer-signup"
+          routerLink="/auth/register"
+          (click)="mobileMenuOpen = false"
+        >
+          <mat-icon>person_add</mat-icon> {{ 'NAV.SIGN_UP' | translate }}
+        </a>
+        <a class="drawer-item" routerLink="/auth/login" (click)="mobileMenuOpen = false">
+          <mat-icon>login</mat-icon> {{ 'NAV.LOGIN' | translate }}
+        </a>
+      </div>
+    </ng-container>
+  </nav>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- FOOTER · deployment info -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span class="footer-ver" [title]="'FOOTER.NOT_FINANCIAL_ADVICE' | translate">
+        {{ 'APP_NAME' | translate }} v{{ appInfo.build.version }}
+        <span class="footer-sha">{{ appInfo.shortSha }}</span>
+      </span>
+      <span class="footer-meta" *ngIf="appInfo.buildTimeLabel">
+        · {{ 'COMMON.BUILT' | translate: { time: appInfo.buildTimeLabel } }}</span
+      >
+    </div>
+
+    <div class="footer-right">
+      <span
+        class="footer-api"
+        [title]="'HEADER.NEW_VERSION' | translate"
+        [class.ok]="appInfo.apiStatus === 'ok'"
+        [class.down]="appInfo.apiStatus === 'down'"
+      >
+        <span class="footer-dot"></span>
+        API
+        {{
+          appInfo.apiStatus === 'ok'
+            ? ('COMMON.UP' | translate)
+            : appInfo.apiStatus === 'down'
+              ? ('COMMON.DOWN' | translate)
+              : ('COMMON.CHECKING' | translate)
+        }}
+      </span>
+
+      <button class="footer-update" *ngIf="appInfo.updateAvailable" (click)="appInfo.reload()">
+        <mat-icon>system_update</mat-icon>
+        {{ 'HEADER.NEW_VERSION' | translate }}
+      </button>
+    </div>
+  </footer>
+</div>

@@ -1,0 +1,268 @@
+:host {
+  display: block;
+}
+
+// ─── Page Top ─────────────────────────────────────
+.page-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-lighter);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--heading);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  font-family: inherit;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+}
+
+.page-title-area {
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--heading);
+    margin: 0;
+    letter-spacing: -0.3px;
+  }
+  .last-updated {
+    font-size: 11px;
+    color: var(--subtext);
+  }
+}
+
+// ─── Summary Grid ─────────────────────────────────
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow: var(--card-shadow);
+  transition:
+    box-shadow 0.2s,
+    transform 0.15s;
+  cursor: default;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+    transform: translateY(-1px);
+  }
+}
+
+.summary-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--heading);
+  letter-spacing: -0.3px;
+
+  &.big {
+    font-size: 18px;
+  }
+  &.positive {
+    color: var(--positive);
+  }
+  &.negative {
+    color: var(--negative);
+  }
+}
+
+.summary-sub {
+  font-size: 11px;
+  font-weight: 600;
+  &.positive {
+    color: var(--positive);
+  }
+  &.negative {
+    color: var(--negative);
+  }
+}
+
+// ─── Portfolio Grid ───────────────────────────────
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 14px;
+  align-items: start;
+}
+
+// ─── Card ─────────────────────────────────────────
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: var(--card-shadow);
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
+  }
+}
+
+// ─── Allocation ───────────────────────────────────
+.allocation-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alloc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alloc-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--heading);
+  min-width: 70px;
+}
+
+.alloc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.alloc-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border-lighter);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.alloc-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.alloc-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--heading);
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+// ─── Mini Stats ───────────────────────────────────
+.mini-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-lighter);
+}
+
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ms-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ms-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading);
+  &.negative {
+    color: var(--negative);
+  }
+}
+
+// ─── Responsive ───────────────────────────────────
+@media (max-width: 1100px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .page-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

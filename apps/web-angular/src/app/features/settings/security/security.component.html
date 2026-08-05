@@ -1,0 +1,776 @@
+<div class="security-page" *ngIf="!loading">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>{{ 'SECURITY.TITLE' | translate }}</h1>
+      <p>{{ 'SECURITY.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <span class="user-name">
+          {{ authService.currentUser?.name || ('SECURITY.USER' | translate) }}
+        </span>
+        <span class="user-email">
+          {{ authService.currentUser?.email || '' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-layout">
+    <!-- SIDEBAR -->
+    <nav class="sec-nav">
+      <button [class.active]="activeTab === 'overview'" (click)="switchTab('overview')">
+        <span class="nav-dot"></span>
+        {{ 'SECURITY.NAV_OVERVIEW' | translate }}
+      </button>
+
+      <button [class.active]="activeTab === 'sessions'" (click)="switchTab('sessions')">
+        <span class="nav-dot"></span>
+        {{ 'SECURITY.NAV_SESSIONS' | translate }}
+      </button>
+
+      <button [class.active]="activeTab === 'trusted'" (click)="switchTab('trusted')">
+        <span class="nav-dot"></span>
+        {{ 'SECURITY.NAV_TRUSTED' | translate }}
+      </button>
+
+      <button [class.active]="activeTab === 'activity'" (click)="switchTab('activity')">
+        <span class="nav-dot"></span>
+        {{ 'SECURITY.NAV_ACTIVITY' | translate }}
+      </button>
+
+      <button [class.active]="activeTab === 'alerts'" (click)="switchTab('alerts')">
+        <span class="nav-dot"></span>
+        {{ 'SECURITY.NAV_ALERTS' | translate }}
+      </button>
+
+      <button [class.active]="activeTab === 'settings'" (click)="switchTab('settings')">
+        <span class="nav-dot"></span>
+        {{ 'SECURITY.NAV_SETTINGS' | translate }}
+      </button>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="sec-content">
+      <!-- ================================================= -->
+      <!-- OVERVIEW -->
+      <!-- ================================================= -->
+      <section class="tab-panel" *ngIf="activeTab === 'overview'">
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-num">
+              {{ activeSessions.length }}
+            </div>
+            <div class="stat-label">{{ 'SECURITY.STAT_SESSIONS' | translate }}</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-num">
+              {{ trustedDevices.length }}
+            </div>
+            <div class="stat-label">{{ 'SECURITY.STAT_TRUSTED' | translate }}</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-num stat-warn">
+              {{ activeAlerts }}
+            </div>
+            <div class="stat-label">{{ 'SECURITY.STAT_ALERTS' | translate }}</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-num" [style.color]="riskColor(accountRisk.score)">
+              {{ accountRisk.label }}
+            </div>
+            <div class="stat-label">{{ 'SECURITY.STAT_RISK' | translate }}</div>
+          </div>
+        </div>
+
+        <!-- Risk -->
+        <div class="card">
+          <h2>{{ 'SECURITY.RISK_SCORE_TITLE' | translate }}</h2>
+
+          <p class="card-sub">
+            {{ 'SECURITY.RISK_SCORE_SUB' | translate }}
+          </p>
+
+          <div class="risk-bar-wrap">
+            <div class="risk-bar">
+              <div
+                class="risk-fill"
+                [style.width.%]="accountRisk.score"
+                [style.background]="riskColor(accountRisk.score)"
+              ></div>
+            </div>
+
+            <strong class="risk-num" [style.color]="riskColor(accountRisk.score)">
+              {{ accountRisk.score }}
+            </strong>
+          </div>
+
+          <div class="risk-factors">
+            <span>{{ 'SECURITY.RISK_NO_TRAVEL' | translate }}</span>
+            <span>{{ 'SECURITY.RISK_KNOWN_DEVICE' | translate }}</span>
+            <span>{{ 'SECURITY.RISK_NO_VPN' | translate }}</span>
+
+            <span>
+              {{ 'SECURITY.RISK_EVENTS' | translate: { count: activeAlerts } }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Current Device -->
+        <div class="card">
+          <h2>{{ 'SECURITY.THIS_DEVICE' | translate }}</h2>
+
+          <p class="card-sub">{{ 'SECURITY.THIS_DEVICE_SUB' | translate }}</p>
+
+          <div class="device-card current" *ngIf="currentDevice; else noCurrentDevice">
+            <div class="d-icon">
+              <mat-icon>
+                {{ getDeviceIcon(currentDevice) }}
+              </mat-icon>
+            </div>
+
+            <div class="d-info">
+              <div class="d-title">
+                <strong>
+                  {{ currentDevice.deviceName || ('SECURITY.CURRENT_DEVICE' | translate) }}
+                </strong>
+
+                <span class="badge badge-current">
+                  {{ 'SECURITY.CURRENT_SESSION_ACTIVE' | translate }}
+                </span>
+
+                <span class="badge badge-green" *ngIf="currentDevice.trustedDevice">
+                  {{ 'DEVICES.TRUSTED' | translate }}
+                </span>
+              </div>
+
+              <div class="d-meta">
+                <span> 🌐 {{ getDeviceBrowserText(currentDevice) }} </span>
+
+                <span> 🖥️ {{ getDeviceOSText(currentDevice) }} </span>
+
+                <span *ngIf="deviceLocation(currentDevice)">
+                  📍 {{ deviceLocation(currentDevice) }}
+                </span>
+
+                <span> 🔗 {{ maskIp(currentDevice.publicIp) }} </span>
+              </div>
+
+              <div class="d-actions">
+                <button mat-stroked-button (click)="onRenameDevice(currentDevice.id)">
+                  <mat-icon>edit</mat-icon>
+                  {{ 'SECURITY.RENAME' | translate }}
+                </button>
+
+                <button mat-stroked-button color="warn" (click)="onLogoutCurrent()">
+                  <mat-icon>logout</mat-icon>
+                  {{ 'SECURITY.LOG_OUT' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noCurrentDevice>
+            <div class="empty-state">
+              <mat-icon>devices</mat-icon>
+              <h3>{{ 'SECURITY.NO_CURRENT_DEVICE' | translate }}</h3>
+              <p>{{ 'SECURITY.NO_CURRENT_DEVICE_DESC' | translate }}</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Recent Events -->
+        <div class="card" *ngIf="recentEvents.length > 0">
+          <h2>{{ 'SECURITY.RECENT_EVENTS' | translate }}</h2>
+
+          <p class="card-sub">{{ 'SECURITY.RECENT_EVENTS_SUB' | translate }}</p>
+
+          <div class="timeline">
+            <div
+              class="tl-item"
+              *ngFor="let e of recentEvents"
+              [class.warn]="e.severity !== 'info'"
+              [class.bad]="e.severity === 'critical' || e.severity === 'high'"
+            >
+              <div class="tl-title">
+                {{ e.eventType | titlecase }}
+              </div>
+
+              <div class="tl-desc" *ngIf="e.description">
+                {{ e.description }}
+              </div>
+
+              <div class="tl-when">
+                {{ timeAgo(e.createdAt) }}
+                <button
+                  mat-icon-button
+                  class="tl-dismiss"
+                  [title]="'SECURITY.MSG_EVENT_DISMISSED' | translate"
+                  [attr.aria-label]="'SECURITY.MSG_EVENT_DISMISSED' | translate"
+                  (click)="dismissEvent(e)"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No devices -->
+        <div class="card" *ngIf="devices.length === 0">
+          <div class="empty-state">
+            <mat-icon>devices</mat-icon>
+
+            <h3>{{ 'SECURITY.NO_DEVICES' | translate }}</h3>
+
+            <p>{{ 'SECURITY.NO_DEVICES_DESC' | translate }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================= -->
+      <!-- ACTIVE SESSIONS -->
+      <!-- ================================================= -->
+      <section class="tab-panel" *ngIf="activeTab === 'sessions'">
+        <div class="card">
+          <h2>{{ 'SECURITY.NAV_SESSIONS' | translate }}</h2>
+
+          <p class="card-sub">
+            {{ 'SECURITY.SESSIONS_SUB' | translate }}
+          </p>
+
+          <div class="device-list" *ngIf="activeSessions.length > 0; else noSessions">
+            <div
+              class="device-card"
+              *ngFor="let d of activeSessions"
+              [class.current]="d.sessions.some((s) => s.isCurrent)"
+            >
+              <div class="d-icon">
+                <mat-icon>
+                  {{ getDeviceIcon(d) }}
+                </mat-icon>
+              </div>
+
+              <div class="d-info">
+                <div class="d-title">
+                  <!-- Normal name -->
+                  <ng-container *ngIf="renamingDeviceId !== d.id; else renameForm">
+                    <strong>
+                      {{ d.deviceName || getDeviceBrowserText(d) + ' on ' + getDeviceOSText(d) }}
+                    </strong>
+                  </ng-container>
+
+                  <!-- Rename -->
+                  <ng-template #renameForm>
+                    <div class="rename-inline">
+                      <input
+                        #renameInput
+                        [(ngModel)]="renameValue"
+                        (keyup.enter)="saveRename(d.id)"
+                        (keyup.escape)="cancelRename()"
+                        [placeholder]="'SECURITY.DEVICE_NAME_PLACEHOLDER' | translate"
+                      />
+
+                      <button mat-icon-button (click)="saveRename(d.id)">
+                        <mat-icon>check</mat-icon>
+                      </button>
+
+                      <button mat-icon-button (click)="cancelRename()">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  </ng-template>
+
+                  <!-- Current -->
+                  <span class="badge badge-green" *ngIf="d.sessions.some((s) => s.isCurrent)">
+                    {{ 'SECURITY.CURRENT' | translate }}
+                  </span>
+
+                  <!-- Trusted -->
+                  <span class="badge badge-blue" *ngIf="d.trustedDevice">
+                    {{ 'DEVICES.TRUSTED' | translate }}
+                  </span>
+
+                  <!-- Risk -->
+                  <span class="badge" [class]="riskBadgeClass(riskScore(d))">
+                    {{ 'SECURITY.RISK' | translate }} {{ riskScore(d) }}
+                    ·
+                    {{ riskLabel(riskScore(d)) }}
+                  </span>
+                </div>
+
+                <div class="d-meta">
+                  <span> 🌐 {{ getDeviceBrowserText(d) }} </span>
+
+                  <span> 🖥️ {{ getDeviceOSText(d) }} </span>
+
+                  <span *ngIf="deviceLocation(d)"> 📍 {{ deviceLocation(d) }} </span>
+
+                  <span *ngIf="d.isp"> 📡 {{ d.isp }} </span>
+                </div>
+
+                <div class="d-meta">
+                  <span> 🔗 {{ maskIp(d.publicIp) }} </span>
+
+                  <span>
+                    🕒
+                    {{
+                      d.sessions.some((s) => s.isCurrent)
+                        ? ('SECURITY.ACTIVE_NOW' | translate)
+                        : timeAgo(d.lastActivity)
+                    }}
+                  </span>
+
+                  <span *ngIf="d.loginCount > 0">
+                    🔑
+                    {{ d.loginCount }}
+                    login{{ d.loginCount !== 1 ? 's' : '' }}
+                  </span>
+
+                  <span *ngIf="d.trustedDevice && d.trustedUntil">
+                    {{
+                      'SECURITY.TRUST_EXPIRES'
+                        | translate: { date: formatLocaleDate(d.trustedUntil) }
+                    }}
+                  </span>
+                </div>
+
+                <div class="d-actions">
+                  <!-- Rename -->
+                  <button mat-stroked-button (click)="onRenameDevice(d.id)">
+                    <mat-icon>edit</mat-icon>
+                    {{ 'SECURITY.RENAME' | translate }}
+                  </button>
+
+                  <!-- Other-device actions -->
+                  <ng-container *ngIf="!d.sessions.some((s) => s.isCurrent)">
+                    <button
+                      mat-stroked-button
+                      *ngIf="d.trustedDevice"
+                      (click)="onTrustDevice(d.id, false)"
+                    >
+                      <mat-icon>block</mat-icon>
+                      {{ 'SECURITY.UNTRUST' | translate }}
+                    </button>
+
+                    <button
+                      mat-stroked-button
+                      *ngIf="!d.trustedDevice"
+                      (click)="onTrustDevice(d.id, true)"
+                    >
+                      <mat-icon>verified_user</mat-icon>
+                      {{ 'SECURITY.TRUST' | translate }}
+                    </button>
+
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      *ngIf="d.sessions.length > 0 && d.sessions[0]?.id"
+                      (click)="onLogoutSession(d.sessions[0].id)"
+                    >
+                      <mat-icon>logout</mat-icon>
+                      {{ 'SECURITY.LOG_OUT' | translate }}
+                    </button>
+
+                    <button mat-stroked-button color="warn" (click)="onRemoveDevice(d.id)">
+                      <mat-icon>delete</mat-icon>
+                      {{ 'SECURITY.REMOVE' | translate }}
+                    </button>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noSessions>
+            <div class="empty-state">
+              <mat-icon>devices</mat-icon>
+
+              <h3>{{ 'DEVICES.NO_ACTIVE_SESSIONS' | translate }}</h3>
+
+              <p>{{ 'DEVICES.NO_ACTIVE_SESSIONS_DESC' | translate }}</p>
+            </div>
+          </ng-template>
+
+          <!-- Footer -->
+          <div class="footer-actions" *ngIf="activeSessions.length > 1">
+            <button mat-stroked-button (click)="onLogoutOthers()">
+              <mat-icon>devices</mat-icon>
+              {{ 'SECURITY.LOGOUT_OTHERS' | translate }}
+            </button>
+
+            <button mat-stroked-button color="warn" (click)="onLogoutAll()">
+              <mat-icon>devices_other</mat-icon>
+              {{ 'SECURITY.LOGOUT_ALL' | translate }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================= -->
+      <!-- TRUSTED DEVICES -->
+      <!-- ================================================= -->
+      <section class="tab-panel" *ngIf="activeTab === 'trusted'">
+        <div class="card">
+          <h2>{{ 'SECURITY.TRUSTED_TITLE' | translate }}</h2>
+
+          <p class="card-sub">
+            {{ 'SECURITY.TRUSTED_SUB' | translate }}
+          </p>
+
+          <div class="device-list" *ngIf="trustedDevices.length > 0; else noTrusted">
+            <div class="device-card" *ngFor="let d of trustedDevices">
+              <div class="d-icon">
+                <mat-icon>
+                  {{ getDeviceIcon(d) }}
+                </mat-icon>
+              </div>
+
+              <div class="d-info">
+                <div class="d-title">
+                  <strong>
+                    {{ d.deviceName || getDeviceBrowserText(d) }}
+                  </strong>
+
+                  <span class="badge badge-green" *ngIf="d.sessions.some((s) => s.isCurrent)">
+                    {{ 'SECURITY.CURRENT' | translate }}
+                  </span>
+
+                  <span class="badge badge-blue"> {{ 'DEVICES.TRUSTED' | translate }} </span>
+                </div>
+
+                <div class="d-meta">
+                  <span> 🌐 {{ getDeviceBrowserText(d) }} </span>
+
+                  <span> 🖥️ {{ getDeviceOSText(d) }} </span>
+                </div>
+
+                <div class="d-meta">
+                  <span *ngIf="deviceLocation(d)"> 📍 {{ deviceLocation(d) }} </span>
+
+                  <span *ngIf="d.trustedUntil">
+                    {{
+                      'SECURITY.TRUST_EXPIRES'
+                        | translate: { date: formatLocaleDate(d.trustedUntil) }
+                    }}
+                  </span>
+
+                  <span>
+                    🕒 {{ 'DEVICES.LAST_ACTIVE' | translate }} {{ timeAgo(d.lastActivity) }}
+                  </span>
+                </div>
+
+                <div class="d-actions">
+                  <button mat-stroked-button color="warn" (click)="onTrustDevice(d.id, false)">
+                    <mat-icon>block</mat-icon>
+                    {{ 'SECURITY.REMOVE_TRUST' | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noTrusted>
+            <div class="empty-state">
+              <mat-icon>verified_user</mat-icon>
+
+              <h3>{{ 'SECURITY.NO_TRUSTED' | translate }}</h3>
+
+              <p>{{ 'SECURITY.NO_TRUSTED_DESC' | translate }}</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+
+      <!-- ================================================= -->
+      <!-- LOGIN HISTORY -->
+      <!-- ================================================= -->
+      <section class="tab-panel" *ngIf="activeTab === 'activity'">
+        <div class="card">
+          <h2>{{ 'SECURITY.HISTORY_TITLE' | translate }}</h2>
+
+          <p class="card-sub">
+            {{ 'SECURITY.HISTORY_SUB' | translate }}
+          </p>
+
+          <div class="table-wrap">
+            <table *ngIf="loginHistory.length > 0">
+              <thead>
+                <tr>
+                  <th>{{ 'SECURITY.COL_EVENT' | translate }}</th>
+                  <th>{{ 'SECURITY.COL_DEVICE' | translate }}</th>
+                  <th>{{ 'SECURITY.COL_LOCATION' | translate }}</th>
+                  <th>{{ 'SECURITY.COL_IP' | translate }}</th>
+                  <th>{{ 'SECURITY.COL_RISK' | translate }}</th>
+                  <th>{{ 'SECURITY.COL_WHEN' | translate }}</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let h of loginHistory">
+                  <td>
+                    <span class="event-label" [class]="loginHistoryLevel(h)">
+                      {{
+                        h.success
+                          ? ('SECURITY.LOGIN_SUCCESS' | translate)
+                          : ('SECURITY.LOGIN_FAILED' | translate)
+                      }}
+                    </span>
+
+                    <span *ngIf="h.failureReason" class="fail-reason">
+                      · {{ h.failureReason }}
+                    </span>
+                  </td>
+
+                  <td>
+                    {{ historyDeviceLabel(h) }}
+                  </td>
+
+                  <td>
+                    {{ historyLocation(h) }}
+                  </td>
+
+                  <td class="ip-cell">
+                    {{ maskIp(h.ipAddress) }}
+                  </td>
+
+                  <td>
+                    <span class="risk-pill" [class]="riskBadgeClass(h.riskScore)">
+                      {{ h.riskScore }}
+                    </span>
+                  </td>
+
+                  <td class="time-cell">
+                    {{ timeAgo(h.createdAt) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="empty-state" *ngIf="loginHistory.length === 0">
+              <mat-icon>history</mat-icon>
+
+              <h3>{{ 'SECURITY.NO_HISTORY' | translate }}</h3>
+
+              <p>{{ 'SECURITY.NO_HISTORY_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================= -->
+      <!-- SECURITY ALERTS -->
+      <!-- ================================================= -->
+      <section class="tab-panel" *ngIf="activeTab === 'alerts'">
+        <div class="card">
+          <h2>{{ 'SECURITY.ALERTS_TITLE' | translate }}</h2>
+
+          <p class="card-sub">{{ 'SECURITY.ALERTS_SUB' | translate }}</p>
+
+          <div class="timeline" *ngIf="visibleSecurityEvents.length > 0; else noAlerts">
+            <div
+              class="tl-item"
+              *ngFor="let e of visibleSecurityEvents"
+              [class.warn]="e.severity !== 'info'"
+              [class.bad]="e.severity === 'critical' || e.severity === 'high'"
+            >
+              <div class="tl-title">
+                {{ e.eventType | titlecase }}
+              </div>
+
+              <div class="tl-desc" *ngIf="e.description">
+                {{ e.description }}
+              </div>
+
+              <div class="tl-when">
+                {{ timeAgo(e.createdAt) }}
+                <button
+                  mat-icon-button
+                  class="tl-dismiss"
+                  [title]="'SECURITY.MSG_EVENT_DISMISSED' | translate"
+                  [attr.aria-label]="'SECURITY.MSG_EVENT_DISMISSED' | translate"
+                  (click)="dismissEvent(e)"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noAlerts>
+            <div class="empty-state">
+              <mat-icon>security</mat-icon>
+
+              <h3>{{ 'SECURITY.ALL_CLEAR' | translate }}</h3>
+
+              <p>{{ 'SECURITY.ALL_CLEAR_DESC' | translate }}</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+
+      <!-- ================================================= -->
+      <!-- SETTINGS -->
+      <!-- ================================================= -->
+      <section class="tab-panel" *ngIf="activeTab === 'settings'">
+        <div class="card">
+          <h2>{{ 'SECURITY.AUTH_TITLE' | translate }}</h2>
+
+          <p class="card-sub">{{ 'SECURITY.AUTH_SUB' | translate }}</p>
+
+          <!-- MFA -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">{{ 'SECURITY.SETTING_MFA' | translate }}</div>
+
+              <div class="setting-desc">{{ 'SECURITY.SETTING_MFA_DESC' | translate }}</div>
+            </div>
+
+            <label class="toggle">
+              <input type="checkbox" [checked]="settings.mfa" (change)="toggleSetting('mfa')" />
+
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Biometric -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">{{ 'SECURITY.SETTING_BIOMETRIC' | translate }}</div>
+
+              <div class="setting-desc">{{ 'SECURITY.SETTING_BIOMETRIC_DESC' | translate }}</div>
+            </div>
+
+            <label class="toggle">
+              <input
+                type="checkbox"
+                [checked]="settings.biometric"
+                (change)="toggleSetting('biometric')"
+              />
+
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Adaptive MFA -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">{{ 'SECURITY.SETTING_ADAPTIVE' | translate }}</div>
+
+              <div class="setting-desc">{{ 'SECURITY.SETTING_ADAPTIVE_DESC' | translate }}</div>
+            </div>
+
+            <label class="toggle">
+              <input
+                type="checkbox"
+                [checked]="settings.adaptiveMfa"
+                (change)="toggleSetting('adaptiveMfa')"
+              />
+
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- New Device Alerts -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">{{ 'SECURITY.SETTING_DEVICE_ALERTS' | translate }}</div>
+
+              <div class="setting-desc">
+                {{ 'SECURITY.SETTING_DEVICE_ALERTS_DESC' | translate }}
+              </div>
+            </div>
+
+            <label class="toggle">
+              <input
+                type="checkbox"
+                [checked]="settings.newDeviceAlerts"
+                (change)="toggleSetting('newDeviceAlerts')"
+              />
+
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- TOR -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-title">{{ 'SECURITY.SETTING_TOR' | translate }}</div>
+
+              <div class="setting-desc">{{ 'SECURITY.SETTING_TOR_DESC' | translate }}</div>
+            </div>
+
+            <label class="toggle">
+              <input
+                type="checkbox"
+                [checked]="settings.torBlocking"
+                (change)="toggleSetting('torBlocking')"
+              />
+
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Session Policy -->
+        <div class="card">
+          <h2>{{ 'SECURITY.SESSION_POLICY' | translate }}</h2>
+
+          <p class="card-sub">{{ 'SECURITY.SESSION_POLICY_SUB' | translate }}</p>
+
+          <div class="policy-row">
+            <span>{{ 'SECURITY.POLICY_IDLE' | translate }}</span>
+            <span class="policy-val badge-blue">
+              {{ 'SECURITY.POLICY_IDLE_VAL' | translate }}
+            </span>
+          </div>
+
+          <div class="policy-row">
+            <span>{{ 'SECURITY.POLICY_LIFETIME' | translate }}</span>
+            <span class="policy-val badge-blue">
+              {{ 'SECURITY.POLICY_LIFETIME_VAL' | translate }}
+            </span>
+          </div>
+
+          <div class="policy-row">
+            <span>{{ 'SECURITY.POLICY_ROTATION' | translate }}</span>
+            <span class="policy-val badge-green">
+              {{ 'SECURITY.POLICY_ROTATION_VAL' | translate }}
+            </span>
+          </div>
+
+          <div class="policy-row">
+            <span>{{ 'SECURITY.POLICY_TRUST_WINDOW' | translate }}</span>
+            <span class="policy-val badge-blue">
+              {{ 'SECURITY.POLICY_TRUST_VAL' | translate }}
+            </span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================= -->
+
+<!-- LOADING -->
+
+<!-- ======================================================= -->
+
+<div class="loading-state" *ngIf="loading">
+  <div class="skeleton-stats">
+    <div class="skeleton-stat" *ngFor="let item of [1, 2, 3, 4]"></div>
+  </div>
+
+  <div class="skeleton-card">
+    <div class="skeleton-line w-40"></div>
+    <div class="skeleton-line w-70"></div>
+    <div class="skeleton-line w-100"></div>
+    <div class="skeleton-line w-50"></div>
+  </div>
+</div>

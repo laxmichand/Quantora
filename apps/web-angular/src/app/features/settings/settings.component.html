@@ -1,0 +1,103 @@
+<div class="settings-page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>{{ 'SETTINGS.TITLE' | translate }}</h1>
+      <p>{{ 'SETTINGS.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <span class="user-name">
+          {{ authService.currentUser?.name || ('SETTINGS.USER' | translate) }}
+        </span>
+        <span class="user-email">
+          {{ authService.currentUser?.email || '' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-layout">
+    <app-settings-nav tab="general"></app-settings-nav>
+
+    <div class="settings-content">
+      <div class="settings-grid">
+        <!-- Appearance -->
+        <div class="settings-card">
+          <div class="card-header">
+            <mat-icon>palette</mat-icon>
+            <div>
+              <h3>{{ 'SETTINGS.APPEARANCE' | translate }}</h3>
+              <p>{{ 'SETTINGS.APPEARANCE_DESC' | translate }}</p>
+            </div>
+          </div>
+          <div class="theme-grid three-col">
+            <button
+              *ngFor="let theme of themes"
+              class="theme-option"
+              [class.active]="currentTheme === theme.name"
+              (click)="onThemeChange(theme.name)"
+            >
+              <div class="theme-preview" [attr.data-preview]="theme.name">
+                <div class="preview-header"></div>
+                <div class="preview-body"></div>
+              </div>
+              <span class="theme-label">{{ theme.label | translate }}</span>
+              <span class="theme-badge" *ngIf="theme.name === 'default'">
+                {{ isSystemDark ? ('SETTINGS.DARK' | translate) : ('SETTINGS.LIGHT' | translate) }}
+                🌙/☀️
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Language -->
+        <div class="settings-card">
+          <div class="card-header">
+            <mat-icon>translate</mat-icon>
+            <div>
+              <h3>{{ 'SETTINGS.LANGUAGE' | translate }}</h3>
+              <p>{{ 'SETTINGS.LANGUAGE_DESC' | translate }}</p>
+            </div>
+          </div>
+          <div class="lang-options">
+            <button
+              class="lang-option"
+              [class.active]="currentLang === 'en'"
+              (click)="onLangChange('en')"
+            >
+              <span class="lang-flag">EN</span>
+              <div>
+                <span class="lang-name">{{ 'SETTINGS.LANG_ENGLISH' | translate }}</span>
+                <span class="lang-native">English</span>
+              </div>
+            </button>
+            <button
+              class="lang-option"
+              [class.active]="currentLang === 'hi'"
+              (click)="onLangChange('hi')"
+            >
+              <span class="lang-flag">HI</span>
+              <div>
+                <span class="lang-name">{{ 'SETTINGS.LANG_HINDI' | translate }}</span>
+                <span class="lang-native">{{ 'SETTINGS.LANG_NATIVE_HINDI' | translate }}</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-card">
+          <div class="card-header">
+            <mat-icon>notifications</mat-icon>
+            <div>
+              <h3>{{ 'SETTINGS.NOTIFICATIONS' | translate }}</h3>
+              <p>{{ 'SETTINGS.NOTIFICATIONS_DESC' | translate }}</p>
+            </div>
+          </div>
+          <div class="coming-soon">{{ 'SETTINGS.COMING_SOON' | translate }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

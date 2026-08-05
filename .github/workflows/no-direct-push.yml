@@ -1,0 +1,56 @@
+name: No Direct Push to Main
+
+# Blocks (fails CI on) commits pushed directly to `main` so that every change
+# must go through a pull request. Merge commits, squash merges and rebase
+# merges from a PR are allowed; the merged commit is identified via the GitHub
+# API's commit->PR association instead of guessing from the commit message.
+#
+# NOTE: this is a CI guard (red X), not a hard block. For a hard block also
+# enable native branch protection: Settings > Branches > Add branch ruleset
+# requiring a pull request + approvals on `main`.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  enforce-pr-only:
+    name: Enforce PR-only pushes to main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the pushed commit is from a merged PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.after }}"
+          MSG="${{ github.event.head_commit.message }}"
+
+          # Fast path: GitHub-style merge commit for a PR merge.
+          if [[ "$MSG" == "Merge pull request #"* ]]; then
+            echo "✅ Merge commit of PR — allowed"
+            exit 0
+          fi
+
+          # Slow path: squash/rebase merges. Ask the API whether this commit is
+          # associated with a merged PR. Retry briefly because the PR -> commit
+          # association can lag a few seconds behind the push event.
+          for i in 1 2 3 4 5; do
+            PRS=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" \
+              --jq '[.[] | select(.merged_at != null)] | length' 2>/dev/null || echo 0)
+            if [ "$PRS" -gt 0 ]; then
+              echo "✅ Commit belongs to a merged PR — allowed"
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo ""
+          echo "❌ Direct push to main is not allowed."
+          echo "   Every change to main must come through a pull request."
+          echo "   Create one here: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pulls"
+          echo ""
+          exit 1

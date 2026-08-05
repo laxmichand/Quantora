@@ -1,0 +1,249 @@
+name: Jira Automation
+
+# Drives QUAN issues through the workflow based on GitHub activity.
+# Maps logical pipeline stages to Jira workflow statuses that actually exist
+# (Jira Cloud cannot add statuses/transitions via API):
+#
+#   Backlog/To Do -> In Progress -> Code Review -> In QA (QA Testing)
+#   -> QA Failed -> Passed (QA Passed, manual) -> Ready for Release -> Released -> Closed
+#
+# Rules implemented:
+#   1. Branch/commit with a Jira key -> To Do -> In Progress
+#   2. PR opened/reopened/ready -> In Progress -> Code Review
+#   3. PR approved + required CI green -> Code Review -> In QA (QA Testing)
+#   4. CI failure -> comment on the Jira issue, stay in place
+#   5. Issues in "QA Failed" stay there; returning them to In Progress is done
+#      manually by the user (never auto-returned).
+#   6. New commits pushed to PR -> back to Code Review (re-review before QA)
+#   7. QA manual pass (Jira UI -> Passed) is never automated
+#   8/9/10. Release flow lives in jira-release.yml (after real prod deploy).
+#
+# Additional rule:
+#   While an issue is "In QA", any pending or failed CI check -> QA Failed.
+#
+# Required GitHub repository secrets:
+#   JIRA_URL, JIRA_USERNAME, JIRA_API_TOKEN
+
+on:
+  push:
+    branches: ['feature/**', 'fix/**', 'feat/**', 'chore/**', 'docs/**']
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+  workflow_dispatch:
+
+env:
+  JIRA_URL: ${{ secrets.JIRA_URL }}
+  JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+  NODE_VERSION: '24'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Rule 1: commits on a feature branch carry a Jira key -> In Progress.
+  branch-in-progress:
+    name: Branch commits -> In Progress
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature')
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Move issues to In Progress
+        run: |
+          LOG="$(git log --format='%s%n%b' -5 "$GITHUB_SHA")"
+          KEYS="$(node scripts/jira-sync.mjs extract-keys "$LOG" | sort -u)"
+          if [ -z "$KEYS" ]; then echo "No Jira keys in recent commits"; exit 0; fi
+          BRANCH="$(echo "$GITHUB_REF" | sed 's#refs/heads/##')"
+          for key in $KEYS; do
+            node scripts/jira-sync.mjs transition "$key" "In Progress" "CI/CD: commits pushed to $BRANCH"
+          done
+
+  # Rules 2 & 6: PR lifecycle drives Code Review.
+  pr-code-review:
+    name: PR -> Code Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'ready_for_review' || github.event.action == 'synchronize')
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Extract Jira keys from PR
+        id: keys
+        run: |
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+          echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
+      - name: Move issues to Code Review
+        env:
+          KEYS: ${{ steps.keys.outputs.keys }}
+          ACTION: ${{ github.event.action }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$KEYS" ]; then echo "No Jira keys in PR #$PR_NUM"; exit 0; fi
+          for key in $KEYS; do
+            node scripts/jira-sync.mjs transition "$key" "Code Review" "CI/CD: PR #$PR_NUM $ACTION -> Code Review"
+          done
+
+  # Rule 4: failed CI run posts a comment on the linked issue.
+  ci-failure-comment:
+    name: CI failure -> Jira comment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Extract Jira keys from PR
+        id: keys
+        run: |
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+          echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
+      - name: Check CI status
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.pull_request.head.sha }}"
+          STATE=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs" --jq '.check_runs | map(.conclusion) | map(select(. == "failure" or . == "timed_out" or . == "cancelled")) | length')
+          echo "failed_checks=$STATE" >> "$GITHUB_OUTPUT"
+      - name: Comment on failure
+        if: steps.ci.outputs.failed_checks != '0'
+        env:
+          KEYS: ${{ steps.keys.outputs.keys }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$KEYS" ]; then exit 0; fi
+          for key in $KEYS; do
+            node scripts/jira-sync.mjs comment "$key" "CI/CD: PR #$PR_NUM has failed checks. Fix and push again. See $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$PR_NUM"
+          done
+
+  # Rule 3: approved PR + green CI -> In QA (QA Testing).
+  approved-to-qa:
+    name: Approved PR -> QA Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Extract Jira keys from PR
+        id: keys
+        run: |
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+          echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
+      - name: Require green CI before QA
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="${{ github.event.pull_request.head.sha }}"
+          gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs" --jq '.check_runs | map(.conclusion)' > /tmp/checkstate.json
+          FAILED=$(jq '[.[] | select(. == "failure" or . == "timed_out" or . == "cancelled")] | length' /tmp/checkstate.json)
+          PENDING=$(jq '[.[] | select(. == null or . == "pending")] | length' /tmp/checkstate.json)
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+          echo "pending=$PENDING" >> "$GITHUB_OUTPUT"
+      - name: Move to QA Testing
+        if: steps.ci.outputs.failed == '0' && steps.ci.outputs.pending == '0'
+        env:
+          KEYS: ${{ steps.keys.outputs.keys }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$KEYS" ]; then echo "No Jira keys"; exit 0; fi
+          for key in $KEYS; do
+            node scripts/jira-sync.mjs transition "$key" "In QA" "CI/CD: PR #$PR_NUM approved, CI green -> QA Testing"
+          done
+      - name: Comment waiting on CI
+        if: steps.ci.outputs.failed != '0' || steps.ci.outputs.pending != '0'
+        env:
+          KEYS: ${{ steps.keys.outputs.keys }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$KEYS" ]; then exit 0; fi
+          for key in $KEYS; do
+            node scripts/jira-sync.mjs comment "$key" "CI/CD: PR #$PR_NUM approved but CI not green yet (failed=${{ steps.ci.outputs.failed }} pending=${{ steps.ci.outputs.pending }})"
+          done
+
+  # QA gate: while an issue is "In QA", any pending or failed CI check moves it
+  # to "QA Failed" so QA reviewers know it is not ready to test.
+  qa-gate:
+    name: In QA + CI not green -> QA Failed
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'check_suite' && github.event.action == 'completed') || github.event_name == 'pull_request_review'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Resolve PR from event
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" == "check_suite" ]; then
+            HEAD="${{ github.event.check_suite.head_sha }}"
+            PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD/pulls" --jq '.[0].number // empty')
+          else
+            PR="${{ github.event.pull_request.number }}"
+          fi
+          if [ -z "$PR" ]; then echo "No PR for this check_suite"; exit 0; fi
+          echo "number=$PR" >> "$GITHUB_OUTPUT"
+      - name: Extract Jira keys from PR
+        if: steps.pr.outputs.number != ''
+        id: keys
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
+        run: |
+          PR_DATA=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUM" --jq '{title:.title, body:.body, head:.head.ref}')
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "$(echo "$PR_DATA" | jq -r .title)" "$(echo "$PR_DATA" | jq -r .body)" "$(echo "$PR_DATA" | jq -r .head)" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+          echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
+      - name: Check CI status for the PR head
+        if: steps.pr.outputs.number != ''
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
+        run: |
+          if [ "${{ github.event_name }}" == "check_suite" ]; then
+            CONCLUSION="${{ github.event.check_suite.conclusion }}"
+            if [ "$CONCLUSION" == "success" ]; then
+              echo "failed=0" >> "$GITHUB_OUTPUT"; echo "pending=0" >> "$GITHUB_OUTPUT"; exit 0
+            elif [ "$CONCLUSION" == "pending" ]; then
+              echo "failed=0" >> "$GITHUB_OUTPUT"; echo "pending=1" >> "$GITHUB_OUTPUT"; exit 0
+            else
+              echo "failed=1" >> "$GITHUB_OUTPUT"; echo "pending=0" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+          fi
+          HEAD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUM" --jq .head.sha)
+          gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD/check-runs" --jq '.check_runs | map(.conclusion)' > /tmp/checkstate.json
+          FAILED=$(jq '[.[] | select(. == "failure" or . == "timed_out" or . == "cancelled")] | length' /tmp/checkstate.json)
+          PENDING=$(jq '[.[] | select(. == null or . == "pending")] | length' /tmp/checkstate.json)
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+          echo "pending=$PENDING" >> "$GITHUB_OUTPUT"
+      - name: Move In QA issues to QA Failed
+        if: steps.pr.outputs.number != '' && (steps.ci.outputs.failed != '0' || steps.ci.outputs.pending != '0')
+        env:
+          KEYS: ${{ steps.keys.outputs.keys }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
+        run: |
+          if [ -z "$KEYS" ]; then echo "No Jira keys"; exit 0; fi
+          for key in $KEYS; do
+            CURRENT=$(node scripts/jira-sync.mjs status "$key")
+            if [ "$CURRENT" == "In QA" ]; then
+              node scripts/jira-sync.mjs transition "$key" "QA Failed" "CI/CD: PR #$PR_NUM CI not green while in QA (failed=${{ steps.ci.outputs.failed }} pending=${{ steps.ci.outputs.pending }}) -> QA Failed"
+            else
+              echo "Skip $key (status: $CURRENT)"
+            fi
+          done

@@ -1,0 +1,103 @@
+<div class="subscription-page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>{{ 'SUBSCRIPTION.TITLE' | translate }}</h1>
+      <p>{{ 'SUBSCRIPTION.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="header-right">
+      <div class="user-chip">
+        <span class="user-name">
+          {{ authService.currentUser?.name || ('SETTINGS.USER' | translate) }}
+        </span>
+        <span class="user-email">
+          {{ authService.currentUser?.email || '' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="subscription-layout">
+    <app-settings-nav tab="subscription"></app-settings-nav>
+
+    <div class="subscription-content">
+      <!-- TICKER STRIP -->
+      <div class="ticker-strip">
+        <div class="ticker-track">
+          <div class="ticker-item" *ngFor="let s of tickerItems">
+            <span class="ticker-symbol">{{ s.symbol }}</span>
+            <span class="ticker-price">₹{{ s.price }}</span>
+            <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+              <mat-icon>{{
+                s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+              }}</mat-icon>
+              {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+            </span>
+          </div>
+          <div class="ticker-item" *ngFor="let s of tickerItems">
+            <span class="ticker-symbol">{{ s.symbol }}</span>
+            <span class="ticker-price">₹{{ s.price }}</span>
+            <span class="ticker-change" [class.up]="s.change > 0" [class.down]="s.change < 0">
+              <mat-icon>{{
+                s.change > 0 ? 'arrow_upward' : s.change < 0 ? 'arrow_downward' : 'remove'
+              }}</mat-icon>
+              {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CURRENT PLAN -->
+      <div class="current-plan" [class.pro]="isPro">
+        <mat-icon>{{ isPro ? 'workspace_premium' : 'person' }}</mat-icon>
+        <div class="current-plan-info">
+          <span class="plan-label">{{ 'SUBSCRIPTION.CURRENT_PLAN' | translate }}</span>
+          <span class="plan-name">{{ currentPlanName }}</span>
+        </div>
+        <span class="plan-status">
+          {{
+            isPro
+              ? ('SUBSCRIPTION.ACTIVE' | translate)
+              : ('SUBSCRIPTION.UPGRADE_TO_UNLOCK' | translate)
+          }}
+        </span>
+      </div>
+
+      <!-- PLANS -->
+      <div class="plans-grid">
+        <div class="plan-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
+          <div class="plan-badge" *ngIf="plan.highlight">
+            {{ 'SUBSCRIPTION.POPULAR' | translate }}
+          </div>
+          <h3 class="plan-name">{{ plan.name | translate }}</h3>
+          <p class="plan-tagline">{{ plan.tagline | translate }}</p>
+          <div class="plan-price">
+            <span class="price">{{ plan.price }}</span>
+            <span class="period">{{ plan.period | translate }}</span>
+          </div>
+          <ul class="plan-features">
+            <li *ngFor="let f of plan.features">
+              <mat-icon>check_circle</mat-icon>
+              {{ f | translate }}
+            </li>
+          </ul>
+          <button
+            class="plan-cta"
+            [class.primary]="plan.highlight"
+            [disabled]="(plan.highlight && isPro) || (!plan.highlight && !isPro)"
+          >
+            {{
+              plan.highlight
+                ? isPro
+                  ? ('SUBSCRIPTION.CURRENT_PLAN_BTN' | translate)
+                  : ('SUBSCRIPTION.UPGRADE_TO_PRO' | translate)
+                : isPro
+                  ? ('SUBSCRIPTION.DOWNGRADE' | translate)
+                  : ('SUBSCRIPTION.CURRENT_PLAN_BTN' | translate)
+            }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

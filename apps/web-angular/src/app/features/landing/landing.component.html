@@ -1,0 +1,491 @@
+<div class="landing-page">
+  <!-- ═══════════════════════ HERO ═══════════════════════ -->
+  <section class="tt-hero">
+    <!-- Index Strip -->
+    <div class="index-strip">
+      <div class="index-strip-inner">
+        <a *ngFor="let idx of indices" class="index-chip" routerLink="/stocks">
+          <span class="idx-name">{{ idx.name }}</span>
+          <span class="idx-val">{{ idx.value }}</span>
+          <span class="idx-chg" [class.green]="idx.change > 0" [class.red]="idx.change < 0">
+            {{ idx.change > 0 ? '+' : '' }}{{ idx.change }}%
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="tt-hero-inner">
+      <div class="tt-hero-left">
+        <div class="market-status-badge">
+          <span class="status-dot"></span>
+          {{ marketStatus }}
+        </div>
+        <h1 class="hero-title">
+          {{ 'LANDING.HERO_TITLE_L1' | translate }}<br /><span class="accent">{{
+            'LANDING.HERO_TITLE_L2' | translate
+          }}</span>
+        </h1>
+        <p class="hero-desc">
+          {{ 'LANDING.HERO_DESC' | translate }}
+        </p>
+        <div class="hero-cta">
+          <a routerLink="/auth/register" class="btn-primary-lg">
+            <mat-icon>rocket_launch</mat-icon>
+            {{ 'LANDING.GET_STARTED' | translate }}
+          </a>
+          <a routerLink="/auth/login" class="btn-outline-lg"> {{ 'AUTH.SIGN_IN' | translate }} </a>
+        </div>
+        <div class="hero-trust">
+          <mat-icon>verified</mat-icon>
+          {{ 'LANDING.NO_CARD' | translate }}
+        </div>
+      </div>
+
+      <div class="tt-hero-right">
+        <!-- Quantora AI Score (branded feature) -->
+        <div class="ai-score-card">
+          <div class="ai-score-header">
+            <div class="ai-score-label">
+              <mat-icon>psychology</mat-icon>
+              <span>{{ 'LANDING.AI_SCORE' | translate }}</span>
+            </div>
+            <span class="ai-score-badge bullish">{{ 'LANDING.BULLISH' | translate }}</span>
+          </div>
+          <div class="ai-score-ring">
+            <svg viewBox="0 0 120 120" class="ring-svg">
+              <circle cx="60" cy="60" r="52" class="ring-track" />
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                class="ring-fill"
+                stroke-dasharray="327"
+                stroke-dashoffset="59"
+              />
+            </svg>
+            <div class="ring-center">
+              <span class="ring-val">{{ aiScore.overall }}</span>
+              <span class="ring-max">/10</span>
+            </div>
+          </div>
+          <div class="ai-score-bars">
+            <div class="score-bar-row">
+              <span class="bar-label">{{ 'LANDING.TECHNICALS' | translate }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="aiScore.technicals * 10"></div>
+              </div>
+              <span class="bar-val green">{{ aiScore.technicals }}</span>
+            </div>
+            <div class="score-bar-row">
+              <span class="bar-label">{{ 'LANDING.FUNDAMENTALS' | translate }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="aiScore.fundamentals * 10"></div>
+              </div>
+              <span class="bar-val green">{{ aiScore.fundamentals }}</span>
+            </div>
+            <div class="score-bar-row">
+              <span class="bar-label">{{ 'LANDING.SENTIMENT' | translate }}</span>
+              <div class="bar-track">
+                <div class="bar-fill orange" [style.width.%]="aiScore.sentiment * 10"></div>
+              </div>
+              <span class="bar-val orange">{{ aiScore.sentiment }}</span>
+            </div>
+            <div class="score-bar-row">
+              <span class="bar-label">{{ 'LANDING.MOMENTUM' | translate }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="aiScore.momentum * 10"></div>
+              </div>
+              <span class="bar-val green">{{ aiScore.momentum }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ TODAY'S STOCKS ═══════════════════════ -->
+  <section class="tt-stocks reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">{{ 'LANDING.TODAYS_STOCKS' | translate }}</h2>
+        <a routerLink="/stocks" class="section-link"
+          >{{ 'LANDING.SEE_ALL' | translate }} <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="stock-tabs">
+        <button
+          *ngFor="let tab of stockTabs; let i = index"
+          class="tab-btn"
+          [class.active]="activeStockTab === i"
+          (click)="setActiveStockTab(i)"
+        >
+          {{ tab | translate }}
+        </button>
+      </div>
+      <app-data-table
+        [columns]="stockColumns"
+        [data]="stockData[stockTabs[activeStockTab]]"
+        [config]="{ showSearch: false, showColumnToggle: false, showPagination: false, maxRows: 5 }"
+      >
+        <ng-template #stockNumCell let-row let-i="index">
+          <span class="row-num">{{ i + 1 }}</span>
+        </ng-template>
+        <ng-template #stockSymCell let-row>
+          <span class="stock-name-cell">
+            <span class="stock-symbol">{{ row.symbol }}</span>
+            <span class="stock-fullname">{{ row.name }}</span>
+          </span>
+        </ng-template>
+        <ng-template #stockChgCell let-row>
+          <span [class.text-green]="row.change > 0" [class.text-red]="row.change < 0">
+            {{ row.change > 0 ? '+' : '' }}{{ row.change | number: '1.2-2' }}
+          </span>
+        </ng-template>
+        <ng-template #stockPctCell let-row>
+          <span class="pct-badge" [class.green]="row.pct > 0" [class.red]="row.pct < 0">
+            {{ row.pct > 0 ? '+' : '' }}{{ row.pct }}%
+          </span>
+        </ng-template>
+      </app-data-table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ MUTUAL FUNDS & ETFs ═══════════════════════ -->
+  <section class="tt-mf reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">{{ 'LANDING.MUTUAL_FUNDS_ETFS' | translate }}</h2>
+        <a routerLink="/mutual-funds" class="section-link"
+          >{{ 'LANDING.SEE_ALL' | translate }} <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="stock-tabs">
+        <button
+          *ngFor="let tab of mfTabs; let i = index"
+          class="tab-btn"
+          [class.active]="activeMfTab === i"
+          (click)="setActiveMfTab(i)"
+        >
+          {{ tab | translate }}
+        </button>
+      </div>
+      <app-data-table
+        [columns]="mfColumns"
+        [data]="mfData[mfTabs[activeMfTab]]"
+        [config]="{ showSearch: false, showColumnToggle: false, showPagination: false, maxRows: 5 }"
+      >
+        <ng-template #fundNumCell let-row let-i="index">
+          <span class="row-num">{{ i + 1 }}</span>
+        </ng-template>
+        <ng-template #fundNameTpl let-row>
+          <span class="fund-name">{{ row.name }}</span>
+        </ng-template>
+        <ng-template #fundCatTpl let-row>
+          <span class="cat-badge">{{ row.category }}</span>
+        </ng-template>
+        <ng-template #fundRiskTpl let-row>
+          <span
+            class="risk-badge"
+            [class.risk-mod]="row.risk === 'Moderate'"
+            [class.risk-high]="row.risk === 'High' || row.risk === 'Very High'"
+          >
+            {{ row.risk }}
+          </span>
+        </ng-template>
+      </app-data-table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ CURATED SCREENS & DEALS ═══════════════════════ -->
+  <section class="tt-screens reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">{{ 'LANDING.CURATED_SCREENS' | translate }}</h2>
+        <a routerLink="/screener" class="section-link"
+          >{{ 'LANDING.OPEN_SCREENER' | translate }} <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="screens-columns">
+        <!-- Stock Screens -->
+        <div class="screen-col">
+          <div class="screen-col-header">
+            <mat-icon>filter_list</mat-icon>
+            <span>{{ 'LANDING.STOCK_SCREENS' | translate }}</span>
+          </div>
+          <div class="screen-list">
+            <a
+              class="screen-item"
+              *ngFor="let s of curatedScreens | slice: 0 : 4"
+              routerLink="/screener"
+            >
+              <span class="screen-item-name">{{ s.name }}</span>
+              <span class="screen-item-count">{{
+                'STOCKS.STOCKS_COUNT' | translate: { count: s.count }
+              }}</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          </div>
+        </div>
+        <!-- Deals -->
+        <div class="screen-col">
+          <div class="screen-col-header">
+            <mat-icon>handshake</mat-icon>
+            <span>{{ 'LANDING.SMART_MONEY_DEALS' | translate }}</span>
+          </div>
+          <div class="screen-list">
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{ 'LANDING.FII_BUYING_SPREE' | translate }}</span>
+              <span class="screen-item-count"
+                >12 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 12 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{ 'LANDING.DII_ACCUMULATION' | translate }}</span>
+              <span class="screen-item-count"
+                >8 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 8 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{ 'LANDING.PROMOTER_BUYING' | translate }}</span>
+              <span class="screen-item-count"
+                >5 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 5 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{ 'LANDING.BLOCK_DEALS_TODAY' | translate }}</span>
+              <span class="screen-item-count"
+                >3 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 3 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          </div>
+        </div>
+        <!-- MF Screens -->
+        <div class="screen-col">
+          <div class="screen-col-header">
+            <mat-icon>account_balance_wallet</mat-icon>
+            <span>{{ 'LANDING.MF_SCREENS' | translate }}</span>
+          </div>
+          <div class="screen-list">
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{ 'LANDING.TOP_TAX_SAVERS' | translate }}</span>
+              <span class="screen-item-count"
+                >15 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 15 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{
+                'LANDING.LONG_TERM_COMPOUNDERS' | translate
+              }}</span>
+              <span class="screen-item-count"
+                >22 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 22 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{ 'LANDING.LOW_COST_INDEX_FUNDS' | translate }}</span>
+              <span class="screen-item-count"
+                >18 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 18 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+            <a class="screen-item" routerLink="/screener">
+              <span class="screen-item-name">{{
+                'LANDING.CONSISTENT_PERFORMERS' | translate
+              }}</span>
+              <span class="screen-item-count"
+                >10 {{ 'STOCKS.STOCKS_COUNT' | translate: { count: 10 } }}</span
+              >
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ NEWS & EVENTS ═══════════════════════ -->
+  <section class="tt-news reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">{{ 'LANDING.MARKET_NEWS' | translate }}</h2>
+        <a routerLink="/blog" class="section-link"
+          >{{ 'LANDING.VIEW_ALL' | translate }} <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="news-layout">
+        <!-- Spotlight -->
+        <div class="news-spotlight">
+          <div class="spotlight-badge">
+            <mat-icon>wb_sunny</mat-icon> {{ 'LANDING.SPOTLIGHT' | translate }}
+          </div>
+          <h3 class="spotlight-title">{{ spotlightNews.title }}</h3>
+          <div class="spotlight-meta">
+            <span class="spotlight-cat">{{ spotlightNews.category }}</span>
+            <span class="spotlight-time">{{ spotlightNews.time }}</span>
+          </div>
+        </div>
+        <!-- Tabs + List -->
+        <div class="news-sidebar">
+          <div class="news-tabs">
+            <button
+              *ngFor="let tab of newsTabs; let i = index"
+              class="tab-btn"
+              [class.active]="activeNewsTab === i"
+              (click)="setActiveNewsTab(i)"
+            >
+              {{ tab | translate }}
+            </button>
+          </div>
+          <div class="news-list">
+            <div class="news-item" *ngFor="let n of filteredNews | slice: 1 : 4">
+              <div class="news-icon-wrap">
+                <mat-icon>{{ n.icon }}</mat-icon>
+              </div>
+              <div class="news-body">
+                <span class="news-cat">{{ n.category }}</span>
+                <h4 class="news-title">{{ n.title }}</h4>
+                <span class="news-time">{{ n.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ FEATURES ═══════════════════════ -->
+  <section class="tt-features reveal">
+    <div class="tt-section-inner">
+      <div class="features-header">
+        <h2 class="section-title">{{ 'LANDING.FEATURES_TITLE' | translate }}</h2>
+        <p class="features-subtitle">
+          {{ 'LANDING.FEATURES_SUBTITLE' | translate }}
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" *ngFor="let f of features">
+          <div class="feature-icon-wrap">
+            <mat-icon>{{ f.icon }}</mat-icon>
+          </div>
+          <h3 class="feature-title">{{ f.title | translate }}</h3>
+          <p class="feature-desc">{{ f.desc | translate }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ POPULAR STOCKS ═══════════════════════ -->
+  <section class="tt-popular reveal">
+    <div class="tt-section-inner">
+      <div class="section-header">
+        <h2 class="section-title">{{ 'LANDING.POPULAR_STOCKS' | translate }}</h2>
+        <a routerLink="/stocks" class="section-link"
+          >{{ 'LANDING.SEE_ALL' | translate }} <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+      <div class="popular-grid">
+        <a class="popular-card" *ngFor="let s of popularStocks" routerLink="/stocks">
+          <div class="pop-sym">{{ s.symbol }}</div>
+          <div class="pop-name">{{ s.name }}</div>
+          <div class="pop-price">₹{{ s.price }}</div>
+          <div class="pop-change" [class.green]="s.change > 0" [class.red]="s.change < 0">
+            {{ s.change > 0 ? '+' : '' }}{{ s.change }}%
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ STATS BAR ═══════════════════════ -->
+  <section class="tt-stats reveal">
+    <div class="tt-section-inner">
+      <div class="stats-grid">
+        <div class="stat-item" *ngFor="let st of stats">
+          <mat-icon class="stat-icon">{{ st.icon }}</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">{{ st.value }}</span>
+            <span class="stat-label">{{ st.label | translate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ CTA ═══════════════════════ -->
+  <section class="tt-cta reveal">
+    <div class="tt-section-inner cta-inner">
+      <h2>{{ 'LANDING.CTA_TITLE' | translate }}</h2>
+      <p>{{ 'LANDING.CTA_DESC' | translate }}</p>
+      <div class="cta-actions">
+        <a routerLink="/auth/register" class="btn-primary-lg">
+          <mat-icon>rocket_launch</mat-icon>
+          {{ 'LANDING.CREATE_ACCOUNT' | translate }}
+        </a>
+        <a routerLink="/stocks" class="btn-outline-lg">
+          {{ 'LANDING.EXPLORE_MARKETS' | translate }}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+  <footer class="tt-footer">
+    <div class="tt-footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <mat-icon>account_balance</mat-icon>
+            <span>{{ 'APP_NAME' | translate }}</span>
+          </div>
+          <p>{{ 'LANDING.FOOTER_TAGLINE' | translate }}</p>
+          <div class="footer-social">
+            <mat-icon>language</mat-icon>
+            <mat-icon>smart_display</mat-icon>
+            <mat-icon>chat</mat-icon>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>{{ 'LANDING.PRODUCTS' | translate }}</h4>
+          <a routerLink="/stocks">{{ 'NAV.STOCKS' | translate }}</a>
+          <a routerLink="/etf">{{ 'NAV.ETFS' | translate }}</a>
+          <a routerLink="/indices">{{ 'NAV.INDICES' | translate }}</a>
+          <a routerLink="/mutual-funds">{{ 'NAV.MUTUAL_FUNDS' | translate }}</a>
+          <a routerLink="/gold">{{ 'NAV.GOLD' | translate }}</a>
+          <a routerLink="/bonds">{{ 'NAV.BONDS' | translate }}</a>
+        </div>
+        <div class="footer-col">
+          <h4>{{ 'NAV.TOOLS' | translate }}</h4>
+          <a routerLink="/screener">{{ 'NAV.SCREENER' | translate }}</a>
+          <a routerLink="/compare">{{ 'NAV.COMPARE' | translate }}</a>
+          <a routerLink="/backtest">{{ 'NAV.BACKTEST' | translate }}</a>
+          <a routerLink="/calendar">{{ 'NAV.CALENDAR' | translate }}</a>
+          <a routerLink="/watchlist">{{ 'LANDING.WATCHLIST' | translate }}</a>
+        </div>
+        <div class="footer-col">
+          <h4>{{ 'NAV.LEARN' | translate }}</h4>
+          <a routerLink="/blog">{{ 'NAV.BLOG' | translate }}</a>
+          <a routerLink="/research">{{ 'NAV.RESEARCH' | translate }}</a>
+          <a routerLink="/learn">{{ 'NAV.COURSES' | translate }}</a>
+          <a routerLink="/glossary">{{ 'LANDING.GLOSSARY' | translate }}</a>
+        </div>
+        <div class="footer-col">
+          <h4>{{ 'LANDING.COMPANY' | translate }}</h4>
+          <a routerLink="/about">{{ 'LANDING.ABOUT' | translate }}</a>
+          <a routerLink="/careers">{{ 'LANDING.CAREERS' | translate }}</a>
+          <a routerLink="/contact">{{ 'LANDING.CONTACT' | translate }}</a>
+          <a routerLink="/privacy">{{ 'LANDING.PRIVACY' | translate }}</a>
+          <a routerLink="/terms">{{ 'LANDING.TERMS' | translate }}</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>{{ 'LANDING.ALL_RIGHTS' | translate }}</span>
+        <span>{{ 'LANDING.RISK_DISCLAIMER' | translate }}</span>
+      </div>
+    </div>
+  </footer>
+</div>

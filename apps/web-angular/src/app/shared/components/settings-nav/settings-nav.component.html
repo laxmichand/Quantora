@@ -1,0 +1,10 @@
+<nav class="settings-nav">
+  <a
+    [routerLink]="tabs[tab].route"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: tabs[tab].exact }"
+  >
+    <mat-icon>{{ tabs[tab].icon }}</mat-icon>
+    <span>{{ tabs[tab].label | translate }}</span>
+  </a>
+</nav>
