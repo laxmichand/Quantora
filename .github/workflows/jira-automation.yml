@@ -81,7 +81,7 @@ jobs:
       - name: Extract Jira keys from PR
         id: keys
         run: |
-          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u)
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
           echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
       - name: Move issues to Code Review
         env:
@@ -107,7 +107,7 @@ jobs:
       - name: Extract Jira keys from PR
         id: keys
         run: |
-          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u)
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
           echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
       - name: Check CI status
         id: ci
@@ -141,7 +141,7 @@ jobs:
       - name: Extract Jira keys from PR
         id: keys
         run: |
-          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u)
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "${{ github.event.pull_request.title }}" "${{ github.event.pull_request.body }}" "${{ github.event.pull_request.head.ref }}" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
           echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
       - name: Require green CI before QA
         id: ci
@@ -200,15 +200,17 @@ jobs:
           if [ -z "$PR" ]; then echo "No PR for this check_suite"; exit 0; fi
           echo "number=$PR" >> "$GITHUB_OUTPUT"
       - name: Extract Jira keys from PR
+        if: steps.pr.outputs.number != ''
         id: keys
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUM: ${{ steps.pr.outputs.number }}
         run: |
           PR_DATA=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUM" --jq '{title:.title, body:.body, head:.head.ref}')
-          KEYS=$(node scripts/jira-sync.mjs extract-keys "$(echo "$PR_DATA" | jq -r .title)" "$(echo "$PR_DATA" | jq -r .body)" "$(echo "$PR_DATA" | jq -r .head)" | sort -u)
+          KEYS=$(node scripts/jira-sync.mjs extract-keys "$(echo "$PR_DATA" | jq -r .title)" "$(echo "$PR_DATA" | jq -r .body)" "$(echo "$PR_DATA" | jq -r .head)" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')
           echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
       - name: Check CI status for the PR head
+        if: steps.pr.outputs.number != ''
         id: ci
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -231,7 +233,7 @@ jobs:
           echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
           echo "pending=$PENDING" >> "$GITHUB_OUTPUT"
       - name: Move In QA issues to QA Failed
-        if: steps.ci.outputs.failed != '0' || steps.ci.outputs.pending != '0'
+        if: steps.pr.outputs.number != '' && (steps.ci.outputs.failed != '0' || steps.ci.outputs.pending != '0')
         env:
           KEYS: ${{ steps.keys.outputs.keys }}
           PR_NUM: ${{ steps.pr.outputs.number }}

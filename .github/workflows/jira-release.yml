@@ -44,7 +44,7 @@ jobs:
       - name: Collect issue keys from release commits
         run: |
           LOG="$(git log --format='%s%n%b' -20 "$GITHUB_SHA")"
-          KEYS="$(node scripts/jira-sync.mjs extract-keys "$LOG" | sort -u)"
+          KEYS="$(node scripts/jira-sync.mjs extract-keys "$LOG" | sort -u | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
           echo "release_keys=$KEYS" >> "$GITHUB_ENV"
       - name: Advance QA-passed issues through release
         env:
