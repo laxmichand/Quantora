@@ -8,7 +8,7 @@ export class LoginDto {
 
   @ApiProperty()
   @IsString()
-  @MinLength(8)
+  @MinLength(1)
   password: string;
 
   @ApiPropertyOptional({ description: 'Client-generated device ID' })
